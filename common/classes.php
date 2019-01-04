@@ -47,7 +47,9 @@ require_once("mysql2json.class.php");
 
 
 //statedata specific
-require_once("/usr/local/Corda60/dev_tools/embedder/php/CordaEmbedder.php");
+if(file_exists("/usr/local/Corda60/dev_tools/embedder/php/CordaEmbedder.php"))
+require_once("/usr/local/Corda60/dev_tools/embedder/php/CordaEmbedder.php"); else
+require_once("/var/www/Corda60/dev_tools/embedder/php/CordaEmbedder.php");
 require_once("chart.php");
 require_once("functions.php");
 require_once("tracker.php");
