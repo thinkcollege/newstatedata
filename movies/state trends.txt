@@ -1,0 +1,51 @@
+{QTtext}{font:Geneva}{plain}{size:14}{textColor: 65535, 65535, 65535}{backColor: 0, 0, 0}{justify:center}{timeScale:30}{width:550}{height:30}{timeStamps:absolute}{language:0}{textEncoding:0}
+  
+[00:00:03.00]
+Say you work for vocational rehabilitation in Connecticut
+[00:00:07.00]
+It's ten in the morning when your boss rushes in
+[00:00:09.00]
+the state controller wants to see how we are doing
+[00:00:11.00]
+we are meeting in half an hour
+[00:00:13.00]
+where do we find that data in such short notice?
+[00:00:17.00]
+you turn to statedata.info and click on state trends
+[00:00:21.00]
+from the drop down menus you pick Connecticut, 
+[00:00:25.00]
+then vocational rehabilitation and click submit
+[00:00:28.00]
+what would best show your state's progress?
+[00:00:32.00]
+for the list of variables you decide to chart your
+[00:00:35.00]
+earnings outcomes and click submit
+[00:00:37.00]
+and there you are, the chart shows average earnings per week 
+[00:00:42.00]
+from 2003 all the way back to 1985, next to the national mean
+[00:00:47.00]
+roll your mouse over the graph bars
+[00:00:50.00]
+to display the exact state or national weekly earnings figures
+[00:00:55.00]
+you want to show the controller your figures,
+[00:00:58.00]
+so you click on the "d" link to get  the underlying numbers
+[00:01:02.00]
+your done and it took only seconds
+[00:01:05.00]
+the controller is sure to be impressed
+[00:01:07.00]
+and by-the-way if you want statistics and
+[00:01:09.00]
+analysis that aren't on statedata.info
+[00:01:12.00]
+the Institute for Community Inclusion
+[00:01:15.00]
+can customize additional data to meet your needs
+[00:01:18.00]
+contact us for more information 
+[00:01:20.00]
