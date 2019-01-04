@@ -1,0 +1,62 @@
+{QTtext}{font:Verdana}{plain}{size:14}{textColor: 65535, 65535, 65535}{backColor: 0, 0, 0}{justify:center}{timeScale:30}{width:550}{height:25}{timeStamps:absolute}{language:0}{textEncoding:0}
+[00:00:00.00]
+[00:00:01.00]
+It's useful to get outcomes for one state, 
+[00:00:03.10]
+[00:00:03.10]
+but in practice states don't always stand alone
+[00:00:06.00]
+[00:00:06.00]
+that's way statedata.info allows you to compare
+[00:00:10.30]
+[00:00:10.30]
+up to three states against the national average.
+[00:00:13.00]
+[00:00:13.00]
+Say you want to look at Connecticut vocational rehabilitation
+[00:00:17.00]
+[00:00:17.00]
+outcomes side by side with comparable states.
+[00:00:20.00]
+[00:00:20.00]
+Click state comparison and choose your
+[00:00:23.00]
+[00:00:23.00]
+states of interest, for example Connecticut,
+[00:00:27.00]
+[00:00:27.00]
+Colorado, and Oregon from the pull down menus.
+[00:00:31.00]
+Then you select vocational rehabilitation and click submit
+[00:00:37.00]
+[00:00:37.00]
+from the list of eleven variables on this page
+[00:00:42.00]
+[00:00:42.00]
+you decide to compare the three states rehabilitation rates
+[00:00:47.00]
+[00:00:47.00]
+which will account for population differences
+[00:00:51.00]
+[00:00:51.00]
+select this variable and click submit.
+[00:00:54.00]
+[00:00:54.00]
+Here you have a four color chart showing all three states
+[00:00:59.00]
+[00:00:59.00]
+plus the national average, let your mouse hover over the bars
+[00:01:03.00]
+[00:01:03.00]
+or click the "d" link to get the underlying data for more advanced calculations.
+[00:01:08.00]
+[00:01:08.00]
+Need more than this? The Institute for Community Inclusion can
+[00:01:12.00]
+[00:01:12.00]
+also provide analysis or customize additional data to meet your requirements,
+[00:01:18.00]
+[00:01:18.00]
+ contact us to learn about these options.
+[00:01:22.00]
+[00:01:22.00]

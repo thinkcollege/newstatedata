@@ -1,0 +1,66 @@
+{QTtext}{font:Geneva}{plain}{size:14}{textColor: 65535, 65535, 65535}{backColor: 0, 0, 0}{justify:center}{timeScale:30}{width:550}{height:30}{timeStamps:absolute}{language:0}{textEncoding:0}
+[00:00:02.00]
+Sometimes researchers and agency staff
+[00:00:04.00]
+want to see how employment outcomes break down for particular groups
+[00:00:08.00]
+such as women, latino clients, or social security beneficiaries
+[00:00:12.00]
+for these times statedata.info individual data option 
+[00:00:17.00]
+can be a powerful tool
+[00:00:19.00]
+lets use and examine data by race, age, education,
+[00:00:23.00]
+and a number of other traits
+[00:00:25.00]
+imagine that you work for
+[00:00:27.00]
+the Connecticut Workforce Agency and that you have a meeting with a
+[00:00:30.00]
+disability advocacy group, you want to show them outcomes
+[00:00:33.00]
+specifically for people who have disabilities
+[00:00:36.00]
+not your entire customer base
+[00:00:38.00]
+so, you turn to individual data page
+[00:00:42.00]
+and choose Connecticut
+[00:00:44.00]
+and work force development 2000 plus data set
+[00:00:47.00]
+and click submit
+[00:00:50.00]
+you want to present yearly earnings
+[00:00:52.00]
+and you focus on people who have a disability
+[00:00:54.00]
+that poses a substantial barrier to employment
+[00:00:57.00]
+select those variables and click submit
+[00:01:04.00]
+the resulting chart shows earnings outcomes
+[00:01:06.00]
+for people with disabilities who entered
+[00:01:08.00]
+unsubsidized employment
+[00:01:10.00]
+hover your mouse over the chart
+[00:01:13.00]
+or click the "d" link to reveal the underlying data
+[00:01:16.00]
+this "d" link also makes the chart accessible
+[00:01:19.00]
+to people with visual impairments
+[00:01:22.00]
+for more thorough data analysis
+[00:01:24.00]
+or to customize additional data
+[00:01:26.00]
+on the statedata.info platform
+[00:01:27.40]
+contact the Institute for Community Inclusion
+[00:01:31.00]
+to learn about your options
+[00:01:35.00]
