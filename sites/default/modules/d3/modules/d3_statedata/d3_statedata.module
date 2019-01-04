@@ -20,7 +20,7 @@
  * @see menu_example.module
  * @see menu_example_menu()
  */
-include('/home/statedata/statedata.info/htdocs/sites/default/modules/d3/modules/d3_statepages/old_system/functions.php');
+include(dirname(__FILE__) . '/../d3_statepages/old_system/functions.php');
 function d3_statedata_menu() {
   $items = array();
 
