@@ -20,7 +20,7 @@
       p = [80, 50, 20, 90],
       w = 1000,
       h = 500,
-      // chart is 65% and 80% of overall 
+      // chart is 65% and 80% of overall
        chart = {w: w * .75, h: h * .65},
       legend = {w: w * .35, h:h},
       // bar width is calculated based on chart width, and amount of data
@@ -53,7 +53,7 @@
       .append("text")
       .attr("dy", "1em")
       .attr("text-anchor", "end")
-      .attr('transform', function(d,i) { return "rotate(-35)"; })
+      .attr('transform', function(d,i) { return "rotate(-10)"; })
       .text(function(d,i){ return xLabels[i]; });
 
     /* LINES */
@@ -79,8 +79,8 @@
       .data(rows)
       .enter().append('g')
       .attr('class', 'bargroup')
-      .attr('id', function(d,i){ 
-  
+      .attr('id', function(d,i){
+
       return xLabels[i].split(" ").join("-");
           })
       .attr('transform', function(d,i) { return "translate(" + i * (barGroupWidth + barSpacing) + ", 0)"; });
@@ -95,8 +95,8 @@
       .attr('y', function (d,i) { return y(d); })
       .attr('fill', function(d,i) { return d3.rgb(z(i)); })
       .attr('class', function(d,i){ return key[i].split(" ").join("-"); })
-        
-      .on('mouseover', function(d, i) { 
+
+      .on('mouseover', function(d, i) {
         var currentstate = $(this).attr('class').split("-").join(" ") + ", " + $(this).parent().attr('id').replace("-"," ");
         showToolTip(currentstate,d, i, this); })
       .on('mouseout', function(d, i) { hideToolTip(d, i, this); });
@@ -145,7 +145,7 @@ var w = (currentstate.length + 13) * 6.7;
         // now move to the actual x and y of the bar within that group
         .attr('transform', function(data) { return 'translate(' + (Number(bar.attr('x')) + barWidth) + ',' + y(d) + ')'; });
 
-    
+
      d3.statetooltip(currentstate,tooltip,d,40,w,'data');
     }
 
