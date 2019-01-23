@@ -1,0 +1,8 @@
+name = Pie Chart
+files[js][] = pie.js
+files[css][] = pie.css
+version = 0.1
+dependencies[] = d3
+dependencies[] = d3.extend
+dependencies[] = d3.tooltip
+views = 3.0

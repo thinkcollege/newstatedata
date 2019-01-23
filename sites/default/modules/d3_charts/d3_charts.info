@@ -1,0 +1,6 @@
+name = D3 Charts
+description = A module for creating customized visualizations from D3 libraries
+core = 7.x
+dependencies[] = libraries (>=2.0)
+dependencies[] = d3
+package = Charts
