@@ -2,7 +2,6 @@
 # Apache/PHP/Drupal settings:
 #
 
-
 # Protect files and directories from prying eyes.
 <FilesMatch "\.(engine|inc|info|install|make|module|profile|test|po|sh|.*sql|theme|tpl(\.php)?|xtmpl)(~|\.sw[op]|\.bak|\.orig|\.save)?$|^(\..*|Entries.*|Repository|Root|Tag|Template|composer\.(json|lock))$|^#.*#$|\.php(~|\.sw[op]|\.bak|\.orig\.save)$">
   Order allow,deny
@@ -81,8 +80,6 @@ DirectoryIndex index.php index.html index.htm
   # If you do not have mod_rewrite installed, you should remove these
   # directories from your webroot or otherwise protect them from being
   # downloaded.
-  RewriteRule "(^|/)\." - [F]
-
   # If your site can be accessed both with and without the 'www.' prefix, you
   # can use one of the following settings to redirect users to your preferred
   # URL, either WITH or WITHOUT the 'www.' prefix. Choose ONLY one option:
@@ -116,7 +113,13 @@ DirectoryIndex index.php index.html index.htm
   RewriteCond %{REQUEST_FILENAME} !-d
   RewriteCond %{REQUEST_URI} !=/favicon.ico
   RewriteRule ^ index.php [L]
-
+  #RewriteCond %{HTTPS} !on
+  #RewriteRule ^(.*)$ https://survey.statedata.info/$1 [R=301,L]
+  RewriteCond %{REQUEST_FILENAME} !.well-known/
+  RewriteRule "(^|/)\." - [F]
+  RewriteCond %{THE_REQUEST} ^.*(wp-login\.php).* [NC]
+  #RewriteCond %{REMOTE_ADDR} !^162\.209\.10\.199$
+  #RewriteRule ^(.*)$ - [F,L]
   # Rules to correctly serve gzip compressed CSS and JS files.
   # Requires both mod_rewrite and mod_headers to be enabled.
   <IfModule mod_headers.c>
@@ -148,7 +151,3 @@ DirectoryIndex index.php index.html index.htm
   # Disable content sniffing, since it's an attack vector.
   Header always set X-Content-Type-Options nosniff
 </IfModule>
-
-Redirect 301 /bluebook2018.pdf /sites/statedata.info/files/files/statedata2018_web_F.pdf
-
-
