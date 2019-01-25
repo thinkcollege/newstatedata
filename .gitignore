@@ -1,1 +1,10 @@
-/home/drupal-7.x/.gitignore
+# Ignore configuration files that may contain sensitive information.
+sites/*/settings*
+.htaccess
+dds/.htaccess
+temp/*
+common/config.php
+# Ignore paths that contain user-generated content.
+sites/*/files
+sites/*/private
+sites/default/files/css/*
