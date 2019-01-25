@@ -2,8 +2,9 @@
 # Apache/PHP/Drupal settings:
 #
 
+
 # Protect files and directories from prying eyes.
-<FilesMatch "\.(engine|inc|info|install|make|module|profile|test|po|sh|.*sql|theme|tpl(\.php)?|xtmpl)(~|\.sw[op]|\.bak|\.orig|\.save)?$|^(\..*|Entries.*|Repository|Root|Tag|Template)$|^#.*#$|\.php(~|\.sw[op]|\.bak|\.orig\.save)$">
+<FilesMatch "\.(engine|inc|info|install|make|module|profile|test|po|sh|.*sql|theme|tpl(\.php)?|xtmpl)(~|\.sw[op]|\.bak|\.orig|\.save)?$|^(\..*|Entries.*|Repository|Root|Tag|Template|composer\.(json|lock))$|^#.*#$|\.php(~|\.sw[op]|\.bak|\.orig\.save)$">
   Order allow,deny
 </FilesMatch>
 
@@ -55,9 +56,7 @@ DirectoryIndex index.php index.html index.htm
 # Various rewrite rules.
 <IfModule mod_rewrite.c>
   RewriteEngine on
-  RewriteCond %{THE_REQUEST} ^.*(wp-login\.php).* [NC]
-  RewriteCond %{REMOTE_ADDR} !^162\.209\.10\.199$
-  RewriteRule ^(.*)$ - [F,L]
+
   # Set "protossl" to "s" if we were accessed via https://.  This is used later
   # if you enable "www." stripping or enforcement, in order to ensure that
   # you don't bounce between http and https.
@@ -72,7 +71,7 @@ DirectoryIndex index.php index.html index.htm
   # Make sure Authorization HTTP header is available to PHP
   # even when running as CGI or FastCGI.
   RewriteRule ^ - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
-  #Redirect /MDDADataUpload/ https://survey.statedata.info/
+
   # Block access to "hidden" directories whose names begin with a period. This
   # includes directories used by version control systems such as Subversion or
   # Git to store control files. Files whose names begin with a period, as well
@@ -86,6 +85,7 @@ DirectoryIndex index.php index.html index.htm
   # If you do not have mod_rewrite installed, you should remove these
   # directories from your webroot or otherwise protect them from being
   # downloaded.
+<<<<<<< HEAD
   RewriteCond %{HTTP_HOST} ^statedata.info [NC]
   RewriteRule ^(.*)$ https://www.statedata.info/$1 [R=301,L]
   RewriteCond %{HTTPS} !on
@@ -93,9 +93,10 @@ DirectoryIndex index.php index.html index.htm
   RewriteRule ^(.*)$ https://www.statedata.info/$1 [R=301,L]
 
   RewriteCond %{REQUEST_FILENAME} !.well-known/
+=======
+>>>>>>> 3667fdc3b2a2f16db8fbd573c85e246fa0579e88
   RewriteRule "(^|/)\." - [F]
-  RewriteCond %{THE_REQUEST} ^.*(wp-login)
-  RewriteRule ^(.*)$ - [F,L]
+
   # If your site can be accessed both with and without the 'www.' prefix, you
   # can use one of the following settings to redirect users to your preferred
   # URL, either WITH or WITHOUT the 'www.' prefix. Choose ONLY one option:
@@ -122,19 +123,14 @@ DirectoryIndex index.php index.html index.htm
   # If your site is running in a VirtualDocumentRoot at http://example.com/,
   # uncomment the following line:
   # RewriteBase /
-  #RewriteCond %{HTTP_HOST} !^www\. [NC]
-  #RewriteRule ^ https://www.%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
-  # ensure https
-  #RewriteCond %{HTTP:X-Forwarded-Proto} !https
-  #RewriteCond %{HTTPS} off
-  #RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
-  #RewriteRule ^ http%{ENV:protossl}://www.%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
   # Pass all requests not referring directly to files in the filesystem to
   # index.php. Clean URLs are handled in drupal_environment_initialize().
   RewriteCond %{REQUEST_FILENAME} !-f
   RewriteCond %{REQUEST_FILENAME} !-d
   RewriteCond %{REQUEST_URI} !=/favicon.ico
   RewriteRule ^ index.php [L]
+
   # Rules to correctly serve gzip compressed CSS and JS files.
   # Requires both mod_rewrite and mod_headers to be enabled.
   <IfModule mod_headers.c>
@@ -151,6 +147,7 @@ DirectoryIndex index.php index.html index.htm
     # Serve correct content types, and prevent mod_deflate double gzip.
     RewriteRule \.css\.gz$ - [T=text/css,E=no-gzip:1]
     RewriteRule \.js\.gz$ - [T=text/javascript,E=no-gzip:1]
+
     <FilesMatch "(\.js\.gz|\.css\.gz)$">
       # Serve correct encoding type.
       Header set Content-Encoding gzip
@@ -159,3 +156,13 @@ DirectoryIndex index.php index.html index.htm
     </FilesMatch>
   </IfModule>
 </IfModule>
+
+# Add headers to all responses.
+<IfModule mod_headers.c>
+  # Disable content sniffing, since it's an attack vector.
+  Header always set X-Content-Type-Options nosniff
+</IfModule>
+
+Redirect 301 /bluebook2018.pdf /sites/statedata.info/files/files/statedata2018_web_F.pdf
+
+

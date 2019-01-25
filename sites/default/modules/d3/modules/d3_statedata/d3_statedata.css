@@ -47,3 +47,5 @@ g.ticks text { font-size: 1em; font-weight: bold; }
       .page-data select[name="dropdown_states"].form-control, .page-data select[name="add_states[]"],  select[name="category_sel"].form-control {width: 45%; }
       }
       form#d3-statedata-dependent-dropdown {padding-bottom: 16px; }
+      .page-data.page-data-appendix .buildBut { margin: 0 0 12px 75%; }
+      .page-data.page-data-appendix select[name="dropdown_states"].form-control { width: 85%;}
