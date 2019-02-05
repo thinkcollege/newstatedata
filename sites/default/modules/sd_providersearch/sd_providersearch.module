@@ -1052,21 +1052,21 @@ function sd_providersearch_agency_details($agency_id, $county = '') {
 
  
 	// Setup a cache ID
-	$cid = 'sd_providersearch:agency_details:' . $agency_id . $county . $endmonth;
+	//$cid = 'sd_providersearch:agency_details:' . $agency_id . $county . $endmonth;
 	// If a cached entry exists, return it
-	if ($cached = cache_get($cid)) {
+	//if ($cached = cache_get($cid)) {
 	 $agency_query2 = $cached->data;
-	} else {
+	//} else {
 		$agency_query2 = db_query($query2)->fetch(PDO::FETCH_ASSOC);
 	
   
 	// And cache it
-	cache_set($cid, $data, 'cache', strtotime('+5 days'));
+	//cache_set($cid, $data, 'cache', strtotime('+5 days'));
   
 
 
 
-	}
+	//}
 
    if (!$agency_query['city'] || $agency_query['city'] == '') { $altquery = "select * from  {ps_cities} cities  WHERE `county` = '" . $agency_query2['countyname'] . "' AND county_seat = 1 LIMIT 1";
    $agency_query_alt = db_query($altquery)->fetch(PDO::FETCH_ASSOC);
