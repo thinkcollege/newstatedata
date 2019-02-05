@@ -254,7 +254,7 @@ $excludes = implode(',',$excludearray);
 
 
     $now = date('Y-m');
-   $lastmonth= new DateTime("$now - 5 months");
+   $lastmonth= new DateTime("$now - 7 months");
    $startmonth =  new DateTime("$now - 16 months");
    $beginmonth = date_format($startmonth, 'Y-m-') . '01';
    $endmonth = date_format($lastmonth, 'Y-m-') . '01';
@@ -281,7 +281,7 @@ return $countyprovs;
  $countyprovids = implode(',',$countyarray);
 
      $now = date('Y-m');
-    $lastmonth= new DateTime("$now - 5 months");
+    $lastmonth= new DateTime("$now - 7 months");
     $startmonth =  new DateTime("$now - 16 months");
     $beginmonth = date_format($startmonth, 'Y-m-') . '01';
     $endmonth = date_format($lastmonth, 'Y-m-') . '01';
@@ -665,7 +665,7 @@ return $mapblock;
 
 
     $now = date('Y-m');
-   $lastmonth= new DateTime("$now - 5 months");
+   $lastmonth= new DateTime("$now - 7 months");
    $startmonth =  new DateTime("$now - 16 months");
    $beginmonth = date_format($startmonth, 'Y-m-') . '01';
    $endmonth = date_format($lastmonth, 'Y-m-') . '01';
@@ -878,7 +878,7 @@ $provcounty[] = array($key =>$value);
 }
 }
     $now = date('Y-m');
-   $lastmonth= new DateTime("$now - 5 months");
+   $lastmonth= new DateTime("$now - 7 months");
    $startmonth =  new DateTime("$now - 16 months");
    $beginmonth = date_format($startmonth, 'Y-m-') . '01';
    $endmonth = date_format($lastmonth, 'Y-m-') . '01';
@@ -1039,7 +1039,7 @@ function sd_providersearch_build_in_clause ($zip_code, $range="5",$county)
 
 function sd_providersearch_agency_details($agency_id, $county = '') {
   $now = date('Y-m');
- $lastmonth= new DateTime("$now - 5 months");
+ $lastmonth= new DateTime("$now - 7 months");
  $startmonth =  new DateTime("$now - 16 months");
  $beginmonth = date_format($startmonth, 'Y-m-') . 1;
  $endmonth = date_format($lastmonth, 'Y-m-') . 1;
