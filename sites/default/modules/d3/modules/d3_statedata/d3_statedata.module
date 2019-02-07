@@ -1495,9 +1495,9 @@ $varLegend	=  $justfunctions->get_legend_name($table, $var);
  if ($var == 'REHABRAT' || $var == 'Perwork'|| $var == 'Integrated employment percentage rate' || $var == 'Community based nonwork percentage rate' || $var == 'Facility-based work percentage rate' || $var == 'Facility-based nonwork percentage rate' || $var == 'Facility-based and nonwork settings percentage rate' || $var == 'IntEmp_Fund_percent') $formatdouble = "CONCAT(FORMAT((`$var` * 100), 1),'%')";
  if ($var == 'unemployment rate' || $var == 'Below_Poverty') $formatdouble = "CONCAT(FORMAT(`$var`,2),'%')";
  if($var == 'Annual_Work_Earnings') $formatdouble = "FORMAT((`$var`/1000),1)";
- $query3 =  "SELECT `{d3_states}`.`name`, GROUP_CONCAT(IF(`$var` = -1, '', IF( `{d3_labels}`.format = 'integer', FORMAT(`$var`, 0), $formatdouble)) ORDER BY `year` SEPARATOR ';') AS `vars`
+ $query3 =  "SELECT `{d3_states}`.`name`, GROUP_CONCAT(IF(`$var` = -1 OR `$var` IS NULL, '', IF( `{d3_labels}`.format = 'integer', FORMAT(`$var`, 0), $formatdouble)) ORDER BY `year` SEPARATOR ';') AS `vars`
  FROM `$table`, `{d3_labels}`,`{d3_states}`  WHERE `{d3_labels}`.column_name IN ('$var') and `{d3_labels}`.table_name = '$table' AND `state` IN $stategroup AND `$table`.`state` = `{d3_states}`.`abbreviation` GROUP BY `state` ORDER BY `state`";
-
+print $query3;
 $tablerows = db_query($query3)->fetchAll(PDO::FETCH_ASSOC);
 
  $totalstatecount = false;
@@ -1675,11 +1675,12 @@ $dbrow2 [] = array('year' => "$year", 'var' => $entry['var'] );
 }
 $data	= array('years' => '', 'var' => '');
 foreach ($dbrow2 as $row) {
-	if ($row['var'] ."" == "-1") {
+	if ($row['var'] ."" == "-1" || !$row['var'] || $row['var'] == '' || empty($row['var']) ) {
 		$row['var'] = 0; }
    	if ($row['var'] ."" == "0") {
    		$row['var'] = " - - ";
-	}
+  }
+
 	$data['years']	.= $sep . $row['year'];
 	$data['var']	.= $sep . $row['var'];
 	$dlData			.= $sep . $row['var'];
