@@ -1052,7 +1052,7 @@ function sd_providersearch_agency_details($agency_id, $county = '') {
 
  
 	// Setup a cache ID
-	$cid = 'sd_providersearch:agency_details:' . $agency_id . $county . $endmonth;
+	$cid = 'sd_providersearch:agency_details:' . $agency_id . $county . $countyname;
 	// If a cached entry exists, return it
 	if ($cached = cache_get($cid)) {
 	 $agency_query2 = $cached->data;
@@ -1061,7 +1061,7 @@ function sd_providersearch_agency_details($agency_id, $county = '') {
 	
   
 	// And cache it
-	cache_set($cid, $data, 'cache', strtotime('+5 days'));
+	cache_set($cid, $agency_query2, 'cache', strtotime('+5 days'));
   
 
 
