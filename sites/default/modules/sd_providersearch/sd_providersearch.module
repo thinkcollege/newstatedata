@@ -1066,7 +1066,7 @@ cache_set($cid, $agency_query2, 'cache', strtotime('+5 days'));
 
 
 
-	//}
+	}
 
    if (!$agency_query['city'] || $agency_query['city'] == '') { $altquery = "select * from  {ps_cities} cities  WHERE `county` = '" . $agency_query2['countyname'] . "' AND county_seat = 1 LIMIT 1";
    $agency_query_alt = db_query($altquery)->fetch(PDO::FETCH_ASSOC);
