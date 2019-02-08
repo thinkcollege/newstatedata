@@ -1051,17 +1051,17 @@ function sd_providersearch_agency_details($agency_id, $county = '') {
  $query2 = $county && $county != '' ? "SELECT `codes`.`Code` `countycode`,`codes`.`Value` `countyname` from {ps_code_lookup} codes  WHERE `codes`.`Code` = '$county'" : "SELECT COUNT(`codes`.`Code`) `countycount`,`codes`.`Code` `countycode`,`codes`.`Value` `countyname` from {ps_billing} billing LEFT JOIN {ps_code_lookup} codes on `billing`.`CountyCode` = `codes`.`Code` WHERE `ProviderNumber` = $agency_id AND `billing`.`ServiceYearMonth` >= '$beginmonth' AND `billing`.`ServiceYearMonth` <= '$endmonth' GROUP BY `codes`.`Code` ORDER BY COUNT(`codes`.`Code`) DESC LIMIT 1";
 
  
-	// Setup a cache ID
-	//$cid = 'sd_providersearch:agency_details:' . $agency_id . $county . $endmonth;
-	// If a cached entry exists, return it
-	//if ($cached = cache_get($cid)) {
-	 $agency_query2 = $cached->data;
-	//} else {
-		$agency_query2 = db_query($query2)->fetch(PDO::FETCH_ASSOC);
-	
-  
-	// And cache it
-	//cache_set($cid, $data, 'cache', strtotime('+5 days'));
+// Setup a cache ID
+$cid = 'sd_providersearch:agency_details:' . $agency_id . $county . $countyname;
+// If a cached entry exists, return it
+if ($cached = cache_get($cid)) {
+ $agency_query2 = $cached->data;
+} else {
+	$agency_query2 = db_query($query2)->fetch(PDO::FETCH_ASSOC);
+
+
+// And cache it
+cache_set($cid, $agency_query2, 'cache', strtotime('+5 days'));
   
 
 
