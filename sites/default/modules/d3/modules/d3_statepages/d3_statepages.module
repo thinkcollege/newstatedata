@@ -210,7 +210,7 @@ function d3_statepages_states($firstparameter = '') {
 
  $argumentsone = array(':state' => "$firstparameter");
 
- $maxstate = db_query('select MAX(`subtable`.`YEAR`), `states`.`name`  from {d3_agency_mrdd} subtable LEFT JOIN {d3_states} states on `subtable`.`STATE` = `states`.`abbreviation` where `subtable`.`Integrated employment percentage rate` != -1 and `states`.`name` = :state1', array(':state1' => "$firstparameter"))->fetchField();
+ $maxstate = db_query('select MAX(`subtable`.`YEAR`), `states`.`name`  from {d3_agency_mrdd} subtable LEFT JOIN {d3_states} states on `subtable`.`STATE` = `states`.`abbreviation` where (`subtable`.`Integrated employment percentage rate` != -1 AND `subtable`.`Integrated employment percentage rate` != 0 AND `subtable`.`Integrated employment percentage rate` IS NOT NULL) and `states`.`name` = :state1', array(':state1' => "$firstparameter"))->fetchField();
   $emptystate = db_query('select MAX(`YEAR`) from {d3_agency_mrdd}')->fetchField();
 /* $selectone = db_query("SELECT `statenames`.`name` `statefullname`, `states`.`YEAR`,`states`.`Total served` `total_served`,`states`.`YEAR`,`states`.`Integrated employment` `integrated_employment`,`states`.`Integrated employment percentage rate` `IE_percentage_rate`,`states`.`Total funding` `total_funding`,`states`.`employment money` `employment_money`,(`states`.`employment money`/`states`.`Total funding`) `ttl_fund_IE_svcs_perc` FROM {d3_agency_mrdd} `states` LEFT JOIN {d3_states} `statenames` ON `states`.`STATE` = `statenames`.`abbreviation` WHERE `states`.`YEAR` = $maxstate AND `statenames`.`name` = :state1", array(':state1' => "$firstparameter")); */
  $selectone = db_select('d3_agency_mrdd', 'states');
