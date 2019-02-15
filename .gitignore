@@ -8,3 +8,9 @@ common/config.php
 sites/*/files
 sites/*/private
 sites/default/files/css/*
+sites/*/settings*
+sites/*/private
+sites/default/files/css/*
+common/config_md.php
+common/classes.php
+common/classes_md.php
