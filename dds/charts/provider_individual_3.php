@@ -216,7 +216,11 @@ $handle = fopen(dirname(__FILE__) ."/temp/" . $regionname . "_report.csv", "w");
     header('Cache-Control: must-revalidate');
     header('Pragma: public');
     header('Content-Length: ' . filesize(dirname(__FILE__) ."/temp/" . $regionname . "_report.csv"));
-    readfile(dirname(__FILE__) ."/temp/" . $regionname . "_report.csv");
+	readfile(dirname(__FILE__) ."/temp/" . $regionname . "_report.csv");
+	ignore_user_abort(true);
+
+    unlink(dirname(__FILE__) ."/temp/" . $regionname . "_report.csv");
+
     exit;
 //$template->add_region('content', $html);
 //include("header.php");
