@@ -9,8 +9,9 @@ $template->add_region('sidebar', '<?php $area="providerindividual"; $show_flash_
 $template->add_region('heading', 'Provider Report');
 
 $action = isset($_REQUEST["action"]) ? $_REQUEST["action"] : '';
+$downloadchoice = isset($_REQUEST["downloadchoice"]) ? $_REQUEST["downloadchoice"] : '';
 $f		= dds::getFilterValues();
-$html 	= '<form method="post" action="charts/provider_individual_' . ($action == "showregion" ? 2 : 1) . '.php" onsubmit="javascript:return validate(this);">';
+$html 	= '<form method="post" action="charts/provider_individual_' . ($action == "showregion" ? ($downloadchoice == 'yes' ? 3:2) : 1) . '.php" onsubmit="javascript:return validate(this);">';
 if ($action != "showregion") {
  	$html  .= '<input type="hidden" name="action" value="showregion">' . dds::getFilters('individual');
 } else {
@@ -18,6 +19,12 @@ if ($action != "showregion") {
 			. "<p><strong>Provider: " . dds::getProviderName($f['provider']) . "</strong>"
 			. '<p><label for="region">Select a region:</label> ' . dds::getRegions("r", 1,1, $f['provider'], 'individual', $f['year']) . '</p>';
 }
+$html .= $action != "showregion" ? '<legend><strong>Download report as file?</strong></legend>
+<input id="Yes" type="radio" name="downloadchoice" value="yes">
+<label for="yes">Yes</label><br />
+<input id="No" type="radio" name="downloadchoice" value="no">
+<label for="no">No</label>
+</fieldset>' : '';
 $html  .= '<p><input type="submit" class="submit" value="Generate Report" /></p></form><br>';
 
 $template->add_region('content', $html);

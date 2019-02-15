@@ -3,29 +3,30 @@
 //ini_set('display_errors', 1);
 ini_set("include_path","../../");
 include("common/classes.php");
-$template = new template;
-$template->debug();
+//$template = new template;
+//$template->debug();
 $print = !empty($_REQUEST["print"])  && strlen($_REQUEST["print"]) < 3 ? htmlentities($_REQUEST["print"]) : '';
-$template->define_file('dds_print_template.php');
-$template->add_region('title','Employment Supports Performance Outcome System Provider Report');
+//$template->define_file('dds_print_template.php');
+//$template->add_region('title','Employment Supports Performance Outcome System Provider Report');
 
 $f			= dds::getFilterValues();
 $sRegion	= strpos($f['region'], "x_") === 0 ? substr($f['region'], 2) : $f['region'];
 
-$template->add_region('heading', "<em>Employment Supports Performance Outcome System Provider Report<br>"
-	. dds::getProviderName($f['provider']) . "<br>{$f['year']} for "
-	. (!$sRegion ? 'all regions' : $sRegion) . '</em>');
-$template->add_region('sidebar', '<?php $area = "providerindividual"; $show_flash_link = ' . ($print + 0) . '; ?>');
+//$template->add_region('heading', "<em>Employment Supports Performance Outcome System Provider Report<br>"
+//	. dds::getProviderName($f['provider']) . "<br>{$f['year']} for "
+//	. (!$sRegion ? 'all regions' : $sRegion) . '</em>');
+//$template->add_region('sidebar', '<?php $area = "providerindividual"; $show_flash_link = ' . ($print + 0) . '; //');
 
 $html		= '';
 $providers	= array($f['provider']);
+$providername =  dds::getProviderName($f['provider']) ?  dds::getProviderName($f['provider']) . ' in Region:' : '';
 sort($providers);
 //print "\n<!-- " . var_dump ($f) . "\n-->\n";
 $regions	= !$f['region'] ? dds::getRegionArrayById($f['provider']) : array($f['region']);
 
 $reports	= $f['year'] < 2017 ? array("number","hours", "wage") : array("number", "jswraparound","hours", "wage","selfemp");
 $colSpan	= $f['year'] == "ALL" || $f['year'] >= 2007 ? 6 : 5;
-$csvoutput = 'Employment Supports Performance Outcome System Provider Report' . "\r\n";
+$csvoutput = 'Employment Supports Performance Outcome System Provider Report for ' . $providernname . $sRegion .' -- 2018' . "\r\n";
 foreach ($reports as $report) {
 	if ($report == "number") {
 		$html  .= '<p><span class="mainheading">Number Participating by Activity</span>'
@@ -199,11 +200,25 @@ foreach ($reports as $report) {
 	//foreach ($providers as $provider) {
 		$html  .= dds::getRowData('individual', $report);
 	//}
+	$regionname = str_replace(' ','_',$providername . $sRegion);
 	$html .= "</table>\n";
 	$csvoutput .= str_replace(array('</td><td>','</td></tr><td>','</td></tr>','<strong>','</strong>','<td><aa/>','<aa/>','<zz/>','<rr/>'),array("\",\"","\"\r\n\"","\"\r\n",'','','','','',''),dds::getRowData('individual', $report));
 	 
 }
-$template->add_region('content', $html);
-include("header.php");
-$template->make_template();
-include("footer.php");
+//print_r($csvoutput);
+$handle = fopen(dirname(__FILE__) ."/temp/" . $regionname . "_report.csv", "w");
+    fwrite($handle, $csvoutput);
+    fclose($handle);
+
+    header('Content-Type: application/octet-stream');
+    header('Content-Disposition: attachment; filename='.basename(dirname(__FILE__) ."/temp/" . $regionname . "_report.csv"));
+    header('Expires: 0');
+    header('Cache-Control: must-revalidate');
+    header('Pragma: public');
+    header('Content-Length: ' . filesize(dirname(__FILE__) ."/temp/" . $regionname . "_report.csv"));
+    readfile(dirname(__FILE__) ."/temp/" . $regionname . "_report.csv");
+    exit;
+//$template->add_region('content', $html);
+//include("header.php");
+//$template->make_template();
+//include("footer.php");

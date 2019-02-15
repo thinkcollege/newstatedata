@@ -10,8 +10,8 @@ class mre_base {
 		//mre_base Configuration
 		$this->mre_base_version="2.3";
 		$this->mre_base_sitename="StateData.info";
-		$this->mre_base_path="/home/statedata/statedata.info/htdocs/";
-		$this->mre_base_webpath="https://new.statedata.info";
+		$this->mre_base_path="/var/www/html_statedata/";
+		$this->mre_base_webpath="http://statedata.local";
 
 		//Database Configuration
 		$this->database_type="mysql"; //postgresql,mysql,mssql
@@ -28,7 +28,7 @@ class mre_base {
 		//User Configuration
 		$this->user_cookie_path="/";
 		#$this->user_cookie_domain="127.0.0.1";
-		$this->user_cookie_domain="www.communityinclusion.org";
+		$this->user_cookie_domain="statedata.local";
 		$this->user_tables="articles,schedule,posts";
 		//Permission Configuration
 		$this->permission_read="true";
