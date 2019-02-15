@@ -10,8 +10,8 @@ class mre_base {
 		//mre_base Configuration
 		$this->mre_base_version="2.3";
 		$this->mre_base_sitename="StateData.info";
-		$this->mre_base_path="/home/statedata/statedata.info/htdocs/";
-		$this->mre_base_webpath="https://new.statedata.info";
+		$this->mre_base_path="/var/www/html_statedata/";
+		$this->mre_base_webpath="http://statedata.local";
 		//Database Configuration
 		$this->database_type="mysql"; //postgresql,mysql,mssql
 		$this->database_host="localhost";

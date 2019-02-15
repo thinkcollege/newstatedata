@@ -259,20 +259,41 @@ class dds {
 	function: getActivityColumnNamesArray
 	purpose: return the column names for an activity
 */
-	static function getActivityColumnNamesArray ($variable) {
-		switch ($variable) {
-			case 'totalwages':
-			case 'meanwage':
-			case 'numberminimum':
-			case 'percentminimum':
-				return array('Individual Supported Employment', 'Group Supported Employment', 'Facility Based Employment');
-			case 'numberemployed10of12':
-			case 'precentemployed10of12':	return array('Individual Supported Employment', 'Group Supported Employment');
-			case 'numbernewjobin12months':	return array('Individual Supported Employment');
-			case 'meanhourlywage':
-				return array('Mean hourly wage Individual Employment', 'Mean hourly wage Group Employment', 'Mean hourly wage Facility Based Employment');
-			default:
-				return array('Individual Supported Employment', 'Group Supported Employment', 'Facility Based Employment', 'Volunteer or Non-Paid Day Services', 'in Transition');
+	static function getActivityColumnNamesArray ($variable,$year) {
+		if ($year >= 2017) {
+			switch ($variable) {
+				case 'totalwages':
+				case 'meanhours' :
+				return array('Individual competitive employment', 'Group integrated employment','Self employment');
+				case 'meanwage':
+				case 'numberminimum':
+				case 'percentminimum':
+					return array('Individual competitive employment', 'Group integrated employment');
+				case 'totalhours':
+					return array('Individual competitive employment', 'Group integrated employment','Self employment');
+				case 'numberemployed10of12':
+				case 'precentemployed10of12':	return array('Individual competitive employment', 'Group integrated employment');
+				case 'numbernewjobin12months':	return array('Individual competitive employment');
+				case 'meanhourlywage':
+					return array('Mean hourly wage Individual Employment', 'Mean hourly wage Group Employment');
+				default:
+					return array('Individual competitive employment', 'Group integrated employment','Self Employment','Job Search (Total)','Job Search: Discovery or career planning','Job Search:Job development activities','Other day support wrap-around services','Day and wrap-around: Community based day services','Day and wrap-around: Day habilitation program','Day and wrap-around: Other day support services');
+			}
+		} else {
+			switch ($variable) {
+				case 'totalwages':
+				case 'meanwage':
+				case 'numberminimum':
+				case 'percentminimum':
+					return array('Individual Supported Employment', 'Group Supported Employment', 'Facility Based Employment');
+				case 'numberemployed10of12':
+				case 'precentemployed10of12':	return array('Individual Supported Employment', 'Group Supported Employment');
+				case 'numbernewjobin12months':	return array('Individual Supported Employment');
+				case 'meanhourlywage':
+					return array('Mean hourly wage Individual Employment', 'Mean hourly wage Group Employment', 'Mean hourly wage Facility Based Employment');
+				default:
+					return array('Individual Supported Employment', 'Group Supported Employment', 'Facility Based Employment', 'Volunteer or Non-Paid Day Services', 'in Transition');
+			}
 		}
 	}
 
@@ -369,7 +390,7 @@ class dds {
 		$db = Database::getDatabase();
 		$rs = $db->query("SELECT distinct vendor from spec_dmr6 where region is not null and region != '' and vendor_id = " . $vendor_id );
 		if ($db->num_rows($rs) > 0) {
-			$rs = $db->query("SELECT distinct vendor from dmr_providers where Vendor_ID = " . $vendor_id);
+			$rs = $db->query("SELECT distinct vendor from dmr_providers where provider_id = " . $vendor_id);
 		}
 		return $db->num_rows($rs) > 0 ? $db->fetch_result($rs, 0, 'vendor') : "";;
 	}
@@ -527,52 +548,90 @@ class dds {
 		if (empty($type)) {
 			return array('error' => 'Please Select a variable on the previous page.');
 		}
-		$labels = self::getActivityColumnNamesArray($type);
-		$f		= self::getFilterValues();
+		$f = self::getFilterValues();
+		$labels = self::getActivityColumnNamesArray($type,$f['year']);
 		$where = self::getFilterClause('activity');
-
-		switch ($type) {
-			case 'totalwages': 				$vars = array('dol_ind', 'dol_Group', 'dol_Facility');	break;
-			case 'meanwage':				$vars = array('dol_ind', 'dol_Group', 'dol_Facility'); break;
-			case 'numbernewjobin12months':	$vars = array('NewIndJob');	break;
-			case 'numberminimum': 			$vars = array('YNInd', 'YNGroup', 'YNFacility');	break;
-			case 'percentminimum':			$vars = array('YNInd', 'YNGroup', 'YNFacility');	 break;
-			case 'meanhourlywage':			$vars = array('HrsInd', 'dol_ind', 'HrsGroup', 'dol_Group', 'hrsFac', 'dol_Facility'); break;
-			case 'numberemployed10of12':	$vars = array('IndSupEmp', 'GroupSupEmp');	break;
-			default: 						$vars = array('HrsInd', 'HrsGroup', 'HrsFac', 'HrsVolunteer', 'HrsTransition');
+		if ($f['year'] >= 2017) {
+			switch ($type) {
+				case 'totalwages': 				$vars = array('dol_ind', 'dol_Group','dol_SelfEmp');	break;
+				case 'totalhours': 				$vars = array('HrsInd','HrsGroup','HrsSelfEmp'); break;
+				case 'meanwage':				$vars = array('dol_ind', 'dol_Group'); break;
+				case 'meanhours':				$vars = array('HrsInd', 'HrsGroup','HrsSelfEmp'); break;
+				case 'numbernewjobin12months':	$vars = array('NewIndJob');	break;
+				case 'numberminimum': 			$vars = array('YNInd', 'YNGroup');	break;
+				case 'percentminimum':			$vars = array('YNInd', 'YNGroup');	 break;
+				case 'meanhourlywage':			$vars = array('HrsInd', 'dol_ind', 'HrsGroup', 'dol_Group'); break;
+				case 'numberemployed10of12':	$vars = array('IndSupEmp', 'GroupSupEmp');	break;
+				default: 						$vars = array('YNIntegPartic', 'YNGroupPartic','YNSelfEmp','YNJobSearch','YNJSDisc','YNJSJobDev','YNWrap','YNWAComm','YNWADay','YNWAOth');
 			
+			}
+
+		} else {
+			switch ($type) {
+				case 'totalwages': 				$vars = array('dol_ind', 'dol_Group', 'dol_Facility');	break;
+				case 'meanwage':				$vars = array('dol_ind', 'dol_Group', 'dol_Facility'); break;
+				case 'numbernewjobin12months':	$vars = array('NewIndJob');	break;
+				case 'numberminimum': 			$vars = array('YNInd', 'YNGroup', 'YNFacility');	break;
+				case 'percentminimum':			$vars = array('YNInd', 'YNGroup', 'YNFacility');	 break;
+				case 'meanhourlywage':			$vars = array('HrsInd', 'dol_ind', 'HrsGroup', 'dol_Group', 'hrsFac', 'dol_Facility'); break;
+				case 'numberemployed10of12':	$vars = array('IndSupEmp', 'GroupSupEmp');	break;
+				default: 						$vars = array('HrsInd', 'HrsGroup', 'HrsFac', 'HrsVolunteer', 'HrsTransition');
+			
+			}
 		}
 		if ($type == 'precentemployed10of12' && $f['year'] == 2009) {
-			$cols	= "(SUM(`IndSupEmp` = 'Y') / SUM(`Indv_intg_empl_participate`  = 0)) * 100 AS `{$labels[0]}`"
+			$cols	= "(SUM(`IndSupEmp` = 'Y') / SUM(`YNIntegPartic`  = 'Y')) * 100 AS `{$labels[0]}`"
 					. "(SUM(`GroupSupEmp` = 'Y') / SUM(`HrsGroup` > 0 OR `dol_Group` > 0)) * 100 AS `{$labels[1]}`";
 		} else if ($type == 'precentemployed10of12') {
-			$cols	= "IF(SUM(HrsInd > 0 OR dol_ind > 0) + SUM(IndSupEmp = 'Y' AND (`HrsInd` = 0 OR `dol_ind` = 0)) > 0, (SUM(`IndSupEmp` = 'Y') / (SUM(HrsInd > 0 OR dol_ind > 0) + SUM(IndSupEmp = 'Y' AND (`HrsInd` = 0 OR `dol_ind` = 0)))) * 100 AS `{$labels[0]}`"
-					. "IF(SUM(HrsGroup > 0 or dol_Group > 0) + SUM(`GroupSupEmp` = 'Y' AND (`HrsGroup` = 0 OR `dol_Group` = 0)) > 0, (SUM(`GroupSupEmp` = 'Y') / (SUM(`HrsGroup` > 0 or `dol_Group` > 0) + SUM(`GroupSupEmp` = 'Y' AND (`HrsGroup` = 0 OR `dol_Group` = 0)))) * 100, 0) AS `{$labels[1]}`";
+			$cols	= "IF(SUM(HrsInd > 0 or dol_ind > 0) + SUM(`IndSupEmp` = 'Y' AND (`HrsInd` = 0 OR `dol_ind` = 0)) > 0, FORMAT((SUM(`IndSupEmp` = 'Y') / (SUM(`HrsInd` > 0 or `dol_ind` > 0) + SUM(`IndSupEmp` = 'Y' AND (`HrsInd` = 0 OR `dol_ind` = 0)))) * 100,2), 0) AS `{$labels[0]}`"
+					. "IF(SUM(HrsGroup > 0 or dol_Group > 0) + SUM(`GroupSupEmp` = 'Y' AND (`HrsGroup` = 0 OR `dol_Group` = 0)) > 0,FORMAT( (SUM(`GroupSupEmp` = 'Y') / (SUM(`HrsGroup` > 0 or `dol_Group` > 0) + SUM(`GroupSupEmp` = 'Y' AND (`HrsGroup` = 0 OR `dol_Group` = 0)))) * 100,2), 0) AS `{$labels[1]}`";
 		} else {
 			$cols = '';
 			$sep = '';
-			for ($i = 0; $i < count($vars); $i++) {
-				$col = $vars[$i];
-				$cols .= $sep;
-				switch ($type) {
-					case 'numberinactivity':		$cols .= "SUM((IFNULL(`$col`, 0) > 0)) AS `{$labels[$i]}`";		break;
-					case 'percent':					$cols .= "FORMAT((SUM((IFNULL(`$col`, 0) > 0)) / COUNT(1)) * 100, 2) AS `{$labels[$i]}`"; break;
-					case 'totalhours':
-					case 'totalwages':				$cols .= "SUM(IF(`$col` AND 1, `$col`, 0)) AS `{$labels[$i]}`";	break;
-					case 'meanhours':
-					case 'meanwage':				$cols .= "FORMAT(AVG(IF(`$col` AND 1, $col, NULL)), 2) AS `{$labels[$i]}`";	break;
-					case 'numberminimum':
-					case 'numbernewjobin12months':	$cols .= "SUM(TRIM(`$col`) = 'Y') AS `{$labels[$i]}`";	break;
-					case 'percentminimum':			$cols .= "FORMAT((SUM(TRIM(`$col`) = 'Y') / SUM(TRIM(`$col`) IN ('N', 'Y'))) * 100, 2) AS `{$labels[$i]}`";	break;
-					case 'meanhourlywage':			$cols .= "FORMAT(AVG(IF(`{$vars[$i + 1]}` AND `$col`, `{$vars[$i + 1]}` / `$col`, null)), 2) AS `{$labels[$i/2]}`"; $i++; break;
-					case 'numberemployed10of12': 	$cols .= "SUM(`$col` = 'Y') AS `{$labels[$i]}`";	break;
+			if ($f['year'] >= '2017') {  //variables for 2017 and after
+				for ($i = 0; $i < count($vars); $i++) {
+					$col = $vars[$i];
+					$cols .= $sep;
+					switch ($type) {
+						case 'numberinactivity':		$cols .= "SUM(TRIM(`$col`) = 'Y') AS `{$labels[$i]}`";		break;
+						case 'percent':					$cols .= "FORMAT((SUM((IF(`$col` = 'Y',1, 0) > 0)) / COUNT(1)) * 100, 2) AS `{$labels[$i]}`"; break;
+						case 'totalhours':
+						case 'totalwages':				$cols .= "FORMAT(SUM(IF(`$col` AND 1, `$col`, 0)),2) AS `{$labels[$i]}`";	break;
+						case 'meanhours':
+						case 'meanwage':				$cols .= "FORMAT(AVG(IF(`$col` AND 1, $col, NULL)), 2) AS `{$labels[$i]}`";	break;
+						case 'numberminimum':
+						case 'numbernewjobin12months':	$cols .= "SUM(TRIM(`$col`) = 'Y') AS `{$labels[$i]}`";	break;
+						case 'percentminimum':			$cols .= "FORMAT((SUM(TRIM(`$col`) = 'Y') / SUM(TRIM(`$col`) IN ('N', 'Y'))) * 100, 2) AS `{$labels[$i]}`";	break;
+						case 'meanhourlywage':			$cols .= "FORMAT(AVG(IF(`{$vars[$i + 1]}` AND `$col`, `{$vars[$i + 1]}` / `$col`, null)), 2) AS `{$labels[$i/2]}`"; $i++; break;
+						case 'numberemployed10of12': 	$cols .= "SUM(`$col` = 'Y') AS `{$labels[$i]}`";	break;
+					}
+					$sep = $cols ? ",\n" : '';
 				}
-				$sep = $cols ? ",\n" : '';
+			} else {
+				for ($i = 0; $i < count($vars); $i++) {
+					$col = $vars[$i];
+					$cols .= $sep;
+					switch ($type) {  // variables for 2016 and before
+						case 'numberinactivity':		$cols .= "SUM((IFNULL(`$col`, 0) > 0)) AS `{$labels[$i]}`";		break;
+						case 'percent':					$cols .= "FORMAT((SUM((IFNULL(`$col`, 0) > 0)) / COUNT(1)) * 100, 2) AS `{$labels[$i]}`"; break;
+						case 'totalhours':
+						case 'totalwages':				$cols .= "FORMAT(SUM(IF(`$col` AND 1, `$col`, 0)),2) AS `{$labels[$i]}`";	break;
+						case 'meanhours':
+						case 'meanwage':				$cols .= "FORMAT(AVG(IF(`$col` AND 1, $col, NULL)), 2) AS `{$labels[$i]}`";	break;
+						case 'numberminimum':
+						case 'numbernewjobin12months':	$cols .= "SUM(TRIM(`$col`) = 'Y') AS `{$labels[$i]}`";	break;
+						case 'percentminimum':			$cols .= "FORMAT((SUM(TRIM(`$col`) = 'Y') / SUM(TRIM(`$col`) IN ('N', 'Y'))) * 100, 2) AS `{$labels[$i]}`";	break;
+						case 'meanhourlywage':			$cols .= "FORMAT(AVG(IF(`{$vars[$i + 1]}` AND `$col`, `{$vars[$i + 1]}` / `$col`, null)), 2) AS `{$labels[$i/2]}`"; $i++; break;
+						case 'numberemployed10of12': 	$cols .= "SUM(`$col` = 'Y') AS `{$labels[$i]}`";	break;
+					}
+					$sep = $cols ? ",\n" : '';
+				}
 			}
 		}
 		$db = Database::getDatabase();
 		$cols = "REPLACE(" . substr(preg_replace("/ AS `(.+?)`(?:,\n)?/", ", ',', '') AS `\\1`,\nREPLACE(", $cols), 0, -10);
 		$rs = $db->query("SELECT $cols from `spec_dmr6` where `region` is not null and `region` != '' $where GROUP BY `reporting_period`");
+		// print "SELECT $cols from `spec_dmr6` where `region` is not null and `region` != '' $where GROUP BY `reporting_period`";
 		return $db->num_rows($rs) > 0 ? $db->fetch_assoc($rs) : array();
 	}
 
@@ -611,20 +670,54 @@ class dds {
 */
 	static function getRowData($report, $subreport, $level = 'provider') {
 		$f		= dds::getFilterValues();
-		$extra	= !$f['year'] || $f['year'] >= 2007;
-		$hours	= array('HrsInd', 'HrsGroup', 'HrsFac', 'HrsVolunteer', 'HrsTransition');
+		$extra	= !$f['year'] || $f['year'] >= 2007 && $f['year'] < 2017;
+		$hours	= $f['year'] >= 2017 ? array('HrsInd', 'HrsGroup') : array('HrsInd', 'HrsGroup', 'HrsFac', 'HrsVolunteer', 'HrsTransition');
 		if ($extra) {
 			$hours[] = 'OthrNonpaid';
 		}
-		$cols = 'count(1) ' . ($f['year'] > 2005 ? ",\nSUM(`NewIndJob` = 'Y')" : '');
+		
+		// $cols = 'count(1) ' . ($f['year'] > 2005 ? ",\nSUM(`NewIndJob` = 'Y')" : '');
+		
 		if ($subreport == "number") {
-			foreach ($hours as $col) {
-				$cols  .= ",\nSUM(IFNULL($col, 0) > 0)";
+			$cols = 'count(1) ' . ($f['year'] > 2005 ? ",\nSUM(`NewIndJob` = 'Y')" : '');
+			if ($f['year'] >= 2017) {
+				$numbers = array('YNIntegPartic', 'YNGroupPartic','YNSelfEmp','YNJobSearch','YNWrap');
+				foreach ($numbers as $col) {
+					$cols  .= ",\nSUM(IF(TRIM(`$col`) = 'Y',1,0))";
+				} 
+				foreach ($numbers as $col) {
+					$cols  .= ",\nIF(COUNT(1) > 0, REPLACE(FORMAT((SUM(IF(TRIM(`$col`) = 'Y',1,0) > 0)  / COUNT(1)) * 100, 1), ',', ''), 0)";
+					}
+			} else {
+
+
+				foreach ($hours as $col) {
+					$cols  .= ",\nSUM(IFNULL($col, 0) > 0)";
+				}
+				foreach ($hours as $col) {
+					$cols  .= ",\nIF(COUNT(1) > 0, REPLACE(FORMAT((SUM(IFNULL($col, 0) > 0) / COUNT(1)) * 100, 1), ',', ''), 0)";
+					}
 			}
-			foreach ($hours as $col) {
-				$cols  .= ",\nIF(COUNT(1) > 0, REPLACE(FORMAT((SUM(IFNULL($col, 0) > 0) / COUNT(1)) * 100, 1), ',', ''), 0)";
-			}
+			
+			
+		} elseif ($subreport == 'jswraparound') {
+			$cols = 'count(1), ';
+
+			$jswrapnumbers = array('YNJobSearch','YNJSDisc','YNJSJobDev','YNWrap','YNWAComm','YNWADay','YNWAOth');
+			
+			foreach ($jswrapnumbers as $col) {
+				$cols  .= "\nSUM(IF(TRIM(`$col`) = 'Y',1,0))";
+				if ($col !== end($jswrapnumbers)) $cols .= ",";
+			} 
+		//	foreach ($numbers as $col) {
+		//		$cols  .= ",\nIF(COUNT(1) > 0, REPLACE(FORMAT((SUM(IF(TRIM(`$col`) = 'Y',1,0) > 0)  / COUNT(1)) * 100, 1), ',', ''), 0)";
+		//	
+		
+		
+		
+
 		} elseif ($subreport =="hours") {
+			$cols = 'count(1) ' . ($f['year'] > 2005 ? ",\nSUM(`NewIndJob` = 'Y')" : '');
 			foreach ($hours as $col) {
 				$cols .= ",\nFORMAT(AVG(IF($col > 0, $col, NULL)), 2)";
 			}
@@ -632,16 +725,39 @@ class dds {
 				$cols .= ",\nIF(SUM(IF($col > 0 OR $col = 0, `totalHours`, 0)) > 0, REPLACE(FORMAT((SUM(IF($col > 0, $col, 0)) / SUM(IF($col > 0 OR $col = 0, `totalHours`, 0))) * 100, 1), ',', ''), 0)";
 			}
 		} elseif ($subreport == "wage") {
-			$wages	= array('dol_ind', 'dol_Group', 'dol_Facility');
-			foreach ($wages as $col) {
-				$cols  .= ",\nREPLACE(FORMAT(AVG(IF($col > 0, $col, NULL)), 2), ',', '')";
+			$cols = 'count(1) ' . ($f['year'] > 2005 ? ",\nSUM(`NewIndJob` = 'Y')" : '');
+			if ($f['year'] < 2017) {
+				$wages	= array('dol_ind', 'dol_Group', 'dol_Facility');
+				foreach ($wages as $col) {
+					$cols  .= ",\nREPLACE(FORMAT(AVG(IF($col > 0, $col, NULL)), 2), ',', '')";
+				}
+				$wages	= array('YNInd', 'YNGroup', 'YNFacility');
+				foreach ($wages as $col) {
+					$cols  .= ",\nIF(SUM(TRIM($col) IN ('N','Y')) > 0, REPLACE(FORMAT((SUM(TRIM($col) ='Y') / SUM(TRIM($col) IN ('N','Y'))) * 100, 1), ',', ''), 0)";
+				}
+			} else {
+
+				$wages	= array('dol_ind', 'dol_Group');
+				foreach ($wages as $col) {
+					$cols  .= ",\nREPLACE(FORMAT(AVG(IF($col > 0, $col, NULL)), 2), ',', '')";
+					}
+				$wages	= array('YNInd', 'YNGroup');
+				foreach ($wages as $col) {
+					$cols  .= ",\nIF(SUM(TRIM($col) IN ('N','Y')) > 0, REPLACE(FORMAT((SUM(TRIM($col) ='Y') / SUM(TRIM($col) IN ('N','Y'))) * 100, 1), ',', ''), 0)";
+					}
 			}
-			$wages	= array('YNInd', 'YNGroup', 'YNFacility');
-			foreach ($wages as $col) {
-				$cols  .= ",\nIF(SUM(TRIM($col) IN ('N','Y')) > 0, REPLACE(FORMAT((SUM(TRIM($col) ='Y') / SUM(TRIM($col) IN ('N','Y'))) * 100, 1), ',', ''), 0)";
-			}
+			} elseif($subreport == 'selfemp') {
+				$cols = "count(1),SUM(IF(TRIM(`YNSelfEmp`) = 'Y',1,0)), ";
+
+				$averages	= array('HrsSelfEmp','dol_selfEmp', 'expens_selfEmp', 'net_selfEmp');
+				foreach ($averages as $col) {
+					$cols  .= "\nREPLACE(FORMAT(AVG(IF($col > 0, $col, NULL)), 2), ',', '')";
+					if ($col !== end($averages)) $cols .= ",";
+				}
+			
 		}
-		$having	= '(0' . str_repeat(',0', substr_count($cols, ",\n")) . ") <> ($cols)";
+
+		$having	= $subreport =='jswraparound' ? '(0,0' . str_repeat(',0', substr_count($cols, ",\n")) . ") <> ($cols)" :($subreport =='selfemp' ? '(0,0,0' . str_repeat(',0', substr_count($cols, ",\n")) . ") <> ($cols)" : '(0' . str_repeat(',0', substr_count($cols, ",\n")) . ") <> ($cols)");
 		$where	= dds::getFilterClause($report);
 		
 		$sql = "SELECT CONCAT('<aa/><strong>', `vendor`, '</strong>') AS `grouping`, $cols FROM `spec_dmr6` WHERE `region` IS NOT NULL AND `region` <> '' $where GROUP BY `vendor_id` HAVING $having\n";
@@ -651,7 +767,7 @@ class dds {
 		if ($report == 'individual') {
 			$sql .= 'UNION ' . "SELECT '<zz/><strong>State</strong>', $cols FROM `spec_dmr6` WHERE `region` IS NOT NULL AND `region` <> '' AND `reporting_period` = {$f['year']} GROUP BY `reporting_period` HAVING $having\n"; 
 		}
-		print "<!-- $sql\n-->";
+		//print "<!-- $sql\n-->";
 		$db = Database::getDatabase();
 		$rs = $db->query($sql . ' ORDER BY `grouping`');
 		$html = '';

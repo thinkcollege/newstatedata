@@ -19,7 +19,7 @@ $csvReqString = '&tqx=reqId:1;out:csv';
 
 
 // output headers so that the file is downloaded rather than displayed
- header('Content-Type: text/csv; charset=utf-8');
+header('Content-Type: text/csv; charset=utf-8');
 header('Content-Disposition: attachment; filename=' . $csvFilename);
 $outFile = fopen('php://output', 'w'); 
 for($i = 0 ; $i < count($sendString) ; $i++) {
