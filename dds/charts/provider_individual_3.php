@@ -26,7 +26,7 @@ $regions	= !$f['region'] ? dds::getRegionArrayById($f['provider']) : array($f['r
 
 $reports	= $f['year'] < 2017 ? array("number","hours", "wage") : array("number", "jswraparound","hours", "wage","selfemp");
 $colSpan	= $f['year'] == "ALL" || $f['year'] >= 2007 ? 6 : 5;
-$csvoutput = 'Employment Supports Performance Outcome System Provider Report for ' . $providernname . $sRegion .' -- 2018' . "\r\n";
+$csvoutput = 'Employment Supports Performance Outcome System Provider Report for ' . $providernname . $sRegion .' -- ' . $f['year']  . "\r\n";
 foreach ($reports as $report) {
 	if ($report == "number") {
 		$html  .= '<p><span class="mainheading">Number Participating by Activity</span>'
