@@ -203,14 +203,14 @@ class dds {
 
 		$where = self::getRegionClause($region);
 		
-		$rs = $db->query("SELECT distinct `vendor`, `vendor_id` FROM `spec_dmr6` WHERE $where ORDER BY `vendor`");
+		$rs = $db->query("SELECT distinct `spec_dmr6`.`Vendor_ID` `IDBase`, `dmr_providers`.`Vendor` `VendorBase` FROM `spec_dmr6` LEFT JOIN `dmr_providers` ON `spec_dmr6`.`Vendor_ID` = `dmr_providers`.`provider_id` WHERE $where AND `dmr_providers`.`Vendor` IS NOT NULL ORDER BY `VendorBase`");
 		$html = "<select id=\"$element_name\" name=\"$element_name\">";
 		if ($showAll == 1) {
 			$html .= "<option value=\"ALL\">All Providers</option>";
 		}
 		while ($row = $db->fetch_assoc($rs)) {
 			$selected = isset($_REQUEST[$element_name]) && $_REQUEST[$element_name] == $row['val'] ? ' selected="selected"' : '';
-			$html .= "<option value=\"{$row['vendor_id']}\"$selected>{$row['vendor']}</option>";
+			$html .= "<option value=\"{$row['IDBase']}\"$selected>{$row['VendorBase']}</option>";
 		}
 		$html .= "</select>\n"; 
 		return $html;
