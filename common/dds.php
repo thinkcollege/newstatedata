@@ -781,7 +781,7 @@ class dds {
 		$name = htmlentities($name, ENT_COMPAT, 'UTF-8');
 		$html = "<select id=\"$name\" name=\"$name\">";
 		$db = Database::getDatabase();
-		$rs = $db->query('SELECT DISTINCT `reporting_period` AS `y` FROM `spec_dmr6` order by `y` ');
+		$rs = $db->query('SELECT DISTINCT `reporting_period` AS `y` FROM `spec_dmr6` order by `y` DESC ');
 		while ($row = $db->fetch_assoc($rs)) {
 			$selected = $val == $row['y'] ? ' selected="selected"' : '';
 			$html .= "<option$selected>{$row['y']}</option>";
