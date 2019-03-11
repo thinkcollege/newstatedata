@@ -1007,6 +1007,7 @@ $varlegend2 = array();
  $table4 = 'sta_d3_acs_post08_Cognitive';
  $justfunctions = new oldFunctions;
  $stategrab = $justfunctions->translateState($state);
+ $seventeenwarn = "";
  switch($appendix) {
    case 'app1':
  $table1legend = "Table 1: Demographic Trends";
@@ -1155,6 +1156,7 @@ $table2source = "<p>Source: Rehabilitation Services Administration 911 (RSA-911)
   $chartlegend = "<h3>State: " . $stategrab . "<br />$category_name</h3>";
  $pagetitle = drupal_set_title("$vragency");
  $csvtitle = $vragency;
+ if($maxyear >= 2016) { $seventeenwarn = "<p><em><strong>Note on VR Agency data: </strong>2017 data is based on a 9 month data collection time period, September 2016 through June 2017. Prior to 2017 the RSA collected data from October 1st through September 30th. 2018 data will resume a 12 month data collection time period, July 1st through June 30th.</em></p>"; } else {$seventeenwarn = ""; }
 
  break;
 
@@ -1170,6 +1172,8 @@ $table2source = "<p>Source: Rehabilitation Services Administration 911 (RSA-911)
  $varLegend1[4]	=  "Average days from eligibility to closure";
  $varLegend1[5]	=  "Average days from eligibility to closure for closures with ID";
  $tableclass1 = "app5Table1";
+
+ if($maxyear >= 2016) { $seventeenwarn = "<p><em><strong>Note on VR Agency data: </strong>2017 data is based on a 9 month data collection time period, September 2016 through June 2017. Prior to 2017 the RSA collected data from October 1st through September 30th. 2018 data will resume a 12 month data collection time period, July 1st through June 30th.</em></p>"; } else {$seventeenwarn = ""; }
 
 
 
@@ -1327,6 +1331,7 @@ if(($key == 'noDisPerwork' || $key == 'anyDisPerwork' || $key == 'postCogPerwork
         
 
   }
+  if ($appendix == 'app5' || $appendix == 'app6') $charttable .= $seventeenwarn;
 
  $charttable	.= "<table class=\"charttable $tableclass1\" border=\"1\" cellspacing=\"0\"><caption>$table1legend</caption><thead><tr><th scope=\"row\">&nbsp;</th><th>"
 
@@ -1566,9 +1571,8 @@ foreach ($tablerows as $tablerow) {
 $dbrow2[] = array('name' => $tablerow['name'],'vars' => $tablerow['vars']);
 }
 if($totalstatecount) $dbrow2[]= array('name' => "Number of U.S. states reporting count in $totalustext",'vars' => $ustotalrow[0]['vars']);
-
-
-$charttable	.= "<br> Blank spaces that may appear on the chart or values of -1 indicate that data is not available for that year"
+if($table == 'sta_d3_vr_rsa_ID' || $table == 'sta_d3_vr_rsa_all') { $seventeenwarn = "<p><em><strong>Note on VR Agency data: </strong>2017 data is based on a 9 month data collection time period, September 2016 through June 2017. Prior to 2017 the RSA collected data from October 1st through September 30th. 2018 data will resume a 12 month data collection time period, July 1st through June 30th.</em></p>"; } else {$seventeenwarn = ""; }
+$charttable	.= $seventeenwarn . "<br /> Blank spaces that may appear on the chart or values of -1 indicate that data is not available for that year"
 			. "<br /><br /><table class=\"charttable\" border=\"1\" cellspacing=\"0\"><caption>" . $stategrab
 			. " $varLegend</caption><thead><th scope=\"row\">State</th>";  foreach($dbrow3 as $row3) { $charttable .= "<th>" . $row3['year'] . "</th>"; } $charttable .= "</tr></thead><tbody>"; foreach($dbrow2 as $row2) { $charttable .= "<tr><th>" . $row2['name'] . "</th><td>" . str_replace(array(';', '-1.00'), array('</td><td>', ' - - '), $row2['vars']) . "</td></tr>"; }
 			 $charttable .= "</tbody></table>";
@@ -1686,8 +1690,8 @@ foreach ($dbrow2 as $row) {
 	$dlData			.= $sep . $row['var'];
 	$sep 			= ';';
    }
-
-$charttable	.= "<br> Blank spaces that may appear on the chart or values of -1 indicate that data is not available for that year"
+   if($table == 'sta_d3_vr_rsa_ID' || $table == 'sta_d3_vr_rsa_all') { $seventeenwarn = "<p><em><strong>Note on VR Agency data: </strong>2017 data is based on a 9 month data collection time period, September 2016 through June 2017. Prior to 2017 the RSA collected data from October 1st through September 30th. 2018 data will resume a 12 month data collection time period, July 1st through June 30th.</em></p>"; } else {$seventeenwarn = ""; }
+   $charttable	.= $seventeenwarn . "<br />Blank spaces that may appear on the chart or values of -1 indicate that data is not available for that year"
 			. "<br /><br /><table class=\"charttable\" border=\"1\" cellspacing=\"0\"><caption>" . $stategrab
 			. " $varLegend</caption><thead><tr><th scope=\"row\">&nbsp;</th><th>"
 			. str_replace(';', '</th><th>', $data['years']) . "</th></tr></thead><tbody><tr><th scope\"row\">$varLegend</th><td>"
