@@ -1,6 +1,9 @@
 <?php 
 ini_set("include_path","../../");
 include("common/classes_md.php");
+error_reporting(E_ALL);
+//ini_set('display_errors', TRUE);
+//ini_set('display_startup_errors', TRUE);
 $template = new template;
 $template->debug();
 $print = !empty($_REQUEST["print"]);
@@ -127,7 +130,7 @@ $pcScript	= "graph.setcategories($labels;)\ngraph.setseries((CLR_{$colors[0]})'$
 			. "<Properties BorderType='None' AutoWidth='True' HJustification='Center' LeftMargin='5' RightMargin='5' FillColor='#ffffff' Font='Size:10; Style:Bold ; Color:black;' />\n"
 			. "<Text>" . mdda::getAxisLabel($variable) . "</Text></Textbox>)\n"
  			. "graph.AddPCXML(<CategoryScale LimitLabelLength='False' MaxLengthRotatedText='10' StaggerLabels='False' RotateLabels='-45' LowOuterLine='Color:#7f7f7f;'  HighOuterLine='Color:#7f7f7f;'  MajorTick='Visible:False;'  MinorTick='Size:Large;'  MajorGrid='Color:#7f7f7f;'  Font='Size:12; Style:Bold Italic; Color:#3366ff;' MinorFont='Size:10;' />)";
-$mychart = new chart;
+/* $mychart = new chart;
 $mychart->externalServerAddress = "http://www.communityinclusion.org:8080";
 $mychart->internalCommPortAddress = "http://www.communityinclusion.org:8081";
 $mychart->appearanceFile = "apfiles/dmr_activity.pcxml";
@@ -137,7 +140,7 @@ $mychart->userAgent = $HTTP_SERVER_VARS['HTTP_USER_AGENT'];
 $mychart->returnDescriptiveLink = true;
 $mychart->language = "EN";
 $mychart->pcScript = $pcScript;
-$mychart->imageType = !$print ? "JPEG" : 'JPG';
+$mychart->imageType = !$print ? "JPEG" : 'JPG'; */
 
 preg_match('/^(number|percent|total|mean)/i', $variable, $th);
 
