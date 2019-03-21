@@ -22,7 +22,7 @@ This web site summarizes data collected on employment supports funded by the Was
 	   <script type="text/javascript">window.onload=function(e){document.getElementById(\'email\').focus();};	</script>';
 }*/
 $content .= '<p>This site was developed by StateData.info, a project of the Institute for Community Inclusion, University of Massachusetts Boston, for the Washington DSHS Division of Developmental Disabilities. For more information on StateData.info or the work of the Institute for Community Inclusion.</p>
-<p class="center float-left" style="width:49%;">Frank A. Smith, M.A.<br />Project Coordinator<br /><a href="mailto:frank.smith@umb.edu?subject=Question/Comment about WA-DDD">frank.smith@umb.edu</a><br />617.287.4374.</p>
-<p class="center float-right" style="width:49%;">John Butterworth, Ph.D.<br />Research Coordinator<br /><a href="mailto:john.butterworth@umb.edu?subject=Question/Comment about WA-DDD">john.butterworth@umb.edu</a><br />617.287.4357</p>';
+
+<p class="center float-left" style="width:49%;margin-left: 5%">John Butterworth, Ph.D.<br /><a href="mailto:john.butterworth@umb.edu?subject=Question/Comment about WA-DDD">john.butterworth@umb.edu</a><br />617.287.4357</p>';
 
 $template->addRegion('content', $content);
