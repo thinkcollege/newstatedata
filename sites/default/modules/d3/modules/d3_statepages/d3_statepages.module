@@ -78,7 +78,7 @@ $iepercent =  $statefigs['ttl_fund_IE_svcs_perc'] != -1 ?  round($statefigs['ttl
  $selectnat->addExpression('`states`.`Total funding`', 'total_funding');
  $selectnat->addExpression('`states`.`employment money`', 'employment_money');
 
- $selectnat->addExpression('(`states`.`employment money`/`states`.`Total funding`)', 'ttl_fund_IE_svcs_perc');
+ $selectnat->addExpression('(`states`.`IntEmp_Fund_percent`)', 'ttl_fund_IE_svcs_perc');
 $selectnat->where("YEAR = $chartyear" );
 $selectnat->where('statenames.name = :state',$argumentsnat);
 $entriesnat = $selectnat->execute()->fetchAll(PDO::FETCH_ASSOC);
@@ -117,19 +117,19 @@ function d3_secondchart($firstparameter= '',$entriestwo) {
   $chartyear =  "$fiscfirst/$stateyear";
  // foreach ($statefigs as $key => &$value) {if ($value == -1 ) $value = 0; }
  $intjobperc = $statefigs['int_job_perc'] != -1 ? number_format($statefigs['int_job_perc']) . "%" : "&nbsp;*&nbsp;";
- $intjobwages = $statefigs['int_job_wages'] != -1 ? "$" . number_format($statefigs['int_job_wages'],2) : "&nbsp;*&nbsp;";
+ $intjobwages = $statefigs['int_job_hrly_wage'] != -1 ? "$" . number_format($statefigs['int_job_hrly_wage'],2) : "&nbsp;*&nbsp;";
  $intjobhrs = $statefigs['int_job_hrs'] != -1 ?  number_format($statefigs['int_job_hrs'],1) : "&nbsp;*&nbsp;";
 $indvjobperc = $statefigs['indv_job_perc'] != -1 ?  number_format($statefigs['indv_job_perc']) . "%" : "&nbsp;*&nbsp;";
-$indvjobwages = $statefigs['indv_job_wages'] != -1 ?  "$" . number_format($statefigs['indv_job_wages'],2) : "&nbsp;*&nbsp;";
+$indvjobwages = $statefigs['indv_hrly_wage'] != -1 ?  "$" . number_format($statefigs['indv_hrly_wage'],2) : "&nbsp;*&nbsp;";
 $indvjobhrs = $statefigs['indv_job_hrs'] != -1 ?  number_format($statefigs['indv_job_hrs'],1) : "&nbsp;*&nbsp;";
 $compjobperc = $statefigs['comp_job_perc'] != -1 ?  number_format($statefigs['comp_job_perc']) . "%" : "&nbsp;*&nbsp;";
-$compjobwages = $statefigs['comp_job_wages'] != -1 ?  "$" . number_format($statefigs['comp_job_wages'],2) : "&nbsp;*&nbsp;";
+$compjobwages = $statefigs['comp_hrly_wage'] != -1 ?  "$" . number_format($statefigs['comp_hrly_wage'],2) : "&nbsp;*&nbsp;";
 $compjobhrs = $statefigs['comp_job_hrs'] != -1 ?  number_format($statefigs['comp_job_hrs'],1) : "&nbsp;*&nbsp;";
 $indvsupjobperc = $statefigs['indv_sup_job_perc'] != -1 ?  number_format($statefigs['indv_sup_job_perc']) . "%" : "&nbsp;*&nbsp;";
-$indvsupjobwages = $statefigs['indv_sup_job_wages'] != -1 ?  "$" . number_format($statefigs['indv_sup_job_wages'],2) : "&nbsp;*&nbsp;";
+$indvsupjobwages = $statefigs['ind_sup_hrly_wage'] != -1 ?  "$" . number_format($statefigs['ind_sup_hrly_wage'],2) : "&nbsp;*&nbsp;";
 $indvsupjobhrs = $statefigs['indv_sup_job_hrs'] != -1 ?  number_format($statefigs['indv_sup_job_hrs'],1) : "&nbsp;*&nbsp;";
 $groupsupjobperc = $statefigs['group_sup_job_perc'] != -1 ?  number_format($statefigs['group_sup_job_perc']) . "%" : "&nbsp;*&nbsp;";
-$groupsupjobwages = $statefigs['group_sup_job_wages'] != -1 ?  "$" . number_format($statefigs['group_sup_job_wages'],2) : "&nbsp;*&nbsp;";
+$groupsupjobwages = $statefigs['group_sup_hrly_wage'] != -1 ?  "$" . number_format($statefigs['group_sup_hrly_wage'],2) : "&nbsp;*&nbsp;";
 $groupsupjobhrs = $statefigs['group_sup_job_hrs'] != -1 ?  number_format($statefigs['group_sup_job_hrs'],1) : "&nbsp;*&nbsp;";
 $empunknownperc = $statefigs['emp_unknown_perc'] != -1 ?  number_format($statefigs['emp_unknown_perc']) . "%" : "&nbsp;*&nbsp;";
 
@@ -137,19 +137,19 @@ $empunknownperc = $statefigs['emp_unknown_perc'] != -1 ?  number_format($statefi
    $selectnat = db_select('d3_statesum_second', 'states');
     $selectnat->addField('states', 'state');
   $selectnat->addField('states', 'int_job_perc');
-  $selectnat->addField('states', 'int_job_wages');
+  $selectnat->addField('states', 'int_job_hrly_wage');
   $selectnat->addField('states', 'int_job_hrs');
   $selectnat->addField('states', 'indv_job_perc');
-  $selectnat->addField('states', 'indv_job_wages');
+  $selectnat->addField('states', 'indv_hrly_wage');
   $selectnat->addField('states', 'indv_job_hrs');
   $selectnat->addField('states', 'comp_job_perc');
-  $selectnat->addField('states', 'comp_job_wages');
+  $selectnat->addField('states', 'comp_hrly_wage');
   $selectnat->addField('states', 'comp_job_hrs');
   $selectnat->addField('states', 'indv_sup_job_perc');
-  $selectnat->addField('states', 'indv_sup_job_wages');
+  $selectnat->addField('states', 'ind_sup_hrly_wage');
   $selectnat->addField('states', 'indv_sup_job_hrs');
   $selectnat->addField('states', 'group_sup_job_perc');
-  $selectnat->addField('states', 'group_sup_job_wages');
+  $selectnat->addField('states', 'group_sup_hrly_wage');
   $selectnat->addField('states', 'group_sup_job_hrs');
   $selectnat->addField('states', 'emp_unknown_perc');
  $selectnat->where('state = :state',$argumentsnat);
@@ -157,21 +157,21 @@ $empunknownperc = $statefigs['emp_unknown_perc'] != -1 ?  number_format($statefi
  $entriesnat = $selectnat->execute()->fetchAll(PDO::FETCH_ASSOC);
  $natfigs = $entriesnat[0];
   $intjobpercnat = number_format($natfigs['int_job_perc']) . "%";
-  $intjobwagesnat = $natfigs['int_job_wages'] != -1 ? "$" . number_format($natfigs['int_job_wages'],2): "&nbsp;&nbsp;*";
+  $intjobwagesnat = $natfigs['int_job_hrly_wage'] != -1 ? "$" . number_format($natfigs['int_job_hrly_wage'],2): "&nbsp;&nbsp;*";
   $intjobhrsnat = $natfigs['int_job_hrs'] != -1 ? number_format($natfigs['int_job_hrs'],1) : "&nbsp;&nbsp;*" ;
- $indvjobpercnat = number_format($natfigs['indv_job_perc']) . "%";
- $indvjobwagesnat = "$" . number_format($natfigs['indv_job_wages'],2);
- $indvjobhrsnat = number_format($natfigs['indv_job_hrs'],1);
- $compjobpercnat = number_format($natfigs['comp_job_perc']) . "%";
- $compjobwagesnat = "$" . number_format($natfigs['comp_job_wages'],2);
- $compjobhrsnat = number_format($natfigs['comp_job_hrs'],1);
- $indvsupjobpercnat = number_format($natfigs['indv_sup_job_perc']) . "%";
- $indvsupjobwagesnat = "$" . number_format($natfigs['indv_sup_job_wages'],2);
- $indvsupjobhrsnat = number_format($natfigs['indv_sup_job_hrs'],1);
- $groupsupjobpercnat = number_format($natfigs['group_sup_job_perc']) . "%";
- $groupsupjobwagesnat = "$" . number_format($natfigs['group_sup_job_wages'],2);
- $groupsupjobhrsnat = number_format($natfigs['group_sup_job_hrs'],1);
-  $empunkownnat = number_format($natfigs['emp_unknown_perc']) . "%";
+ $indvjobpercnat = $natfigs['indv_job_perc'] != -1 ? number_format($natfigs['indv_job_perc']) . "%" : "&nbsp;&nbsp;*" ;
+ $indvjobwagesnat = $natfigs['indv_hrly_wage']  != -1 ? "$" . number_format($natfigs['indv_hrly_wage'],2) : "&nbsp;&nbsp;*";
+ $indvjobhrsnat = $natfigs['indv_job_hrs'] != -1 ? number_format($natfigs['indv_job_hrs'],1) : "&nbsp;&nbsp;*";
+ $compjobpercnat = $natfigs['comp_job_perc'] != -1 ? number_format($natfigs['comp_job_perc']) . "%" : "&nbsp;&nbsp;*";
+ $compjobwagesnat = $natfigs['comp_hrly_wage'] != -1 ? "$" . number_format($natfigs['comp_hrly_wage'],2) : "&nbsp;&nbsp;*";
+ $compjobhrsnat = $natfigs['comp_job_hrs'] != -1 ? number_format($natfigs['comp_job_hrs'],1) : "&nbsp;&nbsp;*";
+ $indvsupjobpercnat = $natfigs['indv_sup_job_perc'] != -1 ? number_format($natfigs['indv_sup_job_perc']) . "%" : "&nbsp;&nbsp;*";
+ $indvsupjobwagesnat = $natfigs['ind_sup_hrly_wage'] != -1 ? "$" . number_format($natfigs['ind_sup_hrly_wage'],2) : "&nbsp;&nbsp;*";
+ $indvsupjobhrsnat = $natfigs['indv_sup_job_hrs'] != -1 ? number_format($natfigs['indv_sup_job_hrs'],1) : "&nbsp;&nbsp;*";
+ $groupsupjobpercnat = $natfigs['group_sup_job_perc'] != -1 ? number_format($natfigs['group_sup_job_perc']) . "%" : "&nbsp;&nbsp;*";
+ $groupsupjobwagesnat = $natfigs['group_sup_hrly_wage'] != -1 ? "$" . number_format($natfigs['group_sup_hrly_wage'],2) : "&nbsp;&nbsp;*";
+ $groupsupjobhrsnat = $natfigs['group_sup_job_hrs'] != -1 ? number_format($natfigs['group_sup_job_hrs'],1) : "&nbsp;&nbsp;*";
+  $empunkownnat = $natfigs['emp_unknown_perc'] != -1 ? number_format($natfigs['emp_unknown_perc']) . "%" : "&nbsp;&nbsp;*";
 
 $secondchart = "<h3>How many people are working for pay in an integrated job?</h3>
  <p style=\"color: #696969\"><strong>Source:</strong> <a href=\"http://www.nationalcoreindicators.org\" target=\"_blank\">National Core Indicators Project Adult Consumer Survey</a> <br />
@@ -182,7 +182,7 @@ $secondchart = "<h3>How many people are working for pay in an integrated job?</h
   <table id=\"chartTwo\" class=\"stateTable\"><tr><th>&nbsp</th><th colspan =\"3\" class=\"rowOne\">$firstparameter $chartyear</th><th colspan =\"3\" class=\"rowOne\">Nation $chartyear</th></tr>
 
 
-     <tr><th class=\"colTh\">&nbsp</th><th class=\"colFig\">Percent</th><th class=\"colFig\">Mean wages earned in 2 weeks</th><th>Mean hours worked in 2 weeks</th><th class=\"colFig Nat\">Percent</th><th class=\"colFig\">Mean wages earned in 2 weeks</th><th>Mean hours worked in 2 weeks</th></tr>
+     <tr><th class=\"colTh\">&nbsp</th><th class=\"colFig\">Percent</th><th class=\"colFig\">Mean hourly wages earned in 2 weeks</th><th>Mean hours worked in 2 weeks</th><th class=\"colFig Nat\">Percent</th><th class=\"colFig\">Mean hourly wages earned in 2 weeks</th><th>Mean hours worked in 2 weeks</th></tr>
 
 
 <tr><th><span style=\"font-size: 115%;\">In an integrated job</span><br /><span style=\"font-size: 89%;font-style:italic\">individual supported job + group supported employment + competitive job</span></th><td>$intjobperc</td><td>$intjobwages</td><td>$intjobhrs</td><td class=\"colFig Nat\">$intjobpercnat</td><td>$intjobwagesnat</td><td>$intjobhrsnat</td></tr>
@@ -210,7 +210,12 @@ function d3_statepages_states($firstparameter = '') {
 
  $argumentsone = array(':state' => "$firstparameter");
 
- $maxstate = db_query('select MAX(`subtable`.`YEAR`), `states`.`name`  from {d3_agency_mrdd} subtable LEFT JOIN {d3_states} states on `subtable`.`STATE` = `states`.`abbreviation` where (`subtable`.`Integrated employment percentage rate` != -1 AND `subtable`.`Integrated employment percentage rate` != 0 AND `subtable`.`Integrated employment percentage rate` IS NOT NULL) and `states`.`name` = :state1', array(':state1' => "$firstparameter"))->fetchField();
+ /* Hiding state data for states that did not report in most recent year $maxstate = db_query('select MAX(`subtable`.`YEAR`), `states`.`name`  from {d3_agency_mrdd} subtable LEFT JOIN {d3_states} states on `subtable`.`STATE` = `states`.`abbreviation` where (`subtable`.`Integrated employment percentage rate` != -1 
+  AND `subtable`.`Integrated employment percentage rate` != 0 AND `subtable`.`Integrated employment percentage rate` IS NOT NULL) 
+  and `states`.`name` = :state1', array(':state1' => "$firstparameter"))->fetchField(); */
+   $maxstate = db_query('select MAX(`subtable`.`YEAR`), `states`.`name`  from {d3_agency_mrdd} subtable LEFT JOIN {d3_states} states on `subtable`.`STATE` = `states`.`abbreviation` where (`subtable`.`Integrated employment percentage rate` != -1 
+   AND `subtable`.`Integrated employment percentage rate` != 0 AND `subtable`.`Integrated employment percentage rate` IS NOT NULL) 
+   and `subtable`.`STATE` = :state1', array(':state1' => "US"))->fetchField();
   $emptystate = db_query('select MAX(`YEAR`) from {d3_agency_mrdd}')->fetchField();
 /* $selectone = db_query("SELECT `statenames`.`name` `statefullname`, `states`.`YEAR`,`states`.`Total served` `total_served`,`states`.`YEAR`,`states`.`Integrated employment` `integrated_employment`,`states`.`Integrated employment percentage rate` `IE_percentage_rate`,`states`.`Total funding` `total_funding`,`states`.`employment money` `employment_money`,(`states`.`employment money`/`states`.`Total funding`) `ttl_fund_IE_svcs_perc` FROM {d3_agency_mrdd} `states` LEFT JOIN {d3_states} `statenames` ON `states`.`STATE` = `statenames`.`abbreviation` WHERE `states`.`YEAR` = $maxstate AND `statenames`.`name` = :state1", array(':state1' => "$firstparameter")); */
  $selectone = db_select('d3_agency_mrdd', 'states');
@@ -222,8 +227,8 @@ function d3_statepages_states($firstparameter = '') {
  $selectone->addExpression('`states`.`Integrated employment percentage rate`','IE_percentage_rate');
  $selectone->addExpression('`states`.`Total funding`', 'total_funding');
  $selectone->addExpression('`states`.`employment money`', 'employment_money');
- $selectone->addExpression('(`states`.`employment money`/`states`.`Total funding`)', 'ttl_fund_IE_svcs_perc');
-
+ // Hiding states who did not report in recent year$selectone->addExpression('(`states`.`employment money`/`states`.`Total funding`)', 'ttl_fund_IE_svcs_perc');
+ $selectone->addExpression('IF(`states`.`Total funding` > 0,`states`.`IntEmp_Fund_percent`,-1)', 'ttl_fund_IE_svcs_perc');
 
 $selectone->where('statenames.name = :state',$argumentsone);
 $selectone->where("YEAR = $maxstate");
@@ -235,7 +240,7 @@ $entriesone = isset($maxstate) ? $selectone->execute()->fetchAll(PDO::FETCH_ASSO
 array( 0 => array( 'statefullname' => '', 'YEAR' => $emptystate, 'total_served' => -1, 'integrated_employment' => -1, 'IE_percentage_rate' => -1, 'total_funding' => -1, 'employment_money' => -1, 'ttl_fund_IE_svcs_perc' => -1 ) ) ;
 
  $argumentstwo = array(':state' => "$firstparameter");
-  $maxstate2 = db_query('select MAX(fisc_year) from {d3_statesum_second} subtable where state = :state1', array(':state1' => "$firstparameter"))->fetchField();
+  $maxstate2 = db_query('select MAX(fisc_year) from {d3_statesum_second}')->fetchField();
 
    $emptystate2 = db_query('select MAX(fisc_year) from {d3_statesum_second}')->fetchField();
 
@@ -244,24 +249,25 @@ array( 0 => array( 'statefullname' => '', 'YEAR' => $emptystate, 'total_served' 
    $selecttwo->addField(
    'states','fisc_year');
  $selecttwo->addField('states', 'int_job_perc');
- $selecttwo->addField('states', 'int_job_wages');
+ $selecttwo->addField('states', 'int_job_hrly_wage');
  $selecttwo->addField('states', 'int_job_hrs');
  $selecttwo->addField('states', 'indv_job_perc');
- $selecttwo->addField('states', 'indv_job_wages');
+ $selecttwo->addField('states', 'indv_hrly_wage');
  $selecttwo->addField('states', 'indv_job_hrs');
  $selecttwo->addField('states', 'comp_job_perc');
- $selecttwo->addField('states', 'comp_job_wages');
+ $selecttwo->addField('states', 'comp_hrly_wage');
  $selecttwo->addField('states', 'comp_job_hrs');
  $selecttwo->addField('states', 'indv_sup_job_perc');
- $selecttwo->addField('states', 'indv_sup_job_wages');
+ $selecttwo->addField('states', 'ind_sup_hrly_wage');
  $selecttwo->addField('states', 'indv_sup_job_hrs');
  $selecttwo->addField('states', 'group_sup_job_perc');
- $selecttwo->addField('states', 'group_sup_job_wages');
+ $selecttwo->addField('states', 'group_sup_hrly_wage');
  $selecttwo->addField('states', 'group_sup_job_hrs');
  $selecttwo->addField('states', 'emp_unknown_perc');
 $selecttwo->where('state = :state',$argumentstwo);
 $selecttwo->where("fisc_year = $maxstate2");
-$entriestwo = isset($maxstate2) ? $selecttwo->execute()->fetchAll(PDO::FETCH_ASSOC) : array( 0 => array( 'state' => '' ,'fisc_year' => $emptystate2 ,'int_job_perc' => -1 ,'int_job_wages' => -1, 'int_job_hrs' => -1, 'indv_job_perc' => -1 ,'indv_job_wages' => -1, 'indv_job_hrs' => -1, 'comp_job_perc' => -1, 'comp_job_wages' => -1, 'comp_job_hrs' => -1, 'indv_sup_job_perc' => -1, 'indv_sup_job_wages' => -1, 'indv_sup_job_hrs' => -1, 'group_sup_job_perc' => -1, 'group_sup_job_wages' => -1, 'group_sup_job_hrs' => -1, 'emp_unknown_perc' => -1 ) ) ;
+
+$entriestwo = $selecttwo->execute()->rowCount() > 0 ? $selecttwo->execute()->fetchAll(PDO::FETCH_ASSOC) : array( 0 => array( 'state' => $firstparameter ,'fisc_year' => $maxstate2 ,'int_job_perc' => -1 ,'int_job_hrly_wage' => -1, 'int_job_hrs' => -1, 'indv_job_perc' => -1 ,'indv_hrly_wage' => -1, 'indv_job_hrs' => -1, 'comp_job_perc' => -1, 'comp_hrly_wage' => -1, 'comp_job_hrs' => -1, 'indv_sup_job_perc' => -1, 'ind_sup_hrly_wage' => -1, 'indv_sup_job_hrs' => -1, 'group_sup_job_perc' => -1, 'group_sup_hrly_wage' => -1, 'group_sup_job_hrs' => -1, 'emp_unknown_perc' => -1 ) ) ;
 
 
 $chartyear = $entriesone[0]['YEAR'] != '' ? $entriesone[0]['YEAR'] : $emptystate;

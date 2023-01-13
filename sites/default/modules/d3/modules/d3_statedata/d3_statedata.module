@@ -20,7 +20,7 @@
  * @see menu_example.module
  * @see menu_example_menu()
  */
-include(dirname(__FILE__) . '/../d3_statepages/old_system/functions.php');
+include(dirname(__FILE__) . '/old_functions.php');
 function d3_statedata_menu() {
   $items = array();
 
@@ -52,7 +52,7 @@ function d3_statedata_menu() {
      'access callback' => TRUE,
     'weight' => 6,
   );
-  
+
 // Show chart and form for rebuilding
   $items['data/appendix/%/%'] = array(
     'title' => t('Chart'),
@@ -61,6 +61,7 @@ function d3_statedata_menu() {
      'access callback' => TRUE,
     'weight' => 5,
   );
+  //argument is to show a year to cut off charts to a year earlier than max dates in tables
   $items['data/appendix/run-all/%'] = array(
     'title' => t('Chart'),
     'page callback' => 'd3_statedata_appendix_run_all' ,
@@ -90,12 +91,12 @@ function d3_statedata_dependent_dropdown($form, &$form_state) {
  $sessno = '';
  $sessno = strpos($urlparams,'showchart') !== false ? substr($urlparams, -6) : '';
 
-$sessionkey = $sessno != '' ? (isset($_SESSION["vars" . $sessno]) ? $_SESSION["vars" . $sessno] :_d3_statedata_unserialize_stored($sessno) ) : '';
- if(isset($form_state['storage']['dropdown_first']) && isset($form_state['storage']['radio_cols']))
-  {
-   $chartdata = array('agency' => $form_state['storage']['dropdown_first'],'statechoice' => $form_state['storage']['dropdown_states'], 'category' => (isset($form_state['values']['category_sel']) ? $form_state['values']['category_sel'] : ''), 'variables' => $form_state['values']['radio_cols']) ;
+  $sessionkey = $sessno != '' ? (isset($_SESSION["vars" . $sessno]) ? $_SESSION["vars" . $sessno] :_d3_statedata_unserialize_stored($sessno) ) : '';
+  if(isset($form_state['storage']['dropdown_first']) && isset($form_state['storage']['radio_cols']))
+    {
+    $chartdata = array('agency' => $form_state['storage']['dropdown_first'],'statechoice' => $form_state['storage']['dropdown_states'], 'category' => (isset($form_state['values']['category_sel']) ? $form_state['values']['category_sel'] : ''), 'variables' => $form_state['values']['radio_cols']) ;
 
-  }
+    }
 
   // Get the list of options to populate the first dropdown.
   $options_first = _d3_statedata_get_first_dropdown_options();
@@ -105,7 +106,7 @@ $sessionkey = $sessno != '' ? (isset($_SESSION["vars" . $sessno]) ? $_SESSION["v
   // parameter to pass to the function that retrieves the options for the
   // second dropdown.
   $selected = $sessionkey != '' ? $sessionkey['agency'] : (isset($form_state['values']['dropdown_first']) ? $form_state['values']['dropdown_first'] : key($options_first));
-$options_states = _d3_statedata_get_states_dropdown_options($selected);
+  $options_states = _d3_statedata_get_states_dropdown_options($selected);
 
   $form['#attached']['css'] = array(
     drupal_get_path('module', 'd3_statedata') . '/d3_statedata.css',
@@ -178,10 +179,10 @@ $options_states = _d3_statedata_get_states_dropdown_options($selected);
   );
 
 
-if ($selected == "ACS" || $selected == "ACS09" || $selected == "VR")  {
- $form['category_sel'] = array(
-   '#type' => 'select',
-   '#title' => "Select a category",
+  if ($selected == "ACS" || $selected == "ACS09" || $selected == "VR")  {
+  $form['category_sel'] = array(
+    '#type' => 'select',
+    '#title' => "Select a category",
 
 
 
@@ -259,7 +260,7 @@ function d3_statedata_dependent_dropdown_submit($form, &$form_state) {
 
   $myvar = array();
   $formrebuild  = array();
-$description = array();
+  $description = array();
    $myvar['agency'] = $_SESSION["$sessstring"]['agency'] =  $form_state['storage']['dropdown_first'] = $form_state['values']['dropdown_first'];
      $myvar['category'] = $_SESSION["$sessstring"]['category'] =  $form_state['storage']['category_sel'] = (isset($form_state['values']['category_sel']) ? $form_state['values']['category_sel'] : '');
  $statevar = $myvar['statechoice'] =  $_SESSION["$sessstring"]['statechoice'] = $form_state['storage']['dropdown_states'] = $form_state['values']['dropdown_states'] ? $form_state['values']['dropdown_states'] : '';
@@ -421,7 +422,7 @@ $optionrows =  ($agency == "VR" ? $oldfunctions->get_vr_tables($agency) : $oldfu
 
 
 function _d3_statedata_unserialize_stored($firstparameter = '') {
-  $firstquery = db_query('select urlid,formvars from {d3_url_store} urlstore where urlid = :urlparam', array(':urlparam' => "$firstparameter"))->fetchAll(PDO::FETCH_ASSOC);
+  $firstquery = db_query('select urlid,formvars from sta_d3_url_store urlstore where urlid = :urlparam', array(':urlparam' => "$firstparameter"))->fetchAll(PDO::FETCH_ASSOC);
  $options = array();
 
 
@@ -436,7 +437,7 @@ function _d3_statedata_recent_searches($firstparameter='') {
 $recentblock = '';
 $userip = ip_address();
 $oneweek = time() - 604800;
-$querytext = "select urlid,search_descrip,ip_address from {d3_url_store} urlstore where ip_address = '$userip' AND urlid != $firstparameter AND create_time > $oneweek  ORDER BY create_time DESC LIMIT 12";
+$querytext = "select urlid,search_descrip,ip_address from sta_d3_url_store urlstore where ip_address = '$userip' AND urlid != $firstparameter AND create_time > $oneweek  ORDER BY create_time DESC LIMIT 12";
 
   $firstquery = db_query($querytext)->fetchAll(PDO::FETCH_ASSOC);
   $rowcounter = db_query($querytext)->rowCount();
@@ -454,7 +455,7 @@ return $recentblock;
 function _d3_statedata_recent_nonuser() {
 $frontblock = '';
 $userip = ip_address();
-$querytext = "select urls.ip_address,urlfields.urlid,urlfields.search_descrip from {d3_url_store} as urls LEFT JOIN (select ip_address,urlid,search_descrip from {d3_url_store} order by create_time DESC) as urlfields ON urls.ip_address = urlfields.ip_address WHERE urls.ip_address != '$userip' GROUP BY urls.ip_address ORDER BY create_time DESC LIMIT 12";
+$querytext = "select urls.ip_address,urlfields.urlid,urlfields.search_descrip from sta_d3_url_store as urls LEFT JOIN (select ip_address,urlid,search_descrip from sta_d3_url_store order by create_time DESC) as urlfields ON urls.ip_address = urlfields.ip_address WHERE urls.ip_address != '$userip' GROUP BY urls.ip_address ORDER BY create_time DESC LIMIT 12";
 
   $firstquery = db_query($querytext)->fetchAll(PDO::FETCH_ASSOC);
   $rowcounter = db_query($querytext)->rowCount();
@@ -625,14 +626,14 @@ $description = array();
  *
  * @return renderable array (the second dropdown)
  */
- function d3_statedata_dependent_appendix_callback($form, $form_state) {
+function d3_statedata_dependent_appendix_callback($form, $form_state) {
    $form_state['calledback'] = TRUE;
    return  $form_state['values']['dropdown_first'] != "ACS" && $form_state['values']['dropdown_first'] != "ACS09" && $form_state['values']['dropdown_first'] != "VR" ? array($form['dropdown_states'],$form['add_states'],$form['radio_cols'],$form['submit']) : array(array($form['dropdown_states'],$form['add_states'],$form['category_sel'],$form['radio_cols'],$form['submit']),array($form_state['calledback']) ) ;
 
- }
-
-function d3_statedata_appendix_run_all($firstparameter="") {
-  $statequery =   "SELECT DISTINCT `abbreviation`, `name` from {d3_states} ORDER BY `name`";
+}
+//April 2021 modified this function and the next below to cut off table output at 2018, leaving out 2019 from blue book tables.  Modified all max year queries to conform to a year specified in the URL
+function d3_statedata_appendix_run_all($firstparameter= null) {
+  $statequery =   "SELECT DISTINCT `abbreviation`, `name` from `sta_d3_states` ORDER BY `name`";
   $statearray = db_query($statequery)->fetchAll(PDO::FETCH_ASSOC);
   $statein = array();
   $appchoice = array('app1','app2','app3','app4','app5','app6');
@@ -645,148 +646,156 @@ function d3_statedata_appendix_run_all($firstparameter="") {
   header('Content-Disposition: attachment; filename="' . $filename .'"');
 
   ob_end_flush();
-  foreach ($statearray as $entry) { 
+  foreach ($statearray as $entry) {
     for ($i = 0; $i < count($appchoice); $i++) {
-     $tablestring = d3_statedata_appendix_chart($entry['abbreviation'],$appchoice[$i],true);
+     $tablestring = d3_statedata_appendix_chart($entry['abbreviation'],$appchoice[$i],true,$firstparameter);
      print $tablestring;
     }
-      
+
 
     }
 
 
 }
 
- function d3_statedata_appendix_chart($firstparameter = '',$secondparameter = '',$filecall = false) {
- $stored =   isset($_SESSION["vars" . $firstparameter]) ? $_SESSION["vars" . $firstparameter] : _d3_statedata_unserialize_stored($firstparameter);
+function d3_statedata_appendix_chart($firstparameter = '',$secondparameter = '',$filecall = false,$limitmaxyear = null) {
+  $stored =   isset($_SESSION["vars" . $firstparameter]) ? $_SESSION["vars" . $firstparameter] : _d3_statedata_unserialize_stored($firstparameter);
 
- //$table = substr($stored['agency'],0,2) == 'AC' || substr($stored['agency'],0,2) == 'VR' ? $stored['category'] : $stored['agency'];
+  //$table = substr($stored['agency'],0,2) == 'AC' || substr($stored['agency'],0,2) == 'VR' ? $stored['category'] : $stored['agency'];
 
- $var = $stored['variables'];
+  $var = $stored['variables'];
 
- $state = $firstparameter;
- $appendix = $secondparameter;
+  $state = $firstparameter;
+  $appendix = $secondparameter;
 
 
- $formparam = isset($stored['form']) ? $stored['form'] : array();
- $formparam2 = isset($stored['form_state']) ? $stored['form_state'] : array();
+  $formparam = isset($stored['form']) ? $stored['form'] : array();
+  $formparam2 = isset($stored['form_state']) ? $stored['form_state'] : array();
 
- $charttable = '';
-$agencyquery = "SELECT `idd_agency`,`vr_agency` from `{d3_states}` where `abbreviation` = '$state'";
-$stateagencies = db_query($agencyquery)->fetchAll(PDO::FETCH_ASSOC);
-$iddagency = $stateagencies[0]['idd_agency'];
-$vragency = $stateagencies[0]['vr_agency'];
+  $charttable = '';
+  $agencyquery = "SELECT `idd_agency`,`vr_agency` from `sta_d3_states` where `abbreviation` = '$state'";
+  $stateagencies = db_query($agencyquery)->fetchAll(PDO::FETCH_ASSOC);
+  $iddagency = $stateagencies[0]['idd_agency'];
+  $vragency = $stateagencies[0]['vr_agency'];
 
-   $stategroup = array("US","$state");
-   $stategroup2 = "('" . implode("', '", $stategroup) . "')";
+  $stategroup = array("US","$state");
+  $stategroup2 = "('" . implode("', '", $stategroup) . "')";
 
-   $query = "SELECT DISTINCT `year` FROM `{d3_acs_post08_AnyDis}`, `{d3_labels}` WHERE `{d3_labels}`.column_name IN ('Perwork') and `{d3_labels}`.table_name = 'sta_d3_acs_post08_AnyDis' AND `state` IN $stategroup2 ORDER BY `year`" ;
+  $query = "SELECT DISTINCT `year` FROM `sta_d3_acs_post08_AnyDis`, `sta_d3_labels` WHERE `sta_d3_labels`.column_name IN ('Perwork') and `sta_d3_labels`.table_name = 'sta_d3_acs_post08_AnyDis' AND `state` IN $stategroup2 ORDER BY `year`" ;
 
-   $fields = db_query($query)->fetchAll(PDO::FETCH_ASSOC);
-   $chartarray = array();
-   $varrow = array();
+  $fields = db_query($query)->fetchAll(PDO::FETCH_ASSOC);
+  $chartarray = array();
+  $varrow = array();
   switch ($appendix) {
     case 'app1':
        $maxyearquery = "SELECT DISTINCT `noDis`.`YEAR` FROM `sta_d3_acs_post08_nodis`
          `noDis` LEFT JOIN `sta_d3_acs_post08_AnyDis` `anyDis` ON `noDis`.`STATE` = `anyDis`.`STATE` AND `noDis`.`YEAR` =
           `anyDis`.`YEAR` LEFT JOIN `sta_d3_acs_post08_Cognitive` `postCog` ON `noDis`.`STATE` = `postCog`.`STATE` AND
            `noDis`.`YEAR` = `postCog`.`YEAR` WHERE (`noDis`.`STATE` = '$state' OR `noDis`.`STATE` = 'US') AND (`noDis`.`YEAR` = (SELECT MAX(`YEAR`) from `sta_d3_acs_post08_nodis` WHERE `STATE` = 'US'))";
-            $maxyear =  db_query($maxyearquery)->fetchField();
+            //$maxyear =  db_query($maxyearquery)->fetchField();
+            $maxyear = db_query($maxyearquery)->fetchField() <= $limitmaxyear ? db_query($maxyearquery)->fetchField() : $limitmaxyear;
 
            $legend1array = array("Percentage of people with no disability who are employed",
              "Percentage people with any disability who are employed","Percentage people with a cognitive disability who are employed");
 
-            $subquery = "SELECT FORMAT((`noDis`.`Perwork` * 100),2) `noDisPerwork`, FORMAT((`anyDis`.`Perwork` * 100),2) `anyDisPerwork`,FORMAT((`postCog`.`Perwork` * 100),2) `postCogPerwork` FROM `{d3_acs_post08_nodis}`
-               `noDis` LEFT JOIN `{d3_acs_post08_AnyDis}` `anyDis` ON `noDis`.`STATE` = `anyDis`.`STATE` AND `noDis`.`YEAR` =
-                `anyDis`.`YEAR` LEFT JOIN `{d3_acs_post08_Cognitive}` `postCog` ON `noDis`.`STATE` = `postCog`.`STATE` AND `noDis`.`YEAR` =
+            $subquery = "SELECT FORMAT((`noDis`.`Perwork` * 100),2) `noDisPerwork`, FORMAT((`anyDis`.`Perwork` * 100),2) `anyDisPerwork`,FORMAT((`postCog`.`Perwork` * 100),2) `postCogPerwork` FROM `sta_d3_acs_post08_nodis`
+               `noDis` LEFT JOIN `sta_d3_acs_post08_AnyDis` `anyDis` ON `noDis`.`STATE` = `anyDis`.`STATE` AND `noDis`.`YEAR` =
+                `anyDis`.`YEAR` LEFT JOIN `sta_d3_acs_post08_Cognitive` `postCog` ON `noDis`.`STATE` = `postCog`.`STATE` AND `noDis`.`YEAR` =
                  `postCog`.`YEAR` WHERE `noDis`.`STATE` IN $stategroup2 and `noDis`.`YEAR` = $maxyear ORDER BY FIELD(`noDis`.`STATE`, 'US','$state')";
                   $namefields = array('noDisPerwork','anyDisPerwork','postCogPerwork');
                   $category_name = "Percentage Employed: Working-Age People (Ages 16 to 64), $maxyear";
            break;
 
-       case 'app2':
-       $maxyearquery = "SELECT DISTINCT MAX(`YEAR`) from `{d3_acs_post08_nodis}` WHERE `STATE` = '$state'";
-            $maxyear =  db_query($maxyearquery)->fetchField();
-           $legend1array = array();
-           break;
+    case 'app2':
+    $maxyearquery = "SELECT DISTINCT MAX(`YEAR`) from `sta_d3_acs_post08_nodis` WHERE `STATE` = '$state'";
+        //$maxyear =  db_query($maxyearquery)->fetchField();
+        $maxyear = db_query($maxyearquery)->fetchField() <= $limitmaxyear ? db_query($maxyearquery)->fetchField() : $limitmaxyear;
+        $legend1array = array();
+        break;
 
 
-      case 'app3':
+    case 'app3':
 
-      $maxyearquery = "SELECT DISTINCT MAX(`YEAR`) from `{d3_agency_mrdd}` WHERE `STATE` = '$state'";
+      $maxyearquery = "SELECT DISTINCT MAX(`YEAR`) from `sta_d3_agency_mrdd` WHERE `STATE` = '$state'";
       $legend1array = array("Percentage of people with no disability who are employed",
         "Percentage people with any disability who are employed","Percentage people with a cognitive disability who are employed");
-         $maxyear =  db_query($maxyearquery)->fetchField();
+          //$maxyear =  db_query($maxyearquery)->fetchField();
+          $maxyear = db_query($maxyearquery)->fetchField() <= $limitmaxyear ? db_query($maxyearquery)->fetchField() : $limitmaxyear;
 
 
 
-        $subquery = "SELECT DISTINCT `agencyMRDD`.`YEAR`, FORMAT((`agencyMRDD`.`Integrated employment percentage rate` * 100), 2) `var` FROM `{d3_agency_mrdd}` `agencyMRDD` WHERE `agencyMRDD`.`STATE` = '$state' AND (`agencyMRDD`.`YEAR` = YEAR(DATE_SUB(NOW(), INTERVAL 1 YEAR)) OR `agencyMRDD`.`YEAR` = YEAR(DATE_SUB(NOW(), INTERVAL 2 YEAR)) OR `agencyMRDD`.`YEAR` = YEAR(DATE_SUB(NOW(), INTERVAL 5 YEAR)) OR`agencyMRDD`.`YEAR` = YEAR(DATE_SUB(NOW(), INTERVAL 3 YEAR)) OR`agencyMRDD`.`YEAR` =
+        $subquery = "SELECT DISTINCT `agencyMRDD`.`YEAR`, FORMAT((`agencyMRDD`.`Integrated employment percentage rate` * 100), 2) `var` FROM `sta_d3_agency_mrdd` `agencyMRDD` WHERE `agencyMRDD`.`STATE` = '$state' AND (`agencyMRDD`.`YEAR` = YEAR(DATE_SUB(NOW(), INTERVAL 1 YEAR)) OR `agencyMRDD`.`YEAR` = YEAR(DATE_SUB(NOW(), INTERVAL 2 YEAR)) OR `agencyMRDD`.`YEAR` = YEAR(DATE_SUB(NOW(), INTERVAL 5 YEAR)) OR`agencyMRDD`.`YEAR` = YEAR(DATE_SUB(NOW(), INTERVAL 3 YEAR)) OR`agencyMRDD`.`YEAR` =
               YEAR(DATE_SUB(NOW(), INTERVAL 4 YEAR)) OR `agencyMRDD`.`YEAR` = YEAR(DATE_SUB(NOW(), INTERVAL 11 YEAR)) OR `agencyMRDD`.`YEAR` = YEAR(DATE_SUB(NOW(), INTERVAL 5 YEAR)) OR `agencyMRDD`.`YEAR` = YEAR(DATE_SUB(NOW(), INTERVAL 11 YEAR)) OR `agencyMRDD`.`YEAR` = YEAR(DATE_SUB(NOW(), INTERVAL 6 YEAR)) OR `agencyMRDD`.`YEAR` = YEAR(DATE_SUB(NOW(), INTERVAL 11 YEAR)) OR `agencyMRDD`.`YEAR` = YEAR(DATE_SUB(NOW(), INTERVAL 7 YEAR)) OR `agencyMRDD`.`YEAR` = YEAR(DATE_SUB(NOW(), INTERVAL 15 YEAR)) OR `agencyMRDD`.`YEAR` = YEAR(DATE_SUB(NOW(), INTERVAL 8 YEAR)) OR `agencyMRDD`.`YEAR` = YEAR(DATE_SUB(NOW(), INTERVAL 15 YEAR)))";
 
-             $category_name = "Percentage of people served in integrated employment, $maxyear";
+              $category_name = "Percentage of people served in integrated employment, $maxyear";
 
+    break;
+
+    case 'app4':
+
+    $maxyearquery = "SELECT DISTINCT MAX(`YEAR`) from `sta_d3_agency_mrdd` WHERE `STATE` = '$state'";
+
+        //$maxyear =  db_query($maxyearquery)->fetchField();
+        $maxyear = db_query($maxyearquery)->fetchField() <= $limitmaxyear ? db_query($maxyearquery)->fetchField() : $limitmaxyear;
+
+
+
+      $subquery = "SELECT DISTINCT `agencyMRDD`.`YEAR`, IF(`agencyMRDD`.`employment money` = -1, 0, FORMAT(((`agencyMRDD`.`employment money`/ `Total funding`) * 100), 2)) `var` FROM `sta_d3_agency_mrdd` `agencyMRDD` WHERE `agencyMRDD`.`STATE` = '$state' AND (`agencyMRDD`.`YEAR` = YEAR(DATE_SUB(NOW(), INTERVAL 1 YEAR)) OR `agencyMRDD`.`YEAR` = YEAR(DATE_SUB(NOW(), INTERVAL 2 YEAR)) OR `agencyMRDD`.`YEAR` = YEAR(DATE_SUB(NOW(), INTERVAL 5 YEAR)) OR`agencyMRDD`.`YEAR` = YEAR(DATE_SUB(NOW(), INTERVAL 3 YEAR)) OR`agencyMRDD`.`YEAR` = YEAR(DATE_SUB(NOW(), INTERVAL 4 YEAR)) OR `agencyMRDD`.`YEAR` = YEAR(DATE_SUB(NOW(), INTERVAL 11 YEAR)) OR `agencyMRDD`.`YEAR` = YEAR(DATE_SUB(NOW(), INTERVAL 5 YEAR)) OR `agencyMRDD`.`YEAR` = YEAR(DATE_SUB(NOW(), INTERVAL 11 YEAR)) OR `agencyMRDD`.`YEAR` = YEAR(DATE_SUB(NOW(), INTERVAL 6 YEAR)) OR `agencyMRDD`.`YEAR` = YEAR(DATE_SUB(NOW(), INTERVAL 11 YEAR)) OR `agencyMRDD`.`YEAR` = YEAR(DATE_SUB(NOW(), INTERVAL 7 YEAR)) OR `agencyMRDD`.`YEAR` = YEAR(DATE_SUB(NOW(), INTERVAL 15 YEAR)) OR `agencyMRDD`.`YEAR` = YEAR(DATE_SUB(NOW(), INTERVAL 8 YEAR)) OR `agencyMRDD`.`YEAR` = YEAR(DATE_SUB(NOW(), INTERVAL 15 YEAR)))";
+
+            $category_name = "Percentage of total funding spent on integrated employment, $maxyear";
+
+    break;
+
+    case 'app5':
+
+     $maxyearquery = "SELECT DISTINCT `rsaAll`.`YEAR` FROM `sta_d3_vr_rsa_all`
+      `rsaAll` LEFT JOIN `sta_d3_vr_rsa_ID` `rsaID` ON `rsaAll`.`STATE` = `rsaID`.`STATE` AND `rsaAll`.`YEAR` =
+        `rsaID`.`YEAR` WHERE `rsaAll`.`STATE` = '$state'  AND `rsaID`.`YEAR` = `rsaAll`.`YEAR`  ORDER BY `rsaAll`.`YEAR` DESC LIMIT 1";
+
+          //$maxyear =  db_query($maxyearquery)->fetchField();
+          $maxyear = db_query($maxyearquery)->fetchField() <= $limitmaxyear ? db_query($maxyearquery)->fetchField() : $limitmaxyear;
       break;
 
-      case 'app4':
+      case 'app6':
 
-      $maxyearquery = "SELECT DISTINCT MAX(`YEAR`) from `{d3_agency_mrdd}` WHERE `STATE` = '$state'";
+      $maxyearquery = "SELECT DISTINCT `YEAR` from `sta_d3_vr_rsa_all` WHERE `STATE` = '$state' ORDER BY `YEAR` DESC LIMIT 1";
+      $legend1array = array("Rehabilitation rate for all closures with an IPE",
+        "Rehabilitation rate for all closures with ID");
+        //$maxyear =  db_query($maxyearquery)->fetchField();
+        $maxyear = db_query($maxyearquery)->fetchField() <= $limitmaxyear ? db_query($maxyearquery)->fetchField() : $limitmaxyear;
 
-         $maxyear =  db_query($maxyearquery)->fetchField();
+
+
+        $subquery = "SELECT DISTINCT `rsaAll`.`YEAR`, IF(`rsaAll`.`REHABRAT` = -1, 0, FORMAT((`rsaAll`.`REHABRAT` * 100), 2)) `varAll`, IF(`rsaID`.`REHABRAT` = -1, 0, FORMAT((`rsaID`.`REHABRAT` * 100), 2)) `varID` FROM `sta_d3_vr_rsa_all` `rsaAll` LEFT JOIN `sta_d3_vr_rsa_ID` `rsaID` ON `rsaAll`.`STATE` = `rsaID`.`STATE` AND `rsaAll`.`YEAR` = `rsaID`.`YEAR`  WHERE `rsaAll`.`STATE` = '$state' AND (`rsaAll`.`YEAR` = YEAR(DATE_SUB(NOW(), INTERVAL 1 YEAR)) OR `rsaAll`.`YEAR` = YEAR(DATE_SUB(NOW(), INTERVAL 2 YEAR)) OR `rsaAll`.`YEAR` = YEAR(DATE_SUB(NOW(), INTERVAL 5 YEAR)) OR`rsaAll`.`YEAR` = YEAR(DATE_SUB(NOW(), INTERVAL 3 YEAR)) OR`rsaAll`.`YEAR` =
+              YEAR(DATE_SUB(NOW(), INTERVAL 4 YEAR)) OR `rsaAll`.`YEAR` = YEAR(DATE_SUB(NOW(), INTERVAL 11 YEAR)) OR `rsaAll`.`YEAR` = YEAR(DATE_SUB(NOW(), INTERVAL 5 YEAR)) OR `rsaAll`.`YEAR` = YEAR(DATE_SUB(NOW(), INTERVAL 11 YEAR)) OR `rsaAll`.`YEAR` = YEAR(DATE_SUB(NOW(), INTERVAL 6 YEAR)) OR `rsaAll`.`YEAR` = YEAR(DATE_SUB(NOW(), INTERVAL 11 YEAR)) OR `rsaAll`.`YEAR` = YEAR(DATE_SUB(NOW(), INTERVAL 7 YEAR)) OR `rsaAll`.`YEAR` = YEAR(DATE_SUB(NOW(), INTERVAL 15 YEAR)) OR `rsaAll`.`YEAR` = YEAR(DATE_SUB(NOW(), INTERVAL 8 YEAR)) OR `rsaAll`.`YEAR` = YEAR(DATE_SUB(NOW(), INTERVAL 15 YEAR)))";
 
 
 
-        $subquery = "SELECT DISTINCT `agencyMRDD`.`YEAR`, IF(`agencyMRDD`.`employment money` = -1, 0, FORMAT(((`agencyMRDD`.`employment money`/ `Total funding`) * 100), 2)) `var` FROM `{d3_agency_mrdd}` `agencyMRDD` WHERE `agencyMRDD`.`STATE` = '$state' AND (`agencyMRDD`.`YEAR` = YEAR(DATE_SUB(NOW(), INTERVAL 1 YEAR)) OR `agencyMRDD`.`YEAR` = YEAR(DATE_SUB(NOW(), INTERVAL 2 YEAR)) OR `agencyMRDD`.`YEAR` = YEAR(DATE_SUB(NOW(), INTERVAL 5 YEAR)) OR`agencyMRDD`.`YEAR` = YEAR(DATE_SUB(NOW(), INTERVAL 3 YEAR)) OR`agencyMRDD`.`YEAR` = YEAR(DATE_SUB(NOW(), INTERVAL 4 YEAR)) OR `agencyMRDD`.`YEAR` = YEAR(DATE_SUB(NOW(), INTERVAL 11 YEAR)) OR `agencyMRDD`.`YEAR` = YEAR(DATE_SUB(NOW(), INTERVAL 5 YEAR)) OR `agencyMRDD`.`YEAR` = YEAR(DATE_SUB(NOW(), INTERVAL 11 YEAR)) OR `agencyMRDD`.`YEAR` = YEAR(DATE_SUB(NOW(), INTERVAL 6 YEAR)) OR `agencyMRDD`.`YEAR` = YEAR(DATE_SUB(NOW(), INTERVAL 11 YEAR)) OR `agencyMRDD`.`YEAR` = YEAR(DATE_SUB(NOW(), INTERVAL 7 YEAR)) OR `agencyMRDD`.`YEAR` = YEAR(DATE_SUB(NOW(), INTERVAL 15 YEAR)) OR `agencyMRDD`.`YEAR` = YEAR(DATE_SUB(NOW(), INTERVAL 8 YEAR)) OR `agencyMRDD`.`YEAR` = YEAR(DATE_SUB(NOW(), INTERVAL 15 YEAR)))";
 
-             $category_name = "Percentage of total funding spent on integrated employment, $maxyear";
+
+                $namefields = array('varAll','varID');
+                $category_name = "Comparison of rehabilitation rate: all closures with an IPE; all closures with ID";
 
       break;
-
-      case 'app5':
-
-      $maxyearquery = "SELECT DISTINCT `rsaAll`.`YEAR` FROM `{d3_vr_rsa_all}`
-        `rsaAll` LEFT JOIN `{d3_vr_rsa_ID}` `rsaID` ON `rsaAll`.`STATE` = `rsaID`.`STATE` AND `rsaAll`.`YEAR` =
-         `rsaID`.`YEAR` WHERE `rsaAll`.`STATE` = '$state'  AND `rsaID`.`YEAR` = `rsaAll`.`YEAR`  ORDER BY `rsaAll`.`YEAR` DESC LIMIT 1";
-           $maxyear =  db_query($maxyearquery)->fetchField();
-           $maxyear =  db_query($maxyearquery)->fetchField();
-       break;
-
-       case 'app6':
-
-       $maxyearquery = "SELECT DISTINCT `YEAR` from `{d3_vr_rsa_all}` WHERE `STATE` = '$state' ORDER BY `YEAR` DESC LIMIT 1";
-       $legend1array = array("Rehabilitation rate for all closures with an IPE",
-         "Rehabilitation rate for all closures with ID");
-          $maxyear =  db_query($maxyearquery)->fetchField();
-
-
-
-         $subquery = "SELECT DISTINCT `rsaAll`.`YEAR`, IF(`rsaAll`.`REHABRAT` = -1, 0, FORMAT((`rsaAll`.`REHABRAT` * 100), 2)) `varAll`, IF(`rsaID`.`REHABRAT` = -1, 0, FORMAT((`rsaID`.`REHABRAT` * 100), 2)) `varID` FROM `{d3_vr_rsa_all}` `rsaAll` LEFT JOIN `{d3_vr_rsa_ID}` `rsaID` ON `rsaAll`.`STATE` = `rsaID`.`STATE` AND `rsaAll`.`YEAR` = `rsaID`.`YEAR`  WHERE `rsaAll`.`STATE` = '$state' AND (`rsaAll`.`YEAR` = YEAR(DATE_SUB(NOW(), INTERVAL 1 YEAR)) OR `rsaAll`.`YEAR` = YEAR(DATE_SUB(NOW(), INTERVAL 2 YEAR)) OR `rsaAll`.`YEAR` = YEAR(DATE_SUB(NOW(), INTERVAL 5 YEAR)) OR`rsaAll`.`YEAR` = YEAR(DATE_SUB(NOW(), INTERVAL 3 YEAR)) OR`rsaAll`.`YEAR` =
-               YEAR(DATE_SUB(NOW(), INTERVAL 4 YEAR)) OR `rsaAll`.`YEAR` = YEAR(DATE_SUB(NOW(), INTERVAL 11 YEAR)) OR `rsaAll`.`YEAR` = YEAR(DATE_SUB(NOW(), INTERVAL 5 YEAR)) OR `rsaAll`.`YEAR` = YEAR(DATE_SUB(NOW(), INTERVAL 11 YEAR)) OR `rsaAll`.`YEAR` = YEAR(DATE_SUB(NOW(), INTERVAL 6 YEAR)) OR `rsaAll`.`YEAR` = YEAR(DATE_SUB(NOW(), INTERVAL 11 YEAR)) OR `rsaAll`.`YEAR` = YEAR(DATE_SUB(NOW(), INTERVAL 7 YEAR)) OR `rsaAll`.`YEAR` = YEAR(DATE_SUB(NOW(), INTERVAL 15 YEAR)) OR `rsaAll`.`YEAR` = YEAR(DATE_SUB(NOW(), INTERVAL 8 YEAR)) OR `rsaAll`.`YEAR` = YEAR(DATE_SUB(NOW(), INTERVAL 15 YEAR)))";
-
-
-
-
-
-                 $namefields = array('varAll','varID');
-                 $category_name = "Comparison of rehabilitation rate: all closures with an IPE; all closures with ID";
-
-       break;
 
       default:
       $maxyearquery = "SELECT DISTINCT `noDis`.`YEAR` FROM `sta_d3_acs_post08_nodis`
         `noDis` LEFT JOIN `sta_d3_acs_post08_AnyDis` `anyDis` ON `noDis`.`STATE` = `anyDis`.`STATE` AND `noDis`.`YEAR` =
          `anyDis`.`YEAR` LEFT JOIN `sta_d3_acs_post08_Cognitive` `postCog` ON `noDis`.`STATE` = `postCog`.`STATE` AND
           `noDis`.`YEAR` = `postCog`.`YEAR` WHERE (`noDis`.`STATE` = '$state' OR `noDis`.`STATE` = 'US') AND (`noDis`.`YEAR` = (SELECT MAX(`YEAR`) from `sta_d3_acs_post08_nodis` WHERE `STATE` = 'US'))";
-           $maxyear =  db_query($maxyearquery)->fetchField();
+          // $maxyear =  db_query($maxyearquery)->fetchField();
+          $maxyear = db_query($maxyearquery)->fetchField() <= $limitmaxyear ? db_query($maxyearquery)->fetchField() : $limitmaxyear;
 
           $legend1array = array("Percentage of people with no disability who are employed",
             "Percentage people with any disability who are employed","Percentage people with a cognitive disability who are employed");
 
-            $subquery = "SELECT FORMAT((`noDis`.`Perwork` * 100),2) `noDisPerwork`, FORMAT((`anyDis`.`Perwork` * 100),2) `anyDisPerwork`,FORMAT((`postCog`.`Perwork` * 100),2) `postCogPerwork` FROM `{d3_acs_post08_nodis}`
-              `noDis` LEFT JOIN `{d3_acs_post08_AnyDis}` `anyDis` ON `noDis`.`STATE` = `anyDis`.`STATE` AND `noDis`.`YEAR` =
-               `anyDis`.`YEAR` LEFT JOIN `{d3_acs_post08_Cognitive}` `postCog` ON `noDis`.`STATE` = `postCog`.`STATE` AND `noDis`.`YEAR` =
+            $subquery = "SELECT FORMAT((`noDis`.`Perwork` * 100),2) `noDisPerwork`, FORMAT((`anyDis`.`Perwork` * 100),2) `anyDisPerwork`,FORMAT((`postCog`.`Perwork` * 100),2) `postCogPerwork` FROM `sta_d3_acs_post08_nodis`
+              `noDis` LEFT JOIN `sta_d3_acs_post08_AnyDis` `anyDis` ON `noDis`.`STATE` = `anyDis`.`STATE` AND `noDis`.`YEAR` =
+               `anyDis`.`YEAR` LEFT JOIN `sta_d3_acs_post08_Cognitive` `postCog` ON `noDis`.`STATE` = `postCog`.`STATE` AND `noDis`.`YEAR` =
                 `postCog`.`YEAR` WHERE `noDis`.`STATE` IN $stategroup2 and `noDis`.`YEAR` = $maxyear ORDER BY FIELD(`noDis`.`STATE`, 'US','$state')";
                  $namefields = array('noDisPerwork','anyDisPerwork','postCogPerwork');
                  $category_name = "Percentage Employed: Working-Age People (Ages 16 to 64), $maxyear";
+      break;
     }
 
 
@@ -798,7 +807,7 @@ $vragency = $stateagencies[0]['vr_agency'];
      $chartvars = $appendix != 'app2' && $appendix != 'app5' ?  db_query($subquery)->fetchAll(PDO::FETCH_ASSOC) : array();
 
    $numfields = count($chartvars[0]);
-if ($appendix == 'app1') {
+  if ($appendix == 'app1') {
    for($i = 0; $i < $numfields ; $i ++) {
 
 
@@ -820,25 +829,25 @@ if ($appendix == 'app1') {
 
  }
 
-} elseif ($appendix == 'app3' || $appendix == 'app4') {
+  } elseif ($appendix == 'app3' || $appendix == 'app4') {
   foreach ($chartvars as $entry) {
   $year = $entry['YEAR'];
 
   $chartarray [] = array((string)$year, str_replace(',', '', $entry['var']));
 
-}
+  }
 
-}
+  }
 
-if ($appendix == 'app6') {
+  if ($appendix == 'app6') {
   foreach ($chartvars as $entry) {
   $year = $entry['YEAR'];
 
   $chartarray [] = array((string)$year, str_replace(',', '', $entry['varAll']), str_replace(',', '', $entry['varID']));
 
-}
+  }
 
-}
+  }
 
  // values for single state
  $firstfunctions = new oldFunctions;
@@ -847,46 +856,46 @@ if ($appendix == 'app6') {
  switch($appendix) {
    case 'app1':
 
- $query = "SELECT DISTINCT `YEAR`, FORMAT(`population in 1000s`/1000, 0) `pop`, FORMAT(`unemployment rate`, 1) `unemp` FROM `{d3_agency_labor}`  WHERE `STATE` = '$state' AND (`YEAR` = (SELECT MAX(`YEAR`) from {d3_acs_post08_nodis} WHERE `STATE` = '$state') OR `YEAR` = (SELECT MAX(`YEAR`) -1 from {d3_acs_post08_nodis} WHERE `STATE` = '$state') OR `YEAR` = (SELECT MAX(`YEAR`) -2 from {d3_acs_post08_nodis} WHERE `STATE` = '$state') OR`YEAR` = (SELECT MAX(`YEAR`) -3 from {d3_acs_post08_nodis} WHERE `STATE` = '$state') OR`YEAR` = (SELECT MAX(`YEAR`) -4 from {d3_acs_post08_nodis} WHERE `STATE` = '$state') OR `YEAR` = (SELECT MAX(`YEAR`) -5 from {d3_acs_post08_nodis} WHERE `STATE` = '$state') OR `YEAR` = (SELECT MAX(`YEAR`) -6 from {d3_acs_post08_nodis} WHERE `STATE` = '$state') OR`YEAR` = (SELECT MAX(`YEAR`) -7 from {d3_acs_post08_nodis} WHERE `STATE` = '$state'))";
+ $query = "SELECT DISTINCT `YEAR`, FORMAT(`population in 1000s`/1000, 0) `pop`, FORMAT(`unemployment rate`, 1) `unemp` FROM `sta_d3_agency_labor`  WHERE `STATE` = '$state' AND (`YEAR` = (SELECT IF(MAX(`YEAR`) > $limitmaxyear,$limitmaxyear,MAX(`YEAR`)) from sta_d3_acs_post08_nodis WHERE `STATE` = '$state') OR `YEAR` = (SELECT IF(MAX(`YEAR`) > $limitmaxyear,$limitmaxyear,MAX(`YEAR`)) -1 from sta_d3_acs_post08_nodis WHERE `STATE` = '$state') OR `YEAR` = (SELECT IF(MAX(`YEAR`) > $limitmaxyear,$limitmaxyear,MAX(`YEAR`)) -2 from sta_d3_acs_post08_nodis WHERE `STATE` = '$state') OR`YEAR` = (SELECT IF(MAX(`YEAR`) > $limitmaxyear,$limitmaxyear,MAX(`YEAR`)) -3 from sta_d3_acs_post08_nodis WHERE `STATE` = '$state') OR`YEAR` = (SELECT IF(MAX(`YEAR`) > $limitmaxyear,$limitmaxyear,MAX(`YEAR`)) -4 from sta_d3_acs_post08_nodis WHERE `STATE` = '$state') OR `YEAR` = (SELECT IF(MAX(`YEAR`) > $limitmaxyear,$limitmaxyear,MAX(`YEAR`)) -5 from sta_d3_acs_post08_nodis WHERE `STATE` = '$state') OR `YEAR` = (SELECT IF(MAX(`YEAR`) > $limitmaxyear,$limitmaxyear,MAX(`YEAR`)) -6 from sta_d3_acs_post08_nodis WHERE `STATE` = '$state') OR`YEAR` = (SELECT IF(MAX(`YEAR`) > $limitmaxyear,$limitmaxyear,MAX(`YEAR`)) -7 from sta_d3_acs_post08_nodis WHERE `STATE` = '$state'))";
 
  // print $query;
  // app1
-     $table2query =  "SELECT DISTINCT `noDis`.`YEAR` `chartYEAR`,`noDis`.`STATE` `chartSTATE`, FORMAT(`noDis`.`NUMPOP`, 0) `noDisPop`, FORMAT(`anyDis`.`NUMPOP`, 0) `anyDisPop`,FORMAT(`postCog`.`NUMPOP`, 0) `postCogPop`,FORMAT(`noDis`.`NUMEMP`, 0) `noDisEmp`, FORMAT(`anyDis`.`NUMEMP`, 0) `anyDisEmp`,FORMAT(`postCog`.`NUMEMP`, 0) `postCogEmp`,FORMAT((`noDis`.`Perwork` * 100),1) `noDisPerwork`, FORMAT((`anyDis`.`Perwork` * 100),1) `anyDisPerwork`,FORMAT((`postCog`.`Perwork` * 100),1) `postCogPerwork` FROM `{d3_acs_post08_nodis}`
-       `noDis` LEFT JOIN `{d3_acs_post08_AnyDis}` `anyDis` ON `noDis`.`STATE` = `anyDis`.`STATE` AND `noDis`.`YEAR` =
-        `anyDis`.`YEAR` LEFT JOIN `{d3_acs_post08_Cognitive}` `postCog` ON `noDis`.`STATE` = `postCog`.`STATE` AND
-         `noDis`.`YEAR` = `postCog`.`YEAR` WHERE (`noDis`.`STATE` = '$state' OR `noDis`.`STATE` = 'US') AND (`noDis`.`YEAR` = (SELECT MAX(`YEAR`) from {d3_acs_post08_nodis} WHERE `STATE` = '$state') OR `noDis`.`YEAR` =
-          (SELECT MAX(`YEAR`) -1 from {d3_acs_post08_nodis} WHERE `STATE` = '$state') OR `noDis`.`YEAR` = (SELECT MAX(`YEAR`) -2 from {d3_acs_post08_nodis} WHERE `STATE` = '$state') OR`noDis`.`YEAR` = (SELECT MAX(`YEAR`) -3 from {d3_acs_post08_nodis} WHERE `STATE` = '$state') OR`noDis`.`YEAR` =
-           (SELECT MAX(`YEAR`) -4 from {d3_acs_post08_nodis} WHERE `STATE` = '$state') OR `noDis`.`YEAR` = (SELECT MAX(`YEAR`) -5 from {d3_acs_post08_nodis} WHERE `STATE` = '$state') OR `noDis`.`YEAR` = (SELECT MAX(`YEAR`) -6 from {d3_acs_post08_nodis} WHERE `STATE` = '$state')  OR `noDis`.`YEAR` = (SELECT MAX(`YEAR`) -7 from {d3_acs_post08_nodis} WHERE `STATE` = '$state') )";
+     $table2query =  "SELECT DISTINCT `noDis`.`YEAR` `chartYEAR`,`noDis`.`STATE` `chartSTATE`, FORMAT(`noDis`.`NUMPOP`, 0) `noDisPop`, FORMAT(`anyDis`.`NUMPOP`, 0) `anyDisPop`,FORMAT(`postCog`.`NUMPOP`, 0) `postCogPop`,FORMAT(`noDis`.`NUMEMP`, 0) `noDisEmp`, FORMAT(`anyDis`.`NUMEMP`, 0) `anyDisEmp`,FORMAT(`postCog`.`NUMEMP`, 0) `postCogEmp`,FORMAT((`noDis`.`Perwork` * 100),1) `noDisPerwork`, FORMAT((`anyDis`.`Perwork` * 100),1) `anyDisPerwork`,FORMAT((`postCog`.`Perwork` * 100),1) `postCogPerwork` FROM `sta_d3_acs_post08_nodis`
+       `noDis` LEFT JOIN `sta_d3_acs_post08_AnyDis` `anyDis` ON `noDis`.`STATE` = `anyDis`.`STATE` AND `noDis`.`YEAR` =
+        `anyDis`.`YEAR` LEFT JOIN `sta_d3_acs_post08_Cognitive` `postCog` ON `noDis`.`STATE` = `postCog`.`STATE` AND
+         `noDis`.`YEAR` = `postCog`.`YEAR` WHERE (`noDis`.`STATE` = '$state' OR `noDis`.`STATE` = 'US') AND (`noDis`.`YEAR` = (SELECT IF(MAX(`YEAR`) > $limitmaxyear,$limitmaxyear,MAX(`YEAR`)) from sta_d3_acs_post08_nodis WHERE `STATE` = '$state') OR `noDis`.`YEAR` =
+          (SELECT IF(MAX(`YEAR`) > $limitmaxyear,$limitmaxyear,MAX(`YEAR`)) -1 from sta_d3_acs_post08_nodis WHERE `STATE` = '$state') OR `noDis`.`YEAR` = (SELECT IF(MAX(`YEAR`) > $limitmaxyear,$limitmaxyear,MAX(`YEAR`)) -2 from sta_d3_acs_post08_nodis WHERE `STATE` = '$state') OR`noDis`.`YEAR` = (SELECT IF(MAX(`YEAR`) > $limitmaxyear,$limitmaxyear,MAX(`YEAR`)) -3 from sta_d3_acs_post08_nodis WHERE `STATE` = '$state') OR`noDis`.`YEAR` =
+           (SELECT IF(MAX(`YEAR`) > $limitmaxyear,$limitmaxyear,MAX(`YEAR`)) -4 from sta_d3_acs_post08_nodis WHERE `STATE` = '$state') OR `noDis`.`YEAR` = (SELECT IF(MAX(`YEAR`) > $limitmaxyear,$limitmaxyear,MAX(`YEAR`)) -5 from sta_d3_acs_post08_nodis WHERE `STATE` = '$state') OR `noDis`.`YEAR` = (SELECT IF(MAX(`YEAR`) > $limitmaxyear,$limitmaxyear,MAX(`YEAR`)) -6 from sta_d3_acs_post08_nodis WHERE `STATE` = '$state')  OR `noDis`.`YEAR` = (SELECT IF(MAX(`YEAR`) > $limitmaxyear,$limitmaxyear,MAX(`YEAR`)) -7 from sta_d3_acs_post08_nodis WHERE `STATE` = '$state') )";
  // app2
    break;
    case 'app2':
 
-   $query = "SELECT DISTINCT `noDis`.`YEAR`, FORMAT((`noDis`.`Annual_Work_Earnings` / 1000), 1) `noDisEarn`, FORMAT((`anyDis`.`Annual_Work_Earnings`/1000), 1) `anyDisEarn`,FORMAT((`postCog`.`Annual_Work_Earnings`/1000), 1) `postCogEarn`,FORMAT(`noDis`.`WEEHO`, 0) `noDisWEE`, FORMAT(`anyDis`.`WEEHO`, 0) `anyDisWEE`,FORMAT(`postCog`.`WEEHO`, 0) `postCogWEE`,FORMAT(`noDis`.`Below_Poverty`,1) `noDisBePov`, FORMAT(`anyDis`.`Below_Poverty`,1) `anyDisBePov`,FORMAT(`postCog`.`Below_Poverty`,1) `postCogBePov` FROM `{d3_acs_post08_nodis}`
-     `noDis` LEFT JOIN `{d3_acs_post08_AnyDis}` `anyDis` ON `noDis`.`STATE` = `anyDis`.`STATE` AND `noDis`.`YEAR` =
-      `anyDis`.`YEAR` LEFT JOIN `{d3_acs_post08_Cognitive}` `postCog` ON `noDis`.`STATE` = `postCog`.`STATE` AND
-       `noDis`.`YEAR` = `postCog`.`YEAR` WHERE `noDis`.`STATE` = '$state' AND (`noDis`.`YEAR` = (SELECT MAX(`YEAR`) from {d3_acs_post08_nodis} WHERE `STATE` = '$state') OR `noDis`.`YEAR` = (SELECT MAX(`YEAR`) -1 from {d3_acs_post08_nodis} WHERE `STATE` = '$state') OR `noDis`.`YEAR` = (SELECT MAX(`YEAR`) -2 from {d3_acs_post08_nodis} WHERE `STATE` = '$state') OR`noDis`.`YEAR` = (SELECT MAX(`YEAR`) -3 from {d3_acs_post08_nodis} WHERE `STATE` = '$state') OR`noDis`.`YEAR` =
-         (SELECT MAX(`YEAR`) -4 from {d3_acs_post08_nodis} WHERE `STATE` = '$state') OR `noDis`.`YEAR` = (SELECT MAX(`YEAR`) -4 from {d3_acs_post08_nodis} WHERE `STATE` = '$state') OR`noDis`.`YEAR` =
-         (SELECT MAX(`YEAR`) -5 from {d3_acs_post08_nodis} WHERE `STATE` = '$state') OR`noDis`.`YEAR` =
-         (SELECT MAX(`YEAR`) -6 from {d3_acs_post08_nodis} WHERE `STATE` = '$state') OR`noDis`.`YEAR` =
-         (SELECT MAX(`YEAR`) -7 from {d3_acs_post08_nodis} WHERE `STATE` = '$state'))";
+   $query = "SELECT DISTINCT `noDis`.`YEAR`, FORMAT((`noDis`.`Annual_Work_Earnings` / 1000), 1) `noDisEarn`, FORMAT((`anyDis`.`Annual_Work_Earnings`/1000), 1) `anyDisEarn`,FORMAT((`postCog`.`Annual_Work_Earnings`/1000), 1) `postCogEarn`,FORMAT(`noDis`.`WEEHO`, 0) `noDisWEE`, FORMAT(`anyDis`.`WEEHO`, 0) `anyDisWEE`,FORMAT(`postCog`.`WEEHO`, 0) `postCogWEE`,FORMAT(`noDis`.`Below_Poverty`,1) `noDisBePov`, FORMAT(`anyDis`.`Below_Poverty`,1) `anyDisBePov`,FORMAT(`postCog`.`Below_Poverty`,1) `postCogBePov` FROM `sta_d3_acs_post08_nodis`
+     `noDis` LEFT JOIN `sta_d3_acs_post08_AnyDis` `anyDis` ON `noDis`.`STATE` = `anyDis`.`STATE` AND `noDis`.`YEAR` =
+      `anyDis`.`YEAR` LEFT JOIN `sta_d3_acs_post08_Cognitive` `postCog` ON `noDis`.`STATE` = `postCog`.`STATE` AND
+       `noDis`.`YEAR` = `postCog`.`YEAR` WHERE `noDis`.`STATE` = '$state' AND (`noDis`.`YEAR` = (SELECT IF(MAX(`YEAR`) > $limitmaxyear,$limitmaxyear,MAX(`YEAR`)) from sta_d3_acs_post08_nodis WHERE `STATE` = '$state') OR `noDis`.`YEAR` = (SELECT IF(MAX(`YEAR`) > $limitmaxyear,$limitmaxyear,MAX(`YEAR`)) -1 from sta_d3_acs_post08_nodis WHERE `STATE` = '$state') OR `noDis`.`YEAR` = (SELECT IF(MAX(`YEAR`) > $limitmaxyear,$limitmaxyear,MAX(`YEAR`)) -2 from sta_d3_acs_post08_nodis WHERE `STATE` = '$state') OR`noDis`.`YEAR` = (SELECT IF(MAX(`YEAR`) > $limitmaxyear,$limitmaxyear,MAX(`YEAR`)) -3 from sta_d3_acs_post08_nodis WHERE `STATE` = '$state') OR`noDis`.`YEAR` =
+         (SELECT IF(MAX(`YEAR`) > $limitmaxyear,$limitmaxyear,MAX(`YEAR`)) -4 from sta_d3_acs_post08_nodis WHERE `STATE` = '$state') OR `noDis`.`YEAR` = (SELECT IF(MAX(`YEAR`) > $limitmaxyear,$limitmaxyear,MAX(`YEAR`)) -4 from sta_d3_acs_post08_nodis WHERE `STATE` = '$state') OR`noDis`.`YEAR` =
+         (SELECT IF(MAX(`YEAR`) > $limitmaxyear,$limitmaxyear,MAX(`YEAR`)) -5 from sta_d3_acs_post08_nodis WHERE `STATE` = '$state') OR`noDis`.`YEAR` =
+         (SELECT IF(MAX(`YEAR`) > $limitmaxyear,$limitmaxyear,MAX(`YEAR`)) -6 from sta_d3_acs_post08_nodis WHERE `STATE` = '$state') OR`noDis`.`YEAR` =
+         (SELECT IF(MAX(`YEAR`) > $limitmaxyear,$limitmaxyear,MAX(`YEAR`)) -7 from sta_d3_acs_post08_nodis WHERE `STATE` = '$state'))";
 
    // print $query;
 
-       $table2query = "SELECT DISTINCT `AgencySSA`.`YEAR` `chartYEAR`,`AgencySSA`.`STATE` `chartSTATE`, FORMAT(`AgencySSA`.`Total SSI Disabled`,0) `SSADisTot`, FORMAT(`AgencySSA`.`Number Working`,0) `SSANumWk`,  FORMAT(`AgencySSA`.`Percent Working`,1) `SSAPerWk`, FORMAT(`AgencySSA`.`PASS`,0)  `SSAPASS`, FORMAT(`AgencySSA`.`IRWE`,0) `SSAIRWE`, FORMAT(`AgencySSA`.`BWE`,0) `SSABWE` FROM {d3_agency_ssa} `AgencySSA` WHERE `AgencySSA`.`STATE` = '$state' AND (`AgencySSA`.`YEAR` = (SELECT MAX(`YEAR`) from {d3_agency_ssa} WHERE `STATE` = '$state') OR `AgencySSA`.`YEAR` =
-            (SELECT MAX(`YEAR`) -1 from {d3_agency_ssa} WHERE `STATE` = '$state') OR `AgencySSA`.`YEAR` = (SELECT MAX(`YEAR`) -2 from {d3_agency_ssa} WHERE `STATE` = '$state') OR`AgencySSA`.`YEAR` = (SELECT MAX(`YEAR`) -3 from {d3_agency_ssa} WHERE `STATE` = '$state') OR`AgencySSA`.`YEAR` =
-             (SELECT MAX(`YEAR`) -4 from {d3_agency_ssa} WHERE `STATE` = '$state') OR `AgencySSA`.`YEAR` = (SELECT MAX(`YEAR`) -5 from {d3_agency_ssa} WHERE `STATE` = '$state') OR `AgencySSA`.`YEAR` = (SELECT MAX(`YEAR`) -6 from {d3_agency_ssa} WHERE `STATE` = '$state') OR `AgencySSA`.`YEAR` = (SELECT MAX(`YEAR`) -7 from {d3_agency_ssa} WHERE `STATE` = '$state') )" ;
+       $table2query = "SELECT DISTINCT `AgencySSA`.`YEAR` `chartYEAR`,`AgencySSA`.`STATE` `chartSTATE`, FORMAT(`AgencySSA`.`Total SSI Disabled`,0) `SSADisTot`, FORMAT(`AgencySSA`.`Number Working`,0) `SSANumWk`,  FORMAT(`AgencySSA`.`Percent Working`,1) `SSAPerWk`, FORMAT(`AgencySSA`.`PASS`,0)  `SSAPASS`, FORMAT(`AgencySSA`.`IRWE`,0) `SSAIRWE`, FORMAT(`AgencySSA`.`BWE`,0) `SSABWE` FROM sta_d3_agency_ssa `AgencySSA` WHERE `AgencySSA`.`STATE` = '$state' AND (`AgencySSA`.`YEAR` = (SELECT IF(MAX(`YEAR`) > $limitmaxyear,$limitmaxyear,MAX(`YEAR`)) from sta_d3_agency_ssa WHERE `STATE` = '$state') OR `AgencySSA`.`YEAR` =
+            (SELECT IF(MAX(`YEAR`) > $limitmaxyear,$limitmaxyear,MAX(`YEAR`)) -1 from sta_d3_agency_ssa WHERE `STATE` = '$state') OR `AgencySSA`.`YEAR` = (SELECT IF(MAX(`YEAR`) > $limitmaxyear,$limitmaxyear,MAX(`YEAR`)) -2 from sta_d3_agency_ssa WHERE `STATE` = '$state') OR`AgencySSA`.`YEAR` = (SELECT IF(MAX(`YEAR`) > $limitmaxyear,$limitmaxyear,MAX(`YEAR`)) -3 from sta_d3_agency_ssa WHERE `STATE` = '$state') OR`AgencySSA`.`YEAR` =
+             (SELECT IF(MAX(`YEAR`) > $limitmaxyear,$limitmaxyear,MAX(`YEAR`)) -4 from sta_d3_agency_ssa WHERE `STATE` = '$state') OR `AgencySSA`.`YEAR` = (SELECT IF(MAX(`YEAR`) > $limitmaxyear,$limitmaxyear,MAX(`YEAR`)) -5 from sta_d3_agency_ssa WHERE `STATE` = '$state') OR `AgencySSA`.`YEAR` = (SELECT IF(MAX(`YEAR`) > $limitmaxyear,$limitmaxyear,MAX(`YEAR`)) -6 from sta_d3_agency_ssa WHERE `STATE` = '$state') OR `AgencySSA`.`YEAR` = (SELECT IF(MAX(`YEAR`) > $limitmaxyear,$limitmaxyear,MAX(`YEAR`)) -7 from sta_d3_agency_ssa WHERE `STATE` = '$state') )" ;
 
    break;
-// appendix 3
+  // appendix 3
    case 'app3':
 
-   $query = $state == 'US' ? "SELECT DISTINCT `agencyMRDD`.`YEAR`, FORMAT(`agencyMRDD`.`Total served`, 0) `TtlServed`, FORMAT(`agencyMRDD`.`Integrated employment`, 0) `numInt`,FORMAT((`agencyMRDD`.`Integrated employment percentage rate` * 100), 1) `IntPerRate`,FORMAT(`agencyMRDD`.`Integrated employment rate`, 1) `agencyMRDD`,FORMAT(`agencyMRDD`.`FBW_US_Count`,0) `FacWkNum`, FORMAT((`agencyMRDD`.`Facility-based work percentage rate` * 100),1) `FacWkPer`,FORMAT(`agencyMRDD`.`FBNW_US_Count`,0) `FacnonWkNum`,FORMAT((`agencyMRDD`.`Facility-based nonwork percentage rate` * 100),1) `FacnonWkPer`,FORMAT(`agencyMRDD`.`CBNW_US_Count`,0) `ComnonWkNum`,FORMAT((`agencyMRDD`.`Community based nonwork percentage rate` * 100),1) `ComnonWkPer`,FORMAT(`agencyMRDD`.`FBWandNW_US_Count`,0) `ComFacnNum`,FORMAT((`agencyMRDD`.`Facility-based and nonwork settings percentage rate` * 100),1) `ComFacnonWkPer`,FORMAT(`agencyMRDD`.`MRDDWaiting`,0) `Waiting` FROM `{d3_agency_mrdd}`
-   `agencyMRDD` WHERE `agencyMRDD`.`STATE` = '$state' AND (`agencyMRDD`.`YEAR` = (SELECT MAX(`YEAR`)from {d3_agency_mrdd} WHERE `STATE` = '$state') OR `agencyMRDD`.`YEAR` =
-      (SELECT MAX(`YEAR`) - 1 from {d3_agency_mrdd} WHERE `STATE` = '$state') OR `agencyMRDD`.`YEAR` = (SELECT MAX(`YEAR`) - 2 from {d3_agency_mrdd} WHERE `STATE` = '$state') OR`agencyMRDD`.`YEAR` = (SELECT MAX(`YEAR`) - 3 from {d3_agency_mrdd} WHERE `STATE` = '$state') OR`agencyMRDD`.`YEAR` =
-       (SELECT MAX(`YEAR`) - 4 from {d3_agency_mrdd} WHERE `STATE` = '$state') OR `agencyMRDD`.`YEAR` = (SELECT MAX(`YEAR`) - 5 from {d3_agency_mrdd} WHERE `STATE` = '$state') OR `agencyMRDD`.`YEAR` = (SELECT MAX(`YEAR`) - 6 from {d3_agency_mrdd} WHERE `STATE` = '$state') OR `agencyMRDD`.`YEAR` = (SELECT MAX(`YEAR`) - 7 from {d3_agency_mrdd} WHERE `STATE` = '$state') )" : "SELECT DISTINCT `agencyMRDD`.`YEAR`, FORMAT(`agencyMRDD`.`Total served`, 0) `TtlServed`, FORMAT(`agencyMRDD`.`Integrated employment`, 0) `numInt`,FORMAT((`agencyMRDD`.`Integrated employment percentage rate` * 100), 1) `IntPerRate`,FORMAT(`agencyMRDD`.`Integrated employment rate`, 1) `agencyMRDD`,FORMAT(`agencyMRDD`.`Facility-based work`,0) `FacWkNum`, FORMAT((`agencyMRDD`.`Facility-based work percentage rate` * 100),1) `FacWkPer`,FORMAT(`agencyMRDD`.`Facility-based nonwork`,0) `FacnonWkNum`,FORMAT((`agencyMRDD`.`Facility-based nonwork percentage rate` * 100),1) `FacnonWkPer`,FORMAT(`agencyMRDD`.`Community based nonwork`,0) `ComnonWkNum`,FORMAT((`agencyMRDD`.`Community based nonwork percentage rate` * 100),1) `ComnonWkPer`,FORMAT(`agencyMRDD`.`Facility-based and nonwork settings`,0) `ComFacnNum`,FORMAT((`agencyMRDD`.`Facility-based and nonwork settings percentage rate` * 100),1) `ComFacnonWkPer`,FORMAT(`agencyMRDD`.`MRDDWaiting`,0) `Waiting` FROM `{d3_agency_mrdd}`
-     `agencyMRDD` WHERE `agencyMRDD`.`STATE` = '$state' AND (`agencyMRDD`.`YEAR` = (SELECT MAX(`YEAR`)from {d3_agency_mrdd} WHERE `STATE` = '$state') OR `agencyMRDD`.`YEAR` =
-        (SELECT MAX(`YEAR`) - 1 from {d3_agency_mrdd} WHERE `STATE` = '$state') OR `agencyMRDD`.`YEAR` = (SELECT MAX(`YEAR`) - 2 from {d3_agency_mrdd} WHERE `STATE` = '$state') OR`agencyMRDD`.`YEAR` = (SELECT MAX(`YEAR`) - 3 from {d3_agency_mrdd} WHERE `STATE` = '$state') OR`agencyMRDD`.`YEAR` =
-         (SELECT MAX(`YEAR`) - 4 from {d3_agency_mrdd} WHERE `STATE` = '$state') OR `agencyMRDD`.`YEAR` = (SELECT MAX(`YEAR`) - 5 from {d3_agency_mrdd} WHERE `STATE` = '$state') OR `agencyMRDD`.`YEAR` = (SELECT MAX(`YEAR`) - 6 from {d3_agency_mrdd} WHERE `STATE` = '$state') OR `agencyMRDD`.`YEAR` = (SELECT MAX(`YEAR`) - 7 from {d3_agency_mrdd} WHERE `STATE` = '$state') )";
+   $query = $state == 'US' ? "SELECT DISTINCT `agencyMRDD`.`YEAR`, FORMAT(`agencyMRDD`.`Total served`, 0) `TtlServed`, FORMAT(`agencyMRDD`.`Integrated employment`, 0) `numInt`,FORMAT((`agencyMRDD`.`Integrated employment percentage rate` * 100), 1) `IntPerRate`,FORMAT(`agencyMRDD`.`Integrated employment rate`, 1) `agencyMRDD`,FORMAT(`agencyMRDD`.`FBW_US_Count`,0) `FacWkNum`, FORMAT((`agencyMRDD`.`Facility-based work percentage rate` * 100),1) `FacWkPer`,FORMAT(`agencyMRDD`.`FBNW_US_Count`,0) `FacnonWkNum`,FORMAT((`agencyMRDD`.`Facility-based nonwork percentage rate` * 100),1) `FacnonWkPer`,FORMAT(`agencyMRDD`.`CBNW_US_Count`,0) `ComnonWkNum`,FORMAT((`agencyMRDD`.`Community based nonwork percentage rate` * 100),1) `ComnonWkPer`,FORMAT(`agencyMRDD`.`FBWandNW_US_Count`,0) `ComFacnNum`,FORMAT((`agencyMRDD`.`Facility-based and nonwork settings percentage rate` * 100),1) `ComFacnonWkPer`,FORMAT(`agencyMRDD`.`MRDDWaiting`,0) `Waiting` FROM `sta_d3_agency_mrdd`
+   `agencyMRDD` WHERE `agencyMRDD`.`STATE` = '$state' AND (`agencyMRDD`.`YEAR` = (SELECT IF(MAX(`YEAR`) > $limitmaxyear,$limitmaxyear,MAX(`YEAR`))from sta_d3_agency_mrdd WHERE `STATE` = '$state') OR `agencyMRDD`.`YEAR` =
+      (SELECT IF(MAX(`YEAR`) > $limitmaxyear,$limitmaxyear,MAX(`YEAR`)) - 1 from sta_d3_agency_mrdd WHERE `STATE` = '$state') OR `agencyMRDD`.`YEAR` = (SELECT IF(MAX(`YEAR`) > $limitmaxyear,$limitmaxyear,MAX(`YEAR`)) - 2 from sta_d3_agency_mrdd WHERE `STATE` = '$state') OR`agencyMRDD`.`YEAR` = (SELECT IF(MAX(`YEAR`) > $limitmaxyear,$limitmaxyear,MAX(`YEAR`)) - 3 from sta_d3_agency_mrdd WHERE `STATE` = '$state') OR`agencyMRDD`.`YEAR` =
+       (SELECT IF(MAX(`YEAR`) > $limitmaxyear,$limitmaxyear,MAX(`YEAR`)) - 4 from sta_d3_agency_mrdd WHERE `STATE` = '$state') OR `agencyMRDD`.`YEAR` = (SELECT IF(MAX(`YEAR`) > $limitmaxyear,$limitmaxyear,MAX(`YEAR`)) - 5 from sta_d3_agency_mrdd WHERE `STATE` = '$state') OR `agencyMRDD`.`YEAR` = (SELECT IF(MAX(`YEAR`) > $limitmaxyear,$limitmaxyear,MAX(`YEAR`)) - 6 from sta_d3_agency_mrdd WHERE `STATE` = '$state') OR `agencyMRDD`.`YEAR` = (SELECT IF(MAX(`YEAR`) > $limitmaxyear,$limitmaxyear,MAX(`YEAR`)) - 7 from sta_d3_agency_mrdd WHERE `STATE` = '$state') )" : "SELECT DISTINCT `agencyMRDD`.`YEAR`, FORMAT(`agencyMRDD`.`Total served`, 0) `TtlServed`, FORMAT(`agencyMRDD`.`Integrated employment`, 0) `numInt`,FORMAT((`agencyMRDD`.`Integrated employment percentage rate` * 100), 1) `IntPerRate`,FORMAT(`agencyMRDD`.`Integrated employment rate`, 1) `agencyMRDD`,FORMAT(`agencyMRDD`.`Facility-based work`,0) `FacWkNum`, FORMAT((`agencyMRDD`.`Facility-based work percentage rate` * 100),1) `FacWkPer`,FORMAT(`agencyMRDD`.`Facility-based nonwork`,0) `FacnonWkNum`,FORMAT((`agencyMRDD`.`Facility-based nonwork percentage rate` * 100),1) `FacnonWkPer`,FORMAT(`agencyMRDD`.`Community based nonwork`,0) `ComnonWkNum`,FORMAT((`agencyMRDD`.`Community based nonwork percentage rate` * 100),1) `ComnonWkPer`,FORMAT(`agencyMRDD`.`Facility-based and nonwork settings`,0) `ComFacnNum`,FORMAT((`agencyMRDD`.`Facility-based and nonwork settings percentage rate` * 100),1) `ComFacnonWkPer`,FORMAT(`agencyMRDD`.`MRDDWaiting`,0) `Waiting` FROM `sta_d3_agency_mrdd`
+     `agencyMRDD` WHERE `agencyMRDD`.`STATE` = '$state' AND (`agencyMRDD`.`YEAR` = (SELECT IF(MAX(`YEAR`) > $limitmaxyear,$limitmaxyear,MAX(`YEAR`))from sta_d3_agency_mrdd WHERE `STATE` = '$state') OR `agencyMRDD`.`YEAR` =
+        (SELECT IF(MAX(`YEAR`) > $limitmaxyear,$limitmaxyear,MAX(`YEAR`)) - 1 from sta_d3_agency_mrdd WHERE `STATE` = '$state') OR `agencyMRDD`.`YEAR` = (SELECT IF(MAX(`YEAR`) > $limitmaxyear,$limitmaxyear,MAX(`YEAR`)) - 2 from sta_d3_agency_mrdd WHERE `STATE` = '$state') OR`agencyMRDD`.`YEAR` = (SELECT IF(MAX(`YEAR`) > $limitmaxyear,$limitmaxyear,MAX(`YEAR`)) - 3 from sta_d3_agency_mrdd WHERE `STATE` = '$state') OR`agencyMRDD`.`YEAR` =
+         (SELECT IF(MAX(`YEAR`) > $limitmaxyear,$limitmaxyear,MAX(`YEAR`)) - 4 from sta_d3_agency_mrdd WHERE `STATE` = '$state') OR `agencyMRDD`.`YEAR` = (SELECT IF(MAX(`YEAR`) > $limitmaxyear,$limitmaxyear,MAX(`YEAR`)) - 5 from sta_d3_agency_mrdd WHERE `STATE` = '$state') OR `agencyMRDD`.`YEAR` = (SELECT IF(MAX(`YEAR`) > $limitmaxyear,$limitmaxyear,MAX(`YEAR`)) - 6 from sta_d3_agency_mrdd WHERE `STATE` = '$state') OR `agencyMRDD`.`YEAR` = (SELECT IF(MAX(`YEAR`) > $limitmaxyear,$limitmaxyear,MAX(`YEAR`)) - 7 from sta_d3_agency_mrdd WHERE `STATE` = '$state') )";
 
    // print $query;
 
@@ -895,12 +904,12 @@ if ($appendix == 'app6') {
    break;
 
    case 'app4':
-// Table 6
-   $query = $state == 'US' ? "SELECT DISTINCT `agencyMRDD`.`YEAR`, IF(`agencyMRDD`.`Total funding` = -1,-1,FORMAT((`agencyMRDD`.`Total funding`/1000), 0)) `TtlFund`, FORMAT((`agencyMRDD`.`employment money`/1000),0) `EmpMoney`, `agencyMRDD`.`YEAR`, IF(`agencyMRDD`.`employment money` = -1 OR `Total funding` = -1, -1, FORMAT(((`agencyMRDD`.`employment money`/ `Total funding`) * 100),1)) `IntEmp_Fund_percent`, FORMAT((`agencyMRDD`.`FBWFund`/1000),0) `FBW`, FORMAT(`FBW_US_Count`,0) `FBWFundingCount`, FORMAT((`agencyMRDD`.`FBNWFund`/1000),0) `FBNW`, FORMAT(`FBNW_US_Count`,0) `FBNWFundingCount`, FORMAT((`agencyMRDD`.`CBNWFund`/1000),0) `CBNW`, FORMAT(`CBNW_US_Count`,0) `CBNWFundingCount` FROM `{d3_agency_mrdd}` `agencyMRDD` WHERE `agencyMRDD`.`STATE` = '$state' AND (`agencyMRDD`.`YEAR` = (SELECT MAX(`YEAR`)from {d3_agency_mrdd} WHERE `STATE` = '$state') OR `agencyMRDD`.`YEAR` =
-   (SELECT MAX(`YEAR`) - 1 from {d3_agency_mrdd} WHERE `STATE` = '$state') OR `agencyMRDD`.`YEAR` = (SELECT MAX(`YEAR`) - 2 from {d3_agency_mrdd} WHERE `STATE` = '$state') OR`agencyMRDD`.`YEAR` = (SELECT MAX(`YEAR`) - 3 from {d3_agency_mrdd} WHERE `STATE` = '$state') OR`agencyMRDD`.`YEAR` =
-    (SELECT MAX(`YEAR`) - 4 from {d3_agency_mrdd} WHERE `STATE` = '$state') OR `agencyMRDD`.`YEAR` = (SELECT MAX(`YEAR`) - 5 from {d3_agency_mrdd} WHERE `STATE` = '$state') OR `agencyMRDD`.`YEAR` = (SELECT MAX(`YEAR`) - 6 from {d3_agency_mrdd} WHERE `STATE` = '$state') OR `agencyMRDD`.`YEAR` = (SELECT MAX(`YEAR`) - 7 from {d3_agency_mrdd} WHERE `STATE` = '$state') )" : "SELECT DISTINCT `agencyMRDD`.`YEAR`, FORMAT((`agencyMRDD`.`Total funding`/1000), 0) `TtlFund`, FORMAT((`agencyMRDD`.`employment money`/1000),0) `EmpMoney`, `agencyMRDD`.`YEAR`, IF(`agencyMRDD`.`employment money` = -1 OR `Total funding` = -1, 0, FORMAT(((`agencyMRDD`.`employment money`/ `Total funding`) * 100),1)) `IntEmp_Fund_percent`, FORMAT((`agencyMRDD`.`FBWFund`/1000),0) `FBW`, FORMAT((`agencyMRDD`.`FBNWFund`/1000),0) `FBNW`, FORMAT((`agencyMRDD`.`CBNWFund`/1000),0) `CBNW` FROM `{d3_agency_mrdd}` `agencyMRDD` WHERE `agencyMRDD`.`STATE` = '$state' AND (`agencyMRDD`.`YEAR` = (SELECT MAX(`YEAR`)from {d3_agency_mrdd} WHERE `STATE` = '$state') OR `agencyMRDD`.`YEAR` =
-      (SELECT MAX(`YEAR`) - 1 from {d3_agency_mrdd} WHERE `STATE` = '$state') OR `agencyMRDD`.`YEAR` = (SELECT MAX(`YEAR`) - 2 from {d3_agency_mrdd} WHERE `STATE` = '$state') OR`agencyMRDD`.`YEAR` = (SELECT MAX(`YEAR`) - 3 from {d3_agency_mrdd} WHERE `STATE` = '$state') OR`agencyMRDD`.`YEAR` =
-       (SELECT MAX(`YEAR`) - 4 from {d3_agency_mrdd} WHERE `STATE` = '$state') OR `agencyMRDD`.`YEAR` = (SELECT MAX(`YEAR`) - 5 from {d3_agency_mrdd} WHERE `STATE` = '$state') OR `agencyMRDD`.`YEAR` = (SELECT MAX(`YEAR`) - 6 from {d3_agency_mrdd} WHERE `STATE` = '$state') OR `agencyMRDD`.`YEAR` = (SELECT MAX(`YEAR`) - 7 from {d3_agency_mrdd} WHERE `STATE` = '$state') )";
+  // Table 6
+   $query = $state == 'US' ? "SELECT DISTINCT `agencyMRDD`.`YEAR`, IF(`agencyMRDD`.`Total funding` = -1,-1,FORMAT((`agencyMRDD`.`Total funding`/1000), 0)) `TtlFund`, FORMAT((`agencyMRDD`.`employment money`/1000),0) `EmpMoney`, `agencyMRDD`.`YEAR`, IF(`agencyMRDD`.`employment money` = -1 OR `Total funding` = -1, -1, FORMAT(((`agencyMRDD`.`employment money`/ `Total funding`) * 100),1)) `IntEmp_Fund_percent`, FORMAT((`agencyMRDD`.`FBWFund`/1000),0) `FBW`, FORMAT(`FBW_US_Count`,0) `FBWFundingCount`, FORMAT((`agencyMRDD`.`FBNWFund`/1000),0) `FBNW`, FORMAT(`FBNW_US_Count`,0) `FBNWFundingCount`, FORMAT((`agencyMRDD`.`CBNWFund`/1000),0) `CBNW`, FORMAT(`CBNW_US_Count`,0) `CBNWFundingCount` FROM `sta_d3_agency_mrdd` `agencyMRDD` WHERE `agencyMRDD`.`STATE` = '$state' AND (`agencyMRDD`.`YEAR` = (SELECT IF(MAX(`YEAR`) > $limitmaxyear,$limitmaxyear,MAX(`YEAR`))from sta_d3_agency_mrdd WHERE `STATE` = '$state') OR `agencyMRDD`.`YEAR` =
+   (SELECT IF(MAX(`YEAR`) > $limitmaxyear,$limitmaxyear,MAX(`YEAR`)) - 1 from sta_d3_agency_mrdd WHERE `STATE` = '$state') OR `agencyMRDD`.`YEAR` = (SELECT IF(MAX(`YEAR`) > $limitmaxyear,$limitmaxyear,MAX(`YEAR`)) - 2 from sta_d3_agency_mrdd WHERE `STATE` = '$state') OR`agencyMRDD`.`YEAR` = (SELECT IF(MAX(`YEAR`) > $limitmaxyear,$limitmaxyear,MAX(`YEAR`)) - 3 from sta_d3_agency_mrdd WHERE `STATE` = '$state') OR`agencyMRDD`.`YEAR` =
+    (SELECT IF(MAX(`YEAR`) > $limitmaxyear,$limitmaxyear,MAX(`YEAR`)) - 4 from sta_d3_agency_mrdd WHERE `STATE` = '$state') OR `agencyMRDD`.`YEAR` = (SELECT IF(MAX(`YEAR`) > $limitmaxyear,$limitmaxyear,MAX(`YEAR`)) - 5 from sta_d3_agency_mrdd WHERE `STATE` = '$state') OR `agencyMRDD`.`YEAR` = (SELECT IF(MAX(`YEAR`) > $limitmaxyear,$limitmaxyear,MAX(`YEAR`)) - 6 from sta_d3_agency_mrdd WHERE `STATE` = '$state') OR `agencyMRDD`.`YEAR` = (SELECT IF(MAX(`YEAR`) > $limitmaxyear,$limitmaxyear,MAX(`YEAR`)) - 7 from sta_d3_agency_mrdd WHERE `STATE` = '$state') )" : "SELECT DISTINCT `agencyMRDD`.`YEAR`, FORMAT((`agencyMRDD`.`Total funding`/1000), 0) `TtlFund`, FORMAT((`agencyMRDD`.`employment money`/1000),0) `EmpMoney`, `agencyMRDD`.`YEAR`, IF(`agencyMRDD`.`employment money` = -1 OR `Total funding` = -1, 0, FORMAT(((`agencyMRDD`.`employment money`/ `Total funding`) * 100),1)) `IntEmp_Fund_percent`, FORMAT((`agencyMRDD`.`FBWFund`/1000),0) `FBW`, FORMAT((`agencyMRDD`.`FBNWFund`/1000),0) `FBNW`, FORMAT((`agencyMRDD`.`CBNWFund`/1000),0) `CBNW` FROM `sta_d3_agency_mrdd` `agencyMRDD` WHERE `agencyMRDD`.`STATE` = '$state' AND (`agencyMRDD`.`YEAR` = (SELECT IF(MAX(`YEAR`) > $limitmaxyear,$limitmaxyear,MAX(`YEAR`))from sta_d3_agency_mrdd WHERE `STATE` = '$state') OR `agencyMRDD`.`YEAR` =
+      (SELECT IF(MAX(`YEAR`) > $limitmaxyear,$limitmaxyear,MAX(`YEAR`)) - 1 from sta_d3_agency_mrdd WHERE `STATE` = '$state') OR `agencyMRDD`.`YEAR` = (SELECT IF(MAX(`YEAR`) > $limitmaxyear,$limitmaxyear,MAX(`YEAR`)) - 2 from sta_d3_agency_mrdd WHERE `STATE` = '$state') OR`agencyMRDD`.`YEAR` = (SELECT IF(MAX(`YEAR`) > $limitmaxyear,$limitmaxyear,MAX(`YEAR`)) - 3 from sta_d3_agency_mrdd WHERE `STATE` = '$state') OR`agencyMRDD`.`YEAR` =
+       (SELECT IF(MAX(`YEAR`) > $limitmaxyear,$limitmaxyear,MAX(`YEAR`)) - 4 from sta_d3_agency_mrdd WHERE `STATE` = '$state') OR `agencyMRDD`.`YEAR` = (SELECT IF(MAX(`YEAR`) > $limitmaxyear,$limitmaxyear,MAX(`YEAR`)) - 5 from sta_d3_agency_mrdd WHERE `STATE` = '$state') OR `agencyMRDD`.`YEAR` = (SELECT IF(MAX(`YEAR`) > $limitmaxyear,$limitmaxyear,MAX(`YEAR`)) - 6 from sta_d3_agency_mrdd WHERE `STATE` = '$state') OR `agencyMRDD`.`YEAR` = (SELECT IF(MAX(`YEAR`) > $limitmaxyear,$limitmaxyear,MAX(`YEAR`)) - 7 from sta_d3_agency_mrdd WHERE `STATE` = '$state') )";
 
    // print $query;
 
@@ -909,39 +918,39 @@ if ($appendix == 'app6') {
    break;
 
    case 'app5':
-   $query = "SELECT DISTINCT `rsaAll`.`YEAR`, FORMAT(`rsaAll`.`CLOSURES`, 0) `allCLOS`, FORMAT(`rsaID`.`CLOSURES`, 0) `IDCLOS`, FORMAT(`rsaAll`.`REHABED`, 0) `allREHAB`, FORMAT(`rsaID`.`REHABED`, 0) `IDREHAB`,  FORMAT(`rsaAll`.`NOTRE28`, 0) `allNOT`, FORMAT(`rsaID`.`NOTRE28`, 0) `IDNOT`, IF(`rsaAll`.`REHABRAT` = -1, 0 ,FORMAT((`rsaAll`.`REHABRAT` * 100), 1)) `allREHABRAT`, IF(`rsaID`.`REHABRAT` = -1, 0, FORMAT((`rsaID`.`REHABRAT` * 100), 1)) `IDREHABRAT`, IF(`rsaAll`.`REHABED` = -1, -1, FORMAT(((`rsaAll`.`REHABED`/`rsaAll`.`CLOSURES`) * 100), 1)) `allPctAllClos`, IF(`rsaID`.`REHABED` = -1, -1, FORMAT(((`rsaID`.`REHABED`/`rsaID`.`CLOSURES`) * 100), 1)) `IDPctAllClos` FROM `{d3_vr_rsa_all}` `rsaAll` LEFT JOIN `{d3_vr_rsa_ID}` `rsaID` ON `rsaAll`.`STATE` = `rsaID`.`STATE` AND `rsaAll`.`YEAR` =
-    `rsaID`.`YEAR` WHERE `rsaAll`.`STATE` = '$state'  AND (`rsaAll`.`YEAR` =  (SELECT MAX(`YEAR`) from {d3_vr_rsa_all} WHERE `STATE` = '$state') OR `rsaAll`.`YEAR` =
-    (SELECT MAX(`YEAR`) - 1 from {d3_vr_rsa_all} WHERE `STATE` = '$state') OR `rsaAll`.`YEAR` = (SELECT MAX(`YEAR`) - 2 from {d3_vr_rsa_all} WHERE `STATE` = '$state') OR`rsaAll`.`YEAR` =(SELECT MAX(`YEAR`) - 3 from {d3_vr_rsa_all} WHERE `STATE` = '$state') OR`rsaAll`.`YEAR` =
-     (SELECT MAX(`YEAR`) - 4 from {d3_vr_rsa_all} WHERE `STATE` = '$state') OR `rsaAll`.`YEAR` = (SELECT MAX(`YEAR`) - 5 from {d3_vr_rsa_all} WHERE `STATE` = '$state') OR `rsaAll`.`YEAR` = (SELECT MAX(`YEAR`) - 6 from {d3_vr_rsa_all} WHERE `STATE` = '$state') OR `rsaAll`.`YEAR` = (SELECT MAX(`YEAR`) - 7 from {d3_vr_rsa_all} WHERE `STATE` = '$state') )";
+   $query = "SELECT DISTINCT `rsaAll`.`YEAR`, FORMAT(`rsaAll`.`CLOSURES`, 0) `allCLOS`, FORMAT(`rsaID`.`CLOSURES`, 0) `IDCLOS`, FORMAT(`rsaAll`.`REHABED`, 0) `allREHAB`, FORMAT(`rsaID`.`REHABED`, 0) `IDREHAB`,  FORMAT(`rsaAll`.`NOTRE28`, 0) `allNOT`, FORMAT(`rsaID`.`NOTRE28`, 0) `IDNOT`, IF(`rsaAll`.`REHABRAT` = -1, 0 ,FORMAT((`rsaAll`.`REHABRAT` * 100), 1)) `allREHABRAT`, IF(`rsaID`.`REHABRAT` = -1, 0, FORMAT((`rsaID`.`REHABRAT` * 100), 1)) `IDREHABRAT`, IF(`rsaAll`.`REHABED` = -1, -1, FORMAT(((`rsaAll`.`REHABED`/`rsaAll`.`CLOSURES`) * 100), 1)) `allPctAllClos`, IF(`rsaID`.`REHABED` = -1, -1, FORMAT(((`rsaID`.`REHABED`/`rsaID`.`CLOSURES`) * 100), 1)) `IDPctAllClos` FROM `sta_d3_vr_rsa_all` `rsaAll` LEFT JOIN `sta_d3_vr_rsa_ID` `rsaID` ON `rsaAll`.`STATE` = `rsaID`.`STATE` AND `rsaAll`.`YEAR` =
+    `rsaID`.`YEAR` WHERE `rsaAll`.`STATE` = '$state'  AND (`rsaAll`.`YEAR` =  (SELECT IF(MAX(`YEAR`) > $limitmaxyear,$limitmaxyear,MAX(`YEAR`)) from sta_d3_vr_rsa_all WHERE `STATE` = '$state') OR `rsaAll`.`YEAR` =
+    (SELECT IF(MAX(`YEAR`) > $limitmaxyear,$limitmaxyear,MAX(`YEAR`)) - 1 from sta_d3_vr_rsa_all WHERE `STATE` = '$state') OR `rsaAll`.`YEAR` = (SELECT IF(MAX(`YEAR`) > $limitmaxyear,$limitmaxyear,MAX(`YEAR`)) - 2 from sta_d3_vr_rsa_all WHERE `STATE` = '$state') OR`rsaAll`.`YEAR` =(SELECT IF(MAX(`YEAR`) > $limitmaxyear,$limitmaxyear,MAX(`YEAR`)) - 3 from sta_d3_vr_rsa_all WHERE `STATE` = '$state') OR`rsaAll`.`YEAR` =
+     (SELECT IF(MAX(`YEAR`) > $limitmaxyear,$limitmaxyear,MAX(`YEAR`)) - 4 from sta_d3_vr_rsa_all WHERE `STATE` = '$state') OR `rsaAll`.`YEAR` = (SELECT IF(MAX(`YEAR`) > $limitmaxyear,$limitmaxyear,MAX(`YEAR`)) - 5 from sta_d3_vr_rsa_all WHERE `STATE` = '$state') OR `rsaAll`.`YEAR` = (SELECT IF(MAX(`YEAR`) > $limitmaxyear,$limitmaxyear,MAX(`YEAR`)) - 6 from sta_d3_vr_rsa_all WHERE `STATE` = '$state') OR `rsaAll`.`YEAR` = (SELECT IF(MAX(`YEAR`) > $limitmaxyear,$limitmaxyear,MAX(`YEAR`)) - 7 from sta_d3_vr_rsa_all WHERE `STATE` = '$state') )";
 
-       $table2query =  "SELECT DISTINCT `rsaAll`.`YEAR` `chartYEAR`, `rsaAll`.`STATE` `chartSTATE`, concat('$',FORMAT(`rsaAll`.`earnings`, 2)) `allEarnings`, concat('$',FORMAT(`rsaID`.`earnings`, 2)) `IDEarnings`,  FORMAT(`rsaAll`.`hours` , 1) `allHours`,  FORMAT(`rsaID`.`hours` ,1) `IDHours`, FORMAT(`rsaAll`.`incidence`, 1) `allIncidence`, FORMAT(`rsaID`.`incidence`, 1) `IDIncidence`FROM `{d3_vr_rsa_all}` `rsaAll` LEFT JOIN `{d3_vr_rsa_ID}` `rsaID` ON `rsaAll`.`STATE` = `rsaID`.`STATE` AND `rsaAll`.`YEAR` =
-        `rsaID`.`YEAR` WHERE `rsaAll`.`STATE` = '$state'  AND(`rsaAll`.`YEAR` =  (SELECT MAX(`YEAR`) from {d3_vr_rsa_all} WHERE `STATE` = '$state') OR `rsaAll`.`YEAR` =
-        (SELECT MAX(`YEAR`) - 1 from {d3_vr_rsa_all} WHERE `STATE` = '$state') OR `rsaAll`.`YEAR` = (SELECT MAX(`YEAR`) - 2 from {d3_vr_rsa_all} WHERE `STATE` = '$state') OR`rsaAll`.`YEAR` =(SELECT MAX(`YEAR`) - 3 from {d3_vr_rsa_all} WHERE `STATE` = '$state') OR`rsaAll`.`YEAR` =
-         (SELECT MAX(`YEAR`) - 4 from {d3_vr_rsa_all} WHERE `STATE` = '$state') OR `rsaAll`.`YEAR` = (SELECT MAX(`YEAR`) - 5 from {d3_vr_rsa_all} WHERE `STATE` = '$state') OR `rsaAll`.`YEAR` = (SELECT MAX(`YEAR`) - 6 from {d3_vr_rsa_all} WHERE `STATE` = '$state') OR `rsaAll`.`YEAR` = (SELECT MAX(`YEAR`) - 7 from {d3_vr_rsa_all} WHERE `STATE` = '$state') )";
+       $table2query =  "SELECT DISTINCT `rsaAll`.`YEAR` `chartYEAR`, `rsaAll`.`STATE` `chartSTATE`, concat('$',FORMAT(`rsaAll`.`earnings`, 2)) `allEarnings`, concat('$',FORMAT(`rsaID`.`earnings`, 2)) `IDEarnings`,  FORMAT(`rsaAll`.`hours` , 1) `allHours`,  FORMAT(`rsaID`.`hours` ,1) `IDHours`, FORMAT(`rsaAll`.`incidence`, 1) `allIncidence`, FORMAT(`rsaID`.`incidence`, 1) `IDIncidence`FROM `sta_d3_vr_rsa_all` `rsaAll` LEFT JOIN `sta_d3_vr_rsa_ID` `rsaID` ON `rsaAll`.`STATE` = `rsaID`.`STATE` AND `rsaAll`.`YEAR` =
+        `rsaID`.`YEAR` WHERE `rsaAll`.`STATE` = '$state'  AND(`rsaAll`.`YEAR` =  (SELECT IF(MAX(`YEAR`) > $limitmaxyear,$limitmaxyear,MAX(`YEAR`)) from sta_d3_vr_rsa_all WHERE `STATE` = '$state') OR `rsaAll`.`YEAR` =
+        (SELECT IF(MAX(`YEAR`) > $limitmaxyear,$limitmaxyear,MAX(`YEAR`)) - 1 from sta_d3_vr_rsa_all WHERE `STATE` = '$state') OR `rsaAll`.`YEAR` = (SELECT IF(MAX(`YEAR`) > $limitmaxyear,$limitmaxyear,MAX(`YEAR`)) - 2 from sta_d3_vr_rsa_all WHERE `STATE` = '$state') OR`rsaAll`.`YEAR` =(SELECT IF(MAX(`YEAR`) > $limitmaxyear,$limitmaxyear,MAX(`YEAR`)) - 3 from sta_d3_vr_rsa_all WHERE `STATE` = '$state') OR`rsaAll`.`YEAR` =
+         (SELECT IF(MAX(`YEAR`) > $limitmaxyear,$limitmaxyear,MAX(`YEAR`)) - 4 from sta_d3_vr_rsa_all WHERE `STATE` = '$state') OR `rsaAll`.`YEAR` = (SELECT IF(MAX(`YEAR`) > $limitmaxyear,$limitmaxyear,MAX(`YEAR`)) - 5 from sta_d3_vr_rsa_all WHERE `STATE` = '$state') OR `rsaAll`.`YEAR` = (SELECT IF(MAX(`YEAR`) > $limitmaxyear,$limitmaxyear,MAX(`YEAR`)) - 6 from sta_d3_vr_rsa_all WHERE `STATE` = '$state') OR `rsaAll`.`YEAR` = (SELECT IF(MAX(`YEAR`) > $limitmaxyear,$limitmaxyear,MAX(`YEAR`)) - 7 from sta_d3_vr_rsa_all WHERE `STATE` = '$state') )";
    // app2
      break;
 
      case 'app6':
 
 
-         $query =  "SELECT DISTINCT `rsaAll`.`YEAR`, concat('$',FORMAT(`rsaAll`.`cost`, 0)) `allCost`, concat('$',FORMAT(`rsaID`.`cost`, 0)) `IDCost`,  FORMAT(`rsaAll`.`App_to_elig` , 0) `allAppElig`,  FORMAT(`rsaID`.`App_to_elig` , 0) `IDAppElig`,FORMAT(`rsaAll`.`Elig_to_closure` , 0) `allEligClos`,  FORMAT(`rsaID`.`Elig_to_closure` , 0) `IDEligClos` FROM `{d3_vr_rsa_all}` `rsaAll` LEFT JOIN `{d3_vr_rsa_ID}` `rsaID` ON `rsaAll`.`STATE` = `rsaID`.`STATE` AND `rsaAll`.`YEAR` =
-          `rsaID`.`YEAR` WHERE `rsaAll`.`STATE` = '$state'  AND (`rsaAll`.`YEAR` =  (SELECT MAX(`YEAR`) from {d3_vr_rsa_all} WHERE `STATE` = '$state') OR `rsaAll`.`YEAR` =
-          (SELECT MAX(`YEAR`) - 1 from {d3_vr_rsa_all} WHERE `STATE` = '$state') OR `rsaAll`.`YEAR` = (SELECT MAX(`YEAR`) - 2 from {d3_vr_rsa_all} WHERE `STATE` = '$state') OR`rsaAll`.`YEAR` =(SELECT MAX(`YEAR`) - 3 from {d3_vr_rsa_all} WHERE `STATE` = '$state') OR`rsaAll`.`YEAR` =
-           (SELECT MAX(`YEAR`) - 4 from {d3_vr_rsa_all} WHERE `STATE` = '$state') OR `rsaAll`.`YEAR` = (SELECT MAX(`YEAR`) - 5 from {d3_vr_rsa_all} WHERE `STATE` = '$state') OR `rsaAll`.`YEAR` = (SELECT MAX(`YEAR`) - 6 from {d3_vr_rsa_all} WHERE `STATE` = '$state') OR `rsaAll`.`YEAR` = (SELECT MAX(`YEAR`) - 7 from {d3_vr_rsa_all} WHERE `STATE` = '$state') )";
+         $query =  "SELECT DISTINCT `rsaAll`.`YEAR`, concat('$',FORMAT(`rsaAll`.`cost`, 0)) `allCost`, concat('$',FORMAT(`rsaID`.`cost`, 0)) `IDCost`,  FORMAT(`rsaAll`.`App_to_elig` , 0) `allAppElig`,  FORMAT(`rsaID`.`App_to_elig` , 0) `IDAppElig`,FORMAT(`rsaAll`.`Elig_to_closure` , 0) `allEligClos`,  FORMAT(`rsaID`.`Elig_to_closure` , 0) `IDEligClos` FROM `sta_d3_vr_rsa_all` `rsaAll` LEFT JOIN `sta_d3_vr_rsa_ID` `rsaID` ON `rsaAll`.`STATE` = `rsaID`.`STATE` AND `rsaAll`.`YEAR` =
+          `rsaID`.`YEAR` WHERE `rsaAll`.`STATE` = '$state'  AND (`rsaAll`.`YEAR` =  (SELECT IF(MAX(`YEAR`) > $limitmaxyear,$limitmaxyear,MAX(`YEAR`)) from sta_d3_vr_rsa_all WHERE `STATE` = '$state') OR `rsaAll`.`YEAR` =
+          (SELECT IF(MAX(`YEAR`) > $limitmaxyear,$limitmaxyear,MAX(`YEAR`)) - 1 from sta_d3_vr_rsa_all WHERE `STATE` = '$state') OR `rsaAll`.`YEAR` = (SELECT IF(MAX(`YEAR`) > $limitmaxyear,$limitmaxyear,MAX(`YEAR`)) - 2 from sta_d3_vr_rsa_all WHERE `STATE` = '$state') OR`rsaAll`.`YEAR` =(SELECT IF(MAX(`YEAR`) > $limitmaxyear,$limitmaxyear,MAX(`YEAR`)) - 3 from sta_d3_vr_rsa_all WHERE `STATE` = '$state') OR`rsaAll`.`YEAR` =
+           (SELECT IF(MAX(`YEAR`) > $limitmaxyear,$limitmaxyear,MAX(`YEAR`)) - 4 from sta_d3_vr_rsa_all WHERE `STATE` = '$state') OR `rsaAll`.`YEAR` = (SELECT IF(MAX(`YEAR`) > $limitmaxyear,$limitmaxyear,MAX(`YEAR`)) - 5 from sta_d3_vr_rsa_all WHERE `STATE` = '$state') OR `rsaAll`.`YEAR` = (SELECT IF(MAX(`YEAR`) > $limitmaxyear,$limitmaxyear,MAX(`YEAR`)) - 6 from sta_d3_vr_rsa_all WHERE `STATE` = '$state') OR `rsaAll`.`YEAR` = (SELECT IF(MAX(`YEAR`) > $limitmaxyear,$limitmaxyear,MAX(`YEAR`)) - 7 from sta_d3_vr_rsa_all WHERE `STATE` = '$state') )";
      // app2
        break;
 
    default:
-   $query = "SELECT DISTINCT `YEAR`, FORMAT(`population in 1000s`/1000, 0) `pop`, FORMAT(`unemployment rate`, 1) `unemp` FROM `{d3_agency_labor}`  WHERE `STATE` = '$state' AND (`YEAR` = (SELECT MAX(`YEAR`) from {d3_acs_post08_nodis} WHERE `STATE` = '$state') OR `YEAR` = (SELECT MAX(`YEAR`) -1 from {d3_acs_post08_nodis} WHERE `STATE` = '$state') OR `YEAR` = (SELECT MAX(`YEAR`) -2 from {d3_acs_post08_nodis} WHERE `STATE` = '$state') OR`YEAR` = (SELECT MAX(`YEAR`) -3 from {d3_acs_post08_nodis} WHERE `STATE` = '$state') OR`YEAR` = (SELECT MAX(`YEAR`) -4 from {d3_acs_post08_nodis} WHERE `STATE` = '$state') OR `YEAR` = (SELECT MAX(`YEAR`) -5 from {d3_acs_post08_nodis} WHERE `STATE` = '$state') OR `YEAR` = (SELECT MAX(`YEAR`) -6 from {d3_acs_post08_nodis} WHERE `STATE` = '$state') OR`YEAR` = (SELECT MAX(`YEAR`) -7 from {d3_acs_post08_nodis} WHERE `STATE` = '$state'))";
+   $query = "SELECT DISTINCT `YEAR`, FORMAT(`population in 1000s`/1000, 0) `pop`, FORMAT(`unemployment rate`, 1) `unemp` FROM `sta_d3_agency_labor`  WHERE `STATE` = '$state' AND (`YEAR` = (SELECT IF(MAX(`YEAR`) > $limitmaxyear,$limitmaxyear,MAX(`YEAR`)) from sta_d3_acs_post08_nodis WHERE `STATE` = '$state') OR `YEAR` = (SELECT IF(MAX(`YEAR`) > $limitmaxyear,$limitmaxyear,MAX(`YEAR`)) -1 from sta_d3_acs_post08_nodis WHERE `STATE` = '$state') OR `YEAR` = (SELECT IF(MAX(`YEAR`) > $limitmaxyear,$limitmaxyear,MAX(`YEAR`)) -2 from sta_d3_acs_post08_nodis WHERE `STATE` = '$state') OR`YEAR` = (SELECT IF(MAX(`YEAR`) > $limitmaxyear,$limitmaxyear,MAX(`YEAR`)) -3 from sta_d3_acs_post08_nodis WHERE `STATE` = '$state') OR`YEAR` = (SELECT IF(MAX(`YEAR`) > $limitmaxyear,$limitmaxyear,MAX(`YEAR`)) -4 from sta_d3_acs_post08_nodis WHERE `STATE` = '$state') OR `YEAR` = (SELECT IF(MAX(`YEAR`) > $limitmaxyear,$limitmaxyear,MAX(`YEAR`)) -5 from sta_d3_acs_post08_nodis WHERE `STATE` = '$state') OR `YEAR` = (SELECT IF(MAX(`YEAR`) > $limitmaxyear,$limitmaxyear,MAX(`YEAR`)) -6 from sta_d3_acs_post08_nodis WHERE `STATE` = '$state') OR`YEAR` = (SELECT IF(MAX(`YEAR`) > $limitmaxyear,$limitmaxyear,MAX(`YEAR`)) -7 from sta_d3_acs_post08_nodis WHERE `STATE` = '$state'))";
 
    // print $query;
    // app1
-       $table2query =  "SELECT DISTINCT `noDis`.`YEAR` `chartYEAR`,`noDis`.`STATE` `chartSTATE`, FORMAT(`noDis`.`NUMPOP`, 0) `noDisPop`, FORMAT(`anyDis`.`NUMPOP`, 0) `anyDisPop`,FORMAT(`postCog`.`NUMPOP`, 0) `postCogPop`,FORMAT(`noDis`.`NUMEMP`, 0) `noDisEmp`, FORMAT(`anyDis`.`NUMEMP`, 0) `anyDisEmp`,FORMAT(`postCog`.`NUMEMP`, 0) `postCogEmp`,FORMAT((`noDis`.`Perwork` * 100),1) `noDisPerwork`, FORMAT((`anyDis`.`Perwork` * 100),1) `anyDisPerwork`,FORMAT((`postCog`.`Perwork` * 100),1) `postCogPerwork` FROM `{d3_acs_post08_nodis}`
-         `noDis` LEFT JOIN `{d3_acs_post08_AnyDis}` `anyDis` ON `noDis`.`STATE` = `anyDis`.`STATE` AND `noDis`.`YEAR` =
-          `anyDis`.`YEAR` LEFT JOIN `{d3_acs_post08_Cognitive}` `postCog` ON `noDis`.`STATE` = `postCog`.`STATE` AND
-           `noDis`.`YEAR` = `postCog`.`YEAR` WHERE (`noDis`.`STATE` = '$state' OR `noDis`.`STATE` = 'US') AND (`noDis`.`YEAR` = (SELECT MAX(`YEAR`) from {d3_acs_post08_nodis} WHERE `STATE` = '$state') OR `noDis`.`YEAR` =
-            (SELECT MAX(`YEAR`) -1 from {d3_acs_post08_nodis} WHERE `STATE` = '$state') OR `noDis`.`YEAR` = (SELECT MAX(`YEAR`) -2 from {d3_acs_post08_nodis} WHERE `STATE` = '$state') OR`noDis`.`YEAR` = (SELECT MAX(`YEAR`) -3 from {d3_acs_post08_nodis} WHERE `STATE` = '$state') OR`noDis`.`YEAR` =
-             (SELECT MAX(`YEAR`) -4 from {d3_acs_post08_nodis} WHERE `STATE` = '$state') OR `noDis`.`YEAR` = (SELECT MAX(`YEAR`) -5 from {d3_acs_post08_nodis} WHERE `STATE` = '$state') OR `noDis`.`YEAR` = (SELECT MAX(`YEAR`) -6 from {d3_acs_post08_nodis} WHERE `STATE` = '$state')  OR `noDis`.`YEAR` = (SELECT MAX(`YEAR`) -7 from {d3_acs_post08_nodis} WHERE `STATE` = '$state') )";
+       $table2query =  "SELECT DISTINCT `noDis`.`YEAR` `chartYEAR`,`noDis`.`STATE` `chartSTATE`, FORMAT(`noDis`.`NUMPOP`, 0) `noDisPop`, FORMAT(`anyDis`.`NUMPOP`, 0) `anyDisPop`,FORMAT(`postCog`.`NUMPOP`, 0) `postCogPop`,FORMAT(`noDis`.`NUMEMP`, 0) `noDisEmp`, FORMAT(`anyDis`.`NUMEMP`, 0) `anyDisEmp`,FORMAT(`postCog`.`NUMEMP`, 0) `postCogEmp`,FORMAT((`noDis`.`Perwork` * 100),1) `noDisPerwork`, FORMAT((`anyDis`.`Perwork` * 100),1) `anyDisPerwork`,FORMAT((`postCog`.`Perwork` * 100),1) `postCogPerwork` FROM `sta_d3_acs_post08_nodis`
+         `noDis` LEFT JOIN `sta_d3_acs_post08_AnyDis` `anyDis` ON `noDis`.`STATE` = `anyDis`.`STATE` AND `noDis`.`YEAR` =
+          `anyDis`.`YEAR` LEFT JOIN `sta_d3_acs_post08_Cognitive` `postCog` ON `noDis`.`STATE` = `postCog`.`STATE` AND
+           `noDis`.`YEAR` = `postCog`.`YEAR` WHERE (`noDis`.`STATE` = '$state' OR `noDis`.`STATE` = 'US') AND (`noDis`.`YEAR` = (SELECT IF(MAX(`YEAR`) > $limitmaxyear,$limitmaxyear,MAX(`YEAR`)) from sta_d3_acs_post08_nodis WHERE `STATE` = '$state') OR `noDis`.`YEAR` =
+            (SELECT IF(MAX(`YEAR`) > $limitmaxyear,$limitmaxyear,MAX(`YEAR`)) -1 from sta_d3_acs_post08_nodis WHERE `STATE` = '$state') OR `noDis`.`YEAR` = (SELECT IF(MAX(`YEAR`) > $limitmaxyear,$limitmaxyear,MAX(`YEAR`)) -2 from sta_d3_acs_post08_nodis WHERE `STATE` = '$state') OR`noDis`.`YEAR` = (SELECT IF(MAX(`YEAR`) > $limitmaxyear,$limitmaxyear,MAX(`YEAR`)) -3 from sta_d3_acs_post08_nodis WHERE `STATE` = '$state') OR`noDis`.`YEAR` =
+             (SELECT IF(MAX(`YEAR`) > $limitmaxyear,$limitmaxyear,MAX(`YEAR`)) -4 from sta_d3_acs_post08_nodis WHERE `STATE` = '$state') OR `noDis`.`YEAR` = (SELECT IF(MAX(`YEAR`) > $limitmaxyear,$limitmaxyear,MAX(`YEAR`)) -5 from sta_d3_acs_post08_nodis WHERE `STATE` = '$state') OR `noDis`.`YEAR` = (SELECT IF(MAX(`YEAR`) > $limitmaxyear,$limitmaxyear,MAX(`YEAR`)) -6 from sta_d3_acs_post08_nodis WHERE `STATE` = '$state')  OR `noDis`.`YEAR` = (SELECT IF(MAX(`YEAR`) > $limitmaxyear,$limitmaxyear,MAX(`YEAR`)) -7 from sta_d3_acs_post08_nodis WHERE `STATE` = '$state') )";
 
  }
  $totalstatecount = false;
@@ -1000,8 +1009,8 @@ if ($appendix == 'app6') {
 
 
  }
-$varlegend1 = array();
-$varlegend2 = array();
+  $varlegend1 = array();
+  $varlegend2 = array();
  $table2 = 'sta_d3_acs_post08_nodis';
  $table3 = 'sta_d3_acs_post08_AnyDis';
  $table4 = 'sta_d3_acs_post08_Cognitive';
@@ -1132,7 +1141,7 @@ $varlegend2 = array();
  $table2csv = "Table 8";
  $varLegend1[0]	=  "Total number of closures";
  $varLegend1[1]	=  "Total number of closures with ID";
-// $varLegend1[2]	=  "Percentage of closures who are people with ID";
+  // $varLegend1[2]	=  "Percentage of closures who are people with ID";
  $varLegend1[2]	=  "Closures into an employment setting";
  $varLegend1[3]	=  "Closures with ID into an employment setting";
  // $varLegend1[4]	=  "Percentage of closures into employment that were people with ID";
@@ -1151,12 +1160,12 @@ $varlegend2 = array();
  $varLegend2[5]	=  "Number of closures with ID into employment per 100K state population";
  $tableclass1 = "app5Table1";
  $tableclass2 = "app5Table2";
-$table1source = "<p>Source: Rehabilitation Services Administration 911 (RSA-911)</p>";
-$table2source = "<p>Source: Rehabilitation Services Administration 911 (RSA-911)</p>";
+  $table1source = "<p>Source: Rehabilitation Services Administration 911 (RSA-911)</p>";
+  $table2source = "<p>Source: Rehabilitation Services Administration 911 (RSA-911)</p>";
   $chartlegend = "<h3>State: " . $stategrab . "<br />$category_name</h3>";
  $pagetitle = drupal_set_title("$vragency");
  $csvtitle = $vragency;
- if($maxyear >= 2016) { $seventeenwarn = "<p><em><strong>Note on VR Agency data: </strong>2017 data is based on a 9 month data collection time period, September 2016 through June 2017. Prior to 2017 the RSA collected data from October 1st through September 30th. 2018 data will resume a 12 month data collection time period, July 1st through June 30th.</em></p>"; } else {$seventeenwarn = ""; }
+ if($maxyear >= 2016) { $seventeenwarn = "<p><em><strong>Note on VR Agency data: </strong>In 2017 RSA  changed from a fiscal (October to September) to a program (July to June) reporting year. As a result 2017 covers a 9 month period from October to June 30, 2017. The year displayed here refers to the end date of each reporting period. This differs from the new RSA standard of naming program years based on the start date.</em></p>"; } else {$seventeenwarn = ""; }
 
  break;
 
@@ -1173,7 +1182,7 @@ $table2source = "<p>Source: Rehabilitation Services Administration 911 (RSA-911)
  $varLegend1[5]	=  "Average days from eligibility to closure for closures with ID";
  $tableclass1 = "app5Table1";
 
- if($maxyear >= 2016) { $seventeenwarn = "<p><em><strong>Note on VR Agency data: </strong>2017 data is based on a 9 month data collection time period, September 2016 through June 2017. Prior to 2017 the RSA collected data from October 1st through September 30th. 2018 data will resume a 12 month data collection time period, July 1st through June 30th.</em></p>"; } else {$seventeenwarn = ""; }
+ if($maxyear >= 2016) { $seventeenwarn = "<p><em><strong>Note on VR Agency data: </strong>In 2017 RSA  changed from a fiscal (October to September) to a program (July to June) reporting year. As a result 2017 covers a 9 month period from October to June 30, 2017. The year displayed here refers to the end date of each reporting period. This differs from the new RSA standard of naming program years based on the start date.</em></p>"; } else {$seventeenwarn = ""; }
 
 
 
@@ -1185,8 +1194,8 @@ $table2source = "<p>Source: Rehabilitation Services Administration 911 (RSA-911)
 
  $fields = db_query($query)->fetchAll(PDO::FETCH_ASSOC);
  $fields2 =  $appendix != 'app3' && $appendix != 'app4' && $appendix != 'app6' ? db_query($table2query)->fetchAll(PDO::FETCH_ASSOC) : array();
- $query2 = "SELECT DISTINCT `short_name` from `{d3_labels}` where `column_name` IN ('noDisPerwork')";
-     $queryunemp = "SELECT DISTINCT `short_name` from `{d3_labels}` where `column_name` IN ('unemploymentrate')";
+ $query2 = "SELECT DISTINCT `short_name` from `sta_d3_labels` where `column_name` IN ('noDisPerwork')";
+     $queryunemp = "SELECT DISTINCT `short_name` from `sta_d3_labels` where `column_name` IN ('unemploymentrate')";
  $label1 = db_query($query2)->fetchField();
      $label2 = db_query($queryunemp)->fetchField();
 
@@ -1213,7 +1222,7 @@ $table2source = "<p>Source: Rehabilitation Services Administration 911 (RSA-911)
    $dbrow [] = array((string)$year, str_replace(',', '', $entry['pop']));
  $dbrow2 [] = $entry;
 
-$year = $entry['YEAR'];
+  $year = $entry['YEAR'];
 
 
 
@@ -1229,9 +1238,9 @@ $year = $entry['YEAR'];
        $value = " - - "; }
       if ($value ."" == NULL) {
          $value = " - - ";
-     } 
+     }
      if(($key == 'unemp' || $key == 'noDisPerwork' || $key == 'noDisBePov' || $key == 'anyDisBePov' || $key == 'postCogBePov' || $key == 'IntPerRate' || $key =='FacWkPer' || $key == 'FacnonWkPer' || $key == 'ComnonWkPer'|| $key == 'ComFacnonWkPer' || $key == 'Int_Emp_Fund_percent' || $key == 'IDPctAllClos' || $key == 'allPctAllClos' || $key == 'IDREHABRAT' || $key == 'allREHABRAT' || $key == 'IntEmp_Fund_percent') && ($value  != "-1" && $value  != "-100" && $value != '' && $value != " - - ")) $value = $value . "%";
-if(($key == 'noDisEarn' || $key == 'anyDisEarn' || $key == 'postCogEarn' || $key == 'TtlFund' || $key == 'XIX' || $key == 'XIXWaiv' || $key == 'EmpMoney' || $key == 'StLoc' || $key == 'XX' || $key == 'FBW' || $key == 'FBNW' || $key == 'CBNW') && ($value  != "-1" && $value  != "-100" && $value != '' && $value != " - - ") ) $value = '$' . $value;
+  if(($key == 'noDisEarn' || $key == 'anyDisEarn' || $key == 'postCogEarn' || $key == 'TtlFund' || $key == 'XIX' || $key == 'XIXWaiv' || $key == 'EmpMoney' || $key == 'StLoc' || $key == 'XX' || $key == 'FBW' || $key == 'FBNW' || $key == 'CBNW') && ($value  != "-1" && $value  != "-100" && $value != '' && $value != " - - ") ) $value = '$' . $value;
      $data["$key"]	.= $sep . $value;
 
 
@@ -1257,7 +1266,7 @@ if(($key == 'noDisEarn' || $key == 'anyDisEarn' || $key == 'postCogEarn' || $key
     foreach ($fields2 as $item) {
       $maxyear = $max === null ? $item['chartYEAR'] : max($maxyear, $item['chartYEAR']);
     }
-if($fields2) {
+  if($fields2) {
         foreach($fields2 as $entry2){
 
  $year2 = $entry2['chartYEAR'];
@@ -1278,7 +1287,7 @@ if($fields2) {
        	if ($value ."" == "0") {
        		$value = " - - ";
     	}
-if(($key == 'noDisPerwork' || $key == 'anyDisPerwork' || $key == 'postCogPerwork' || $key == 'SSAPerWk') && ($value  != "-1" && $value  != "-100" && $value != '' && $value != " - - ")) $value = $value . "%";
+  if(($key == 'noDisPerwork' || $key == 'anyDisPerwork' || $key == 'postCogPerwork' || $key == 'SSAPerWk') && ($value  != "-1" && $value  != "-100" && $value != '' && $value != " - - ")) $value = $value . "%";
     	$data2["$key"]	.= $sep2 . $value;
 
 
@@ -1291,7 +1300,7 @@ if(($key == 'noDisPerwork' || $key == 'anyDisPerwork' || $key == 'postCogPerwork
 
 
 
-}
+  }
 
   if($filecall) {
     $csvoutput ="";
@@ -1301,34 +1310,34 @@ if(($key == 'noDisPerwork' || $key == 'anyDisPerwork' || $key == 'postCogPerwork
     unset($data['years']); unset($data['YEAR']);
     $variablearray = array();
     foreach($data as $key => $value)
-      { 
+      {
         $variablearray []= $key;}
     for ($i = 0; $i < count($variablearray); $i++) {
         $csvoutput .=   "\"" . $varLegend1[$i] . "\",\""
-         . str_replace(array(';', '-1.00'), array('","', ' - '), $data[$variablearray[$i]]) . "\"\r\n"; 
+         . str_replace(array(';', '-1.00'), array('","', ' - '), $data[$variablearray[$i]]) . "\"\r\n";
       }
     $csvoutput .=  "\r\n" . "\r\n";
     if($fields2) {
-      $csvoutput	.= 
+      $csvoutput	.=
       $table2csv . "\r\n" . "\"$stategrab\"," . str_replace(';', ',', $data2['chartYEAR']) . "\r\n";
- 
+
       unset($data2['chartYEAR']);
       unset($data2['chartSTATE']);
- 
+
       //  print_r($fields2);
       $variablearray2 = array();
- 
-      foreach($data2 as $key => $value){ 
+
+      foreach($data2 as $key => $value){
         $variablearray2 []= $key;
       }
       for ($i = 0; $i < count($variablearray2); $i++) {
-       $csvoutput .=  "\"" . $varLegend2[$i] . "\",\"" 
+       $csvoutput .=  "\"" . $varLegend2[$i] . "\",\""
        . str_replace(array(';', '-1.00'), array('","', ' - '), $data2[$variablearray2[$i]]) . "\"\r\n";
       }
       $csvoutput .=  "\r\n" . "\r\n";
      }
      return $csvoutput;
-        
+
 
   }
   if ($appendix == 'app5' || $appendix == 'app6') $charttable .= $seventeenwarn;
@@ -1342,7 +1351,7 @@ if(($key == 'noDisPerwork' || $key == 'anyDisPerwork' || $key == 'postCogPerwork
       {$variablearray []= $key;}
 
 
-for ($i = 0; $i < count($variablearray); $i++) {
+  for ($i = 0; $i < count($variablearray); $i++) {
       $charttable .= "<th scope\"row\">" . $varLegend1[$i] . "</th><td>"
  			. str_replace(array(';', '-1.00'), array('</td><td>', ' - '), $data[$variablearray[$i]]) . "</td></tr>" ;
     }
@@ -1353,7 +1362,7 @@ for ($i = 0; $i < count($variablearray); $i++) {
 
 
         $charttable	.=   "</tbody></table>$table1source";
-if($fields2) {
+  if($fields2) {
        $charttable	.=
        			"<br /><br /><table class=\"charttable $tableclass2\" border=\"1\" cellspacing=\"0\"><caption>$table2legend</caption><thead><tr><th scope=\"row\">&nbsp;</th><th>"
        			. str_replace(';', '</th><th>', $data2['chartYEAR']) . "</th></tr></thead><tbody>";
@@ -1406,7 +1415,8 @@ if($fields2) {
 
  return (d3_draw($chart));
 
- }
+}
+
 function d3_statedata_chart($firstparameter = '') {
 
 
@@ -1441,8 +1451,8 @@ $category_name = substr($stored['agency'],0,2) == 'AC' || substr($stored['agency
 $statematch = array();
 $nodata = array();
 
-$matchquery =   "SELECT DISTINCT `abbreviation`, `name` from {d3_states} WHERE `abbreviation` in (SELECT DISTINCT `state`
-FROM `$table`, `{d3_labels}` WHERE {d3_labels}.column_name IN ('$var') and `{d3_labels}`.`table_name` = '$table' AND `state` IN $stategroup) ORDER BY `abbreviation`";
+$matchquery =   "SELECT DISTINCT `abbreviation`, `name` from `sta_d3_states` WHERE `abbreviation` in (SELECT DISTINCT `state`
+FROM `$table`, `sta_d3_labels` WHERE sta_d3_labels.column_name IN ('$var') and `sta_d3_labels`.`table_name` = '$table' AND `state` IN $stategroup) ORDER BY `abbreviation`";
 $missingfields = db_query($matchquery)->fetchAll(PDO::FETCH_ASSOC);
 
  foreach ($missingfields as $entry) {
@@ -1452,12 +1462,12 @@ $statematch[]= $entry['abbreviation']; }
  $statearray = count(array_unique($statematch)) < count($queryarray) ? array_unique($statematch) : $queryarray;
  $stategroup2  = count(array_unique($statematch)) < count($queryarray) ?  "('" . implode("', '", $statematch) . "')" : $stategroup;
 
-/* $query =  "SELECT `year`, GROUP_CONCAT(IF(`$var` = -1, '', IF( `{d3_labels}`.format = 'integer', REPLACE(FORMAT(`$var`, 0),',',''), REPLACE(FORMAT(`$var`, 2),',',''))) ORDER BY `state` SEPARATOR ';') AS `vars`
-FROM `$table`, `{d3_labels}` WHERE `{d3_labels}`.column_name IN ('$var') and `{d3_labels}`.table_name = '$table' AND `state` IN $stategroup2 GROUP BY `year` ORDER BY `year`";
+/* $query =  "SELECT `year`, GROUP_CONCAT(IF(`$var` = -1, '', IF( `sta_d3_labels`.format = 'integer', REPLACE(FORMAT(`$var`, 0),',',''), REPLACE(FORMAT(`$var`, 2),',',''))) ORDER BY `state` SEPARATOR ';') AS `vars`
+FROM `$table`, `sta_d3_labels` WHERE `sta_d3_labels`.column_name IN ('$var') and `sta_d3_labels`.table_name = '$table' AND `state` IN $stategroup2 GROUP BY `year` ORDER BY `year`";
 
 $fields = db_query($query)->fetchAll(PDO::FETCH_ASSOC); */
 
- $query = "SELECT DISTINCT `year` FROM `$table`, `{d3_labels}` WHERE `{d3_labels}`.column_name IN ('$var') and `{d3_labels}`.table_name = '$table' AND `state` IN $stategroup2 ORDER BY `year`" ;
+ $query = "SELECT DISTINCT `year` FROM `$table`, `sta_d3_labels` WHERE `sta_d3_labels`.column_name IN ('$var') and `sta_d3_labels`.table_name = '$table' AND `state` IN $stategroup2 ORDER BY `year`" ;
 
 $fields = db_query($query)->fetchAll(PDO::FETCH_ASSOC);
 $chartarray = array();
@@ -1467,7 +1477,7 @@ $varrow = array();
 
 
 for ($i = 0; $i < count($statearray); $i++) {
-$subquery = "SELECT IF(`$var` = -1, '', IF( `{d3_labels}`.format = 'integer', REPLACE(FORMAT(`$var`, 0),',',''), REPLACE(FORMAT(`$var`, 2),',',''))) AS `vars` FROM `$table`, `{d3_labels}` WHERE `{d3_labels}`.column_name IN ('$var') and `{d3_labels}`.table_name = '$table' AND `state` = '" .$statearray[$i] . "' and year = " . $entry['year'] ;
+$subquery = "SELECT IF(`$var` = -1, '', IF( `sta_d3_labels`.format = 'integer', REPLACE(FORMAT(`$var`, 0),',',''), REPLACE(FORMAT(`$var`, 2),',',''))) AS `vars` FROM `$table`, `sta_d3_labels` WHERE `sta_d3_labels`.column_name IN ('$var') and `sta_d3_labels`.table_name = '$table' AND `state` = '" .$statearray[$i] . "' and year = " . $entry['year'] ;
 $subfield = db_query($subquery)->fetchField();
 $number_of_rows = db_query($subquery)->rowCount();
 $varplace = $number_of_rows == 0 ? "" : $subfield;
@@ -1486,7 +1496,7 @@ if (!empty($nodata)) {
 $nodatatext = implode(",", $nodata); }
 
 
-$query2 = "SELECT `name` from `{d3_states}` where `abbreviation` IN $stategroup2 ORDER BY `abbreviation`";
+$query2 = "SELECT `name` from `sta_d3_states` where `abbreviation` IN $stategroup2 ORDER BY `abbreviation`";
 $label = db_query($query2)->fetchAll(PDO::FETCH_ASSOC);
 $countrows = db_query($query2)->rowCount();
 $labelarray = array();
@@ -1500,8 +1510,8 @@ $varLegend	=  $justfunctions->get_legend_name($table, $var);
  if ($var == 'REHABRAT' || $var == 'Perwork'|| $var == 'Integrated employment percentage rate' || $var == 'Community based nonwork percentage rate' || $var == 'Facility-based work percentage rate' || $var == 'Facility-based nonwork percentage rate' || $var == 'Facility-based and nonwork settings percentage rate' || $var == 'IntEmp_Fund_percent') $formatdouble = "CONCAT(FORMAT((`$var` * 100), 1),'%')";
  if ($var == 'unemployment rate' || $var == 'Below_Poverty') $formatdouble = "CONCAT(FORMAT(`$var`,2),'%')";
  if($var == 'Annual_Work_Earnings') $formatdouble = "FORMAT((`$var`/1000),1)";
- $query3 =  "SELECT `{d3_states}`.`name`, GROUP_CONCAT(IF(`$var` = -1 OR `$var` IS NULL, '', IF( `{d3_labels}`.format = 'integer', FORMAT(`$var`, 0), $formatdouble)) ORDER BY `year` SEPARATOR ';') AS `vars`
- FROM `$table`, `{d3_labels}`,`{d3_states}`  WHERE `{d3_labels}`.column_name IN ('$var') and `{d3_labels}`.table_name = '$table' AND `state` IN $stategroup AND `$table`.`state` = `{d3_states}`.`abbreviation` GROUP BY `state` ORDER BY `state`";
+ $query3 =  "SELECT `sta_d3_states`.`name`, GROUP_CONCAT(IF(`$var` = -1 OR `$var` IS NULL, '', IF( `sta_d3_labels`.format = 'integer', FORMAT(`$var`, 0), $formatdouble)) ORDER BY `year` SEPARATOR ';') AS `vars`
+ FROM `$table`, `sta_d3_labels`,`sta_d3_states`  WHERE `sta_d3_labels`.column_name IN ('$var') and `sta_d3_labels`.table_name = '$table' AND `state` IN $stategroup AND `$table`.`state` = `sta_d3_states`.`abbreviation` GROUP BY `state` ORDER BY `state`";
 
 $tablerows = db_query($query3)->fetchAll(PDO::FETCH_ASSOC);
 
@@ -1533,8 +1543,8 @@ $tablerows = db_query($query3)->fetchAll(PDO::FETCH_ASSOC);
   $totalustext = "comm. based nonwork";
   break;
   }
-  $totalstatesquery =  "SELECT `{d3_states}`.`name`, GROUP_CONCAT(IF(`$totalusfield` = -1, '', FORMAT(`$totalusfield`, 0)) ORDER BY `year` SEPARATOR ';') AS `vars`
-  FROM `{d3_agency_mrdd}`,`{d3_states}`  WHERE `{d3_agency_mrdd}`.`STATE` = 'US' AND `sta_d3_agency_mrdd`.`STATE` = `{d3_states}`.`abbreviation`";
+  $totalstatesquery =  "SELECT `sta_d3_states`.`name`, GROUP_CONCAT(IF(`$totalusfield` = -1, '', FORMAT(`$totalusfield`, 0)) ORDER BY `year` SEPARATOR ';') AS `vars`
+  FROM `sta_d3_agency_mrdd`,`sta_d3_states`  WHERE `sta_d3_agency_mrdd`.`STATE` = 'US' AND `sta_d3_agency_mrdd`.`STATE` = `sta_d3_states`.`abbreviation`";
   $ustotalrow = db_query($totalstatesquery)->fetchAll(PDO::FETCH_ASSOC);
 
   }
@@ -1571,7 +1581,7 @@ foreach ($tablerows as $tablerow) {
 $dbrow2[] = array('name' => $tablerow['name'],'vars' => $tablerow['vars']);
 }
 if($totalstatecount) $dbrow2[]= array('name' => "Number of U.S. states reporting count in $totalustext",'vars' => $ustotalrow[0]['vars']);
-if($table == 'sta_d3_vr_rsa_ID' || $table == 'sta_d3_vr_rsa_all') { $seventeenwarn = "<p><em><strong>Note on VR Agency data: </strong>2017 data is based on a 9 month data collection time period, September 2016 through June 2017. Prior to 2017 the RSA collected data from October 1st through September 30th. 2018 data will resume a 12 month data collection time period, July 1st through June 30th.</em></p>"; } else {$seventeenwarn = ""; }
+if($table == 'sta_d3_vr_rsa_ID' || $table == 'sta_d3_vr_rsa_all') { $seventeenwarn = "<p><em><strong>Note on VR Agency data: </strong>In 2017 RSA  changed from a fiscal (October to September) to a program (July to June) reporting year. As a result 2017 covers a 9 month period from October to June 30, 2017. The year displayed here refers to the end date of each reporting period. This differs from the new RSA standard of naming program years based on the start date.</em></p>"; } else {$seventeenwarn = ""; }
 $charttable	.= $seventeenwarn . "<br /> Blank spaces that may appear on the chart or values of -1 indicate that data is not available for that year"
 			. "<br /><br /><table class=\"charttable\" border=\"1\" cellspacing=\"0\"><caption>" . $stategrab
 			. " $varLegend</caption><thead><th scope=\"row\">State</th>";  foreach($dbrow3 as $row3) { $charttable .= "<th>" . $row3['year'] . "</th>"; } $charttable .= "</tr></thead><tbody>"; foreach($dbrow2 as $row2) { $charttable .= "<tr><th>" . $row2['name'] . "</th><td>" . str_replace(array(';', '-1.00'), array('</td><td>', ' - - '), $row2['vars']) . "</td></tr>"; }
@@ -1589,7 +1599,7 @@ $formatdouble ="FORMAT(`$var`, 2)";
 if ($var == 'REHABRAT' || $var == 'Perwork'|| $var == 'Integrated employment percentage rate' || $var == 'Community based nonwork percentage rate' || $var == 'Facility-based work percentage rate' || $var == 'Facility-based nonwork percentage rate' || $var == 'Facility-based and nonwork settings percentage rate' || $var == 'IntEmp_Fund_percent') $formatdouble = "CONCAT(FORMAT((`$var` * 100), 1),'%')";
  if ($var == 'unemployment rate' || $var == 'Below_Poverty') $formatdouble = "CONCAT(FORMAT(`$var`,2),'%')";
  if($var == 'Annual_Work_Earnings') $formatdouble = "FORMAT((`$var`/1000),1)";
-$query = "SELECT DISTINCT `year`, IF(`$var` = -1, -1,IF( `{d3_labels}`.format = 'integer', FORMAT(`$var`, 0), $formatdouble)) AS `var` FROM `$table` , `{d3_labels}` WHERE `{d3_labels}`.column_name IN ('$var') AND `{d3_labels}`.`table_name` = '$table' AND  `state` = '$state' ORDER BY `year`";
+$query = "SELECT DISTINCT `year`, IF(`$var` = -1, -1,IF( `sta_d3_labels`.format = 'integer', FORMAT(`$var`, 0), $formatdouble)) AS `var` FROM `$table` , `sta_d3_labels` WHERE `sta_d3_labels`.column_name IN ('$var') AND `sta_d3_labels`.`table_name` = '$table' AND  `state` = '$state' ORDER BY `year`";
 $totalstatecount = false;
  $totalusfield = null;
 if(($var == 'Community based nonwork percentage rate' || $var == 'Facility-based work percentage rate' || $var == 'Facility-based nonwork percentage rate' || $var == 'Facility-based and nonwork settings percentage rate') && $state == 'US') {
@@ -1656,7 +1666,7 @@ $varLegend	=  $justfunctions->get_legend_name($table, $var);
 $pagetitle = drupal_set_title($justfunctions->getAgency($stored['agency']) . $category_name);
 
 $fields = db_query($query)->fetchAll(PDO::FETCH_ASSOC);
-$query2 = "SELECT DISTINCT `short_name` from `{d3_labels}` where `column_name` IN ('$var')";
+$query2 = "SELECT DISTINCT `short_name` from `sta_d3_labels` where `column_name` IN ('$var')";
 $label = db_query($query2)->fetchField();
 
 
@@ -1690,7 +1700,7 @@ foreach ($dbrow2 as $row) {
 	$dlData			.= $sep . $row['var'];
 	$sep 			= ';';
    }
-   if($table == 'sta_d3_vr_rsa_ID' || $table == 'sta_d3_vr_rsa_all') { $seventeenwarn = "<p><em><strong>Note on VR Agency data: </strong>2017 data is based on a 9 month data collection time period, September 2016 through June 2017. Prior to 2017 the RSA collected data from October 1st through September 30th. 2018 data will resume a 12 month data collection time period, July 1st through June 30th.</em></p>"; } else {$seventeenwarn = ""; }
+   if($table == 'sta_d3_vr_rsa_ID' || $table == 'sta_d3_vr_rsa_all') { $seventeenwarn = "<p><em><strong>Note on VR Agency data: </strong>In 2017 RSA  changed from a fiscal (October to September) to a program (July to June) reporting year. As a result 2017 covers a 9 month period from October to June 30, 2017. The year displayed here refers to the end date of each reporting period. This differs from the new RSA standard of naming program years based on the start date.</em></p>"; } else {$seventeenwarn = ""; }
    $charttable	.= $seventeenwarn . "<br />Blank spaces that may appear on the chart or values of -1 indicate that data is not available for that year"
 			. "<br /><br /><table class=\"charttable\" border=\"1\" cellspacing=\"0\"><caption>" . $stategrab
 			. " $varLegend</caption><thead><tr><th scope=\"row\">&nbsp;</th><th>"
@@ -1765,15 +1775,15 @@ header("Content-Type: text/comma-separated-values");
 
 	$firstfunctions = new oldFunctions;
 	$category_name = substr($stored['agency'],0,2) == 'AC' || substr($stored['agency'],0,2) == 'VR' ? ", " . $firstfunctions->getAgency($stored['category']) : "";
-	$query =  "SELECT `year`, GROUP_CONCAT(IF(`$var` = -1, '', IF( `{d3_labels}`.format = 'integer', REPLACE(FORMAT(`$var`, 0),',',''), REPLACE(FORMAT(`$var`, 2),',',''))) ORDER BY `state` SEPARATOR ';') AS `vars`
-	FROM `$table`, `{d3_labels}` WHERE `{d3_labels}`.column_name IN ('$var') and `{d3_labels}`.table_name = '$table' AND `state` IN $stategroup GROUP BY `year` ORDER BY `year`";
+	$query =  "SELECT `year`, GROUP_CONCAT(IF(`$var` = -1, '', IF( `sta_d3_labels`.format = 'integer', REPLACE(FORMAT(`$var`, 0),',',''), REPLACE(FORMAT(`$var`, 2),',',''))) ORDER BY `state` SEPARATOR ';') AS `vars`
+	FROM `$table`, `sta_d3_labels` WHERE `sta_d3_labels`.column_name IN ('$var') and `sta_d3_labels`.table_name = '$table' AND `state` IN $stategroup GROUP BY `year` ORDER BY `year`";
 
 
 
 	$fields = db_query($query)->fetchAll(PDO::FETCH_ASSOC);
 
 
-	$query2 = "SELECT `name` from `{d3_states}` where `abbreviation` IN $stategroup";
+	$query2 = "SELECT `name` from `sta_d3_states` where `abbreviation` IN $stategroup";
 	$label = db_query($query2)->fetchAll(PDO::FETCH_ASSOC);
 	$countrows = db_query($query2)->rowCount();
 	$labelarray = array();
@@ -1782,8 +1792,8 @@ header("Content-Type: text/comma-separated-values");
 	$stategrab = implode(', ',$labelarray);
 	$varLegend	=  $justfunctions->get_legend_name($table, $var);
    $chartlegend = "<h3>States: " . $stategrab . "<br />$varLegend</h3>";
-	 $query3 =  "SELECT `{d3_states}`.`name`, GROUP_CONCAT(IF(`$var` = -1, '', IF( `{d3_labels}`.format = 'integer', FORMAT(`$var`, 0), FORMAT(`$var`, 2))) ORDER BY `year` SEPARATOR ';') AS `vars`
-	 FROM `$table`, `{d3_labels}`,`{d3_states}`  WHERE `{d3_labels}`.column_name IN ('$var') and `{d3_labels}`.table_name = '$table' AND `state` IN $stategroup AND `$table`.`state` = `{d3_states}`.`abbreviation` GROUP BY `state` ORDER BY `state`";
+	 $query3 =  "SELECT `sta_d3_states`.`name`, GROUP_CONCAT(IF(`$var` = -1, '', IF( `sta_d3_labels`.format = 'integer', FORMAT(`$var`, 0), FORMAT(`$var`, 2))) ORDER BY `year` SEPARATOR ';') AS `vars`
+	 FROM `$table`, `sta_d3_labels`,`sta_d3_states`  WHERE `sta_d3_labels`.column_name IN ('$var') and `sta_d3_labels`.table_name = '$table' AND `state` IN $stategroup AND `$table`.`state` = `sta_d3_states`.`abbreviation` GROUP BY `state` ORDER BY `state`";
 
 	$tablerows = db_query($query3)->fetchAll(PDO::FETCH_ASSOC);
 
@@ -1816,8 +1826,8 @@ $totalusfield = null;
  $totalustext = "comm. based nonwork";
  break;
  }
- $totalstatesquery =  "SELECT `{d3_states}`.`name`, GROUP_CONCAT(IF(`$totalusfield` = -1, '', FORMAT(`$totalusfield`, 0)) ORDER BY `year` SEPARATOR ';') AS `vars`
- FROM `{d3_agency_mrdd}`,`{d3_states}`  WHERE `{d3_agency_mrdd}`.`STATE` = 'US' AND `sta_d3_agency_mrdd`.`STATE` = `{d3_states}`.`abbreviation`";
+ $totalstatesquery =  "SELECT `sta_d3_states`.`name`, GROUP_CONCAT(IF(`$totalusfield` = -1, '', FORMAT(`$totalusfield`, 0)) ORDER BY `year` SEPARATOR ';') AS `vars`
+ FROM `sta_d3_agency_mrdd`,`sta_d3_states`  WHERE `sta_d3_agency_mrdd`.`STATE` = 'US' AND `sta_d3_agency_mrdd`.`STATE` = `sta_d3_states`.`abbreviation`";
  $ustotalrow = db_query($totalstatesquery)->fetchAll(PDO::FETCH_ASSOC);
 
  }
@@ -1868,7 +1878,7 @@ $headstring = 'State';
 
    $firstfunctions = new oldFunctions;
    $category_name = substr($stored['agency'],0,2) == 'AC' || substr($stored['agency'],0,2) == 'VR' ? ", " . $firstfunctions->getAgency($stored['category']) : "";
-   $query = "SELECT DISTINCT `year`, IF( `{d3_labels}`.format = 'integer', FORMAT(`$var`, 0), FORMAT(`$var`, 2)) AS `var` FROM `$table` , `{d3_labels}` WHERE `{d3_labels}`.column_name IN ('$var') and `{d3_labels}`.table_name = '$table' and  `state` = '$state' ORDER BY `year`";
+   $query = "SELECT DISTINCT `year`, IF( `sta_d3_labels`.format = 'integer', FORMAT(`$var`, 0), FORMAT(`$var`, 2)) AS `var` FROM `$table` , `sta_d3_labels` WHERE `sta_d3_labels`.column_name IN ('$var') and `sta_d3_labels`.table_name = '$table' and  `state` = '$state' ORDER BY `year`";
 
    $totalstatecount = false;
     $totalusfield = null;
@@ -1900,7 +1910,7 @@ $headstring = 'State';
     $totalustext = "comm. based nonwork";
     break;
     }
-     $statetotalquery = "SELECT DISTINCT `year`,  FORMAT(`$totalusfield`, 0) AS `var` FROM `sta_d3_agency_mrdd` , `{d3_labels}` WHERE `{d3_labels}`.column_name ='$totalusfield' and `state` = 'US' ORDER BY `year`";
+     $statetotalquery = "SELECT DISTINCT `year`,  FORMAT(`$totalusfield`, 0) AS `var` FROM `sta_d3_agency_mrdd` , `sta_d3_labels` WHERE `sta_d3_labels`.column_name ='$totalusfield' and `state` = 'US' ORDER BY `year`";
      $totalstatefields = db_query($statetotalquery)->fetchAll(PDO::FETCH_ASSOC);
 
      foreach ($totalstatefields as $entry) {
@@ -1934,7 +1944,7 @@ $headstring = 'State';
 
 
    $fields = db_query($query)->fetchAll(PDO::FETCH_ASSOC);
-   $query2 = "SELECT DISTINCT `description` from `{d3_labels}` where `column_name` IN ('$var')";
+   $query2 = "SELECT DISTINCT `description` from `sta_d3_labels` where `column_name` IN ('$var')";
    $label = db_query($query2)->fetchField();
 
 
@@ -1967,7 +1977,7 @@ header('Content-Disposition: attachment; filename="' . $filename .'"');
 ob_end_flush();
    $csvoutput ="";
    $csvoutput .= "$stategrab," .  str_replace(';', ',', $data['years']) . "\n";
-   $csvoutput .=	"$varLegend,\""
+   $csvoutput .=	"\"$varLegend\",\""
    			. str_replace(array(';', '-1.00'), array('","', ' - '), $data['var']) . '"';$csvoutput .=	$totalstatecount ? "\n" . "Number of U.S. states reporting count in $totalustext,\""
    			. str_replace(array(';', '-1.00'), array('","', ' - '), $usdata['var']) .'"' : "";
             print $csvoutput;

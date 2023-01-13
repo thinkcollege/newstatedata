@@ -73,7 +73,7 @@ purpose: returns a dropdown of states
 */
 function getStatesFiltered($element_name, $dataset, $showAll = 1) { 
    $join = $dataset != "ACS" && $dataset != 'ACS09'  && $dataset != 'VR' ? "LEFT JOIN {$dataset} d ON d.state = s.abbreviation " : '';
-   $query = "select distinct name, abbreviation from {d3_states} s $join order by s.abbreviation = 'US' DESC, s.name";
+   $query = "select distinct name, abbreviation from sta_d3_states s $join order by s.abbreviation = 'US' DESC, s.name";
    $results = db_query($query)->fetchAll(PDO::FETCH_ASSOC);
    
 
@@ -146,7 +146,7 @@ function get_acs_tables($agency){
    
 
 
-	$results = db_query("SHOW TABLE STATUS LIKE '{d3_acs_" . ($agency == 'ACS' ? 'pre05%}\'' : 'post08%}\''))->fetchAll(PDO::FETCH_ASSOC);
+	$results = db_query("SHOW TABLE STATUS LIKE 'sta_d3_acs_" . ($agency == 'ACS' ? 'pre05%\'' : 'post08%\''))->fetchAll(PDO::FETCH_ASSOC);
 //	print "<!-- query:SHOW TABLE STATUS LIKE 'acs_" . ($agency == 'ACS' ? 'pre05%\'' : 'post08%\'') . " agency:$agency -->";
 
 	
@@ -161,7 +161,7 @@ purpose: return result
 */
 function get_vr_tables($agency){
    
-	$results = db_query("SHOW TABLE STATUS LIKE '{d3_vr_rsa%}'")->fetchAll(PDO::FETCH_ASSOC);;
+	$results = db_query("SHOW TABLE STATUS LIKE 'sta_d3_vr_rsa%'")->fetchAll(PDO::FETCH_ASSOC);;
 
 	
 	
@@ -230,10 +230,10 @@ function get_individual_tables(){
 			$where	= '`name`';
 		}
 		
-		$rs =  db_query("SELECT $col FROM `{d3_states}` WHERE $where = :state1", array(':state1' => "$st"))->fetchAll(PDO::FETCH_ASSOC);
+		$rs =  db_query("SELECT $col FROM `sta_d3_states` WHERE $where = :state1", array(':state1' => "$st"))->fetchAll(PDO::FETCH_ASSOC);
 		// print "<!-- query:SELECT $col FROM `states` WHERE $where = '$st' -->";
       
-      $countrows = db_query("SELECT $col FROM `{d3_states}` WHERE $where = :state1", array(':state1' => "$st"))->rowCount();
+      $countrows = db_query("SELECT $col FROM `sta_d3_states` WHERE $where = :state1", array(':state1' => "$st"))->rowCount();
 		if ($countrows == 1) {
 			return $rs[0]['name'];
 		}
@@ -322,11 +322,11 @@ function: get_vr_table_columns_as_checkboxes
 purpose: returns columns in a table as a checkbox list
 */
 function get_vr_table_columns_as_checkboxes($table, $total_vars) {
-	$results = db_query("SHOW TABLE STATUS LIKE '{d3_vr_rsa%}'")->fetchAll(PDO::FETCH_ASSOC);
+	$results = db_query("SHOW TABLE STATUS LIKE 'sta_d3_vr_rsa%'")->fetchAll(PDO::FETCH_ASSOC);
 
 	$vr_table  = $results[0]['Name'];
-	$fields = db_query("SELECT  * FROM `{d3_labels}` where `table_name` = '$vr_table' order by `sort_order`, `short_name`")->fetchAll(PDO::FETCH_ASSOC);
-	$countrows = db_query("SELECT  * FROM `{d3_labels}` where `table_name` = '$vr_table' order by `sort_order`, `short_name`")->rowCount();
+	$fields = db_query("SELECT  * FROM `sta_d3_labels` where `table_name` = '$vr_table' order by `sort_order`, `short_name`")->fetchAll(PDO::FETCH_ASSOC);
+	$countrows = db_query("SELECT  * FROM `sta_d3_labels` where `table_name` = '$vr_table' order by `sort_order`, `short_name`")->rowCount();
 	$vr_buttons = array();
 	
 	for ($result = 0;$result < $countrows; $result++){
@@ -351,11 +351,11 @@ purpose: returns columns in a table as a checkbox list
 function get_acs_table_columns_as_checkboxes($table, $total_vars) {
 	
 	
-	$results = db_query("SHOW TABLE STATUS LIKE '{d3_acs_" . ($table == 'ACS' ? 'pre05%}\'' : 'post08%}\''))->fetchAll(PDO::FETCH_ASSOC);
+	$results = db_query("SHOW TABLE STATUS LIKE 'sta_d3_acs_" . ($table == 'ACS' ? 'pre05%\'' : 'post08%\''))->fetchAll(PDO::FETCH_ASSOC);
 
 	$acs_table = $results[0]['Name'];
-	$fields = db_query("SELECT  * FROM `{d3_labels}` where `table_name` = '$acs_table' order by `sort_order`, `short_name`")->fetchAll(PDO::FETCH_ASSOC);
-	$countrows = db_query("SELECT  * FROM `{d3_labels}` where `table_name` = '$acs_table' order by `sort_order`, `short_name`")->rowCount();
+	$fields = db_query("SELECT  * FROM `sta_d3_labels` where `table_name` = '$acs_table' order by `sort_order`, `short_name`")->fetchAll(PDO::FETCH_ASSOC);
+	$countrows = db_query("SELECT  * FROM `sta_d3_labels` where `table_name` = '$acs_table' order by `sort_order`, `short_name`")->rowCount();
 	$acs_buttons = array();
 	for ($result = 0;$result < $countrows; $result++){
 		$field['Field'] = $fields["$result"]["column_name"];
@@ -419,7 +419,7 @@ function get_acs_table_columns_as_checkboxes($table, $total_vars) {
 				$desc = $this->get_column_description($table, $field);
 				$short_name =  $this->get_legend_name($table, $field);
 				$className = "agencyvars";
-				if ($table == "{d3_agency_mrdd}" && (
+				if ($table == "sta_d3_agency_mrdd}" && (
 					$field == "`Total served`" ||
 					$field == "`Integrated employment`" ||
 					$field == "`Integrated employment percentage rate`" ||
@@ -432,7 +432,7 @@ function get_acs_table_columns_as_checkboxes($table, $total_vars) {
             $button['className'] = $className;
             $button['short_name'] = $short_name;
             $button['desc'] = $desc;
-             if ($table != "{d3_agency_mrdd}" && ($field != 'CBNW_US_Count' && $field != 'FBNW_US_Count' && $field != 'FBW_US_Count' && $field != 'FBWandNW_US_Count')) {
+             if ($table != "sta_d3_agency_mrdd}" && ($field != 'CBNW_US_Count' && $field != 'FBNW_US_Count' && $field != 'FBW_US_Count' && $field != 'FBWandNW_US_Count')) {
             $buttons[] = $button; }
 			}
 		}
@@ -540,8 +540,8 @@ function get_legend_name($table_name, $column_name) {
 
 	$short_name = "";
 
-	$results = db_query("select l.short_name from {d3_labels} l where table_name='$table_name' and column_name= '$column_name'")->fetchField();
-$countrows = db_query("select l.short_name from {d3_labels} l where table_name='$table_name' and column_name= '$column_name'")->rowCount();
+	$results = db_query("select l.short_name from sta_d3_labels l where table_name='$table_name' and column_name= '$column_name'")->fetchField();
+$countrows = db_query("select l.short_name from sta_d3_labels l where table_name='$table_name' and column_name= '$column_name'")->rowCount();
 
 	if ($countrows !=1) {
 		$short_name = $column_name;
@@ -560,8 +560,8 @@ function get_column_description($table_name, $column_name) {
 	
 	$description = "";
 
-	$results = db_query("select description from {d3_labels} where table_name='$table_name' and column_name= '$column_name'")->fetchField();
-   $countrows = db_query("select description from {d3_labels} where table_name='$table_name' and column_name= '$column_name'")->rowCount();
+	$results = db_query("select description from sta_d3_labels where table_name='$table_name' and column_name= '$column_name'")->fetchField();
+   $countrows = db_query("select description from sta_d3_labels where table_name='$table_name' and column_name= '$column_name'")->rowCount();
 	
 	/* if ($countrows !=1) {
 		$description = "";

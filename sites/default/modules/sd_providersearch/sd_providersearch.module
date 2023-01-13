@@ -80,7 +80,7 @@ function sd_providersearch_menu() {
 function _sd_providersearch_get_first_dropdown_options() {
 
  $entries = array();
- $entries =  db_query("SELECT DISTINCT(`Name`) `cityvalue`, `Name` `cityName` FROM `{ps_cities}` ORDER BY `Name`")->fetchAll(PDO::FETCH_ASSOC);
+ $entries =  db_query("SELECT DISTINCT(`Name`) `cityvalue`, `Name` `cityName` FROM `sta_ps_cities` ORDER BY `Name`")->fetchAll(PDO::FETCH_ASSOC);
 
   if (!empty($entries))
   {
@@ -232,7 +232,7 @@ $agency_details = sd_providersearch_agency_details($mapids[$i]['id']);
 
 }
 $mapblock = "<p class=\"mapLegend\"><strong>Or, browse all provider locations in the state using the map below</strong></p><div id=\"homeMap\"></div>
-<script type=\"text/javascript\">\n//<![CDATA[\n\n var map = L.map('homeMap').setView([" . $map_params['midlat'] . "," . $map_params['midlong'] . "], 17);\nL.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={accessToken}', {\n    attribution: 'Map data &copy; <a href=\"https://openstreetmap.org\">OpenStreetMap</a> contributors, <a href=\"https://creativecommons.org/licenses/by-sa/2.0/\">CC-BY-SA</a>, Imagery © <a href=\"https://mapbox.com\">Mapbox</a>',\n    maxZoom: 18,\n    id: 'paulfoos.nlc0e989',\n    accessToken: 'pk.eyJ1IjoicGF1bGZvb3MiLCJhIjoiY2lmaWg0ejIyYmxmbHJ5bHhncWFicGZ6NSJ9.NemNGVt96OqxZsRaO7EbGw'\n}).addTo(map);\nmap.fitBounds([\n    [" . $map_params['swlat'] . "," . $map_params['swlong'] . "],\n    [" . $map_params['nelat'] . "," . $map_params['nelong'] . "]\n],{padding: [5,5]});\n
+<script type=\"text/javascript\">\n//<![CDATA[\n\n var map = L.map('homeMap').setView([" . $map_params['midlat'] . "," . $map_params['midlong'] . "], 17);\nL.tileLayer('https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}', {\n    attribution: 'Map data &copy; <a href=\"https://openstreetmap.org\">OpenStreetMap</a> contributors, <a href=\"https://creativecommons.org/licenses/by-sa/2.0/\">CC-BY-SA</a>, Imagery © <a href=\"https://mapbox.com\">Mapbox</a>',\n    tileSize: 512,\n maxZoom: 18,\n zoomOffset: -1,\n    id: 'mapbox/streets-v11',\n    accessToken: 'pk.eyJ1IjoicGF1bGZvb3MiLCJhIjoiY2lmaWg0ejIyYmxmbHJ5bHhncWFicGZ6NSJ9.NemNGVt96OqxZsRaO7EbGw'\n}).addTo(map);\nmap.fitBounds([\n    [" . $map_params['swlat'] . "," . $map_params['swlong'] . "],\n    [" . $map_params['nelat'] . "," . $map_params['nelong'] . "]\n],{padding: [5,5]});\n
 var markers = L.markerClusterGroup({ chunkedLoading: true });
 \n$markertext\n map.addLayer(markers);//]]>\n    </script>";
     cache_set('home_page_map_block', $mapblock); }
@@ -304,7 +304,7 @@ return $countyprovs;
 function sd_providersearch_resultlist($value1,$value2) {
 $build = array();
 $providertext = "";
-   $entries =  db_query('SELECT `zipcode`,`county_code`,`county` FROM `{ps_cities}` WHERE `state_prefix` = :statepre AND `Name` = :city LIMIT 1', array(':statepre' => "WA",':city' => "$value1"))->fetchAll(PDO::FETCH_ASSOC);
+   $entries =  db_query('SELECT `zipcode`,`county_code`,`county` FROM `sta_ps_cities` WHERE `state_prefix` = :statepre AND `Name` = :city LIMIT 1', array(':statepre' => "WA",':city' => "$value1"))->fetchAll(PDO::FETCH_ASSOC);
 
     if (!empty($entries))
     {
@@ -496,7 +496,7 @@ function _sd_providersearch_compare_checkbox_options() {
  $entries = isset($_SESSION['compareids']) ? $_SESSION['compareids'] : NULL;
  if(!empty($entries)) {
  foreach ($entries as $key=>$value) {
- $name =  db_query("SELECT `agency` FROM `{ps_orgs_wa}` WHERE `id` = :statepre", array(':statepre' => $value))->fetchAll(PDO::FETCH_ASSOC);
+ $name =  db_query("SELECT `agency` FROM `sta_ps_orgs_wa` WHERE `id` = :statepre", array(':statepre' => $value))->fetchAll(PDO::FETCH_ASSOC);
 
   if (!empty($name))
   {
@@ -621,7 +621,7 @@ $agency_details = sd_providersearch_agency_details($mapids[$i][0]);
 
 }
 $mapblock = "<div id=\"listMap\"></div>
-<script type=\"text/javascript\">\n//<![CDATA[\n\nvar map = L.map('listMap').setView([" . $map_params['midlat'] . "," . $map_params['midlong'] . "], 17);\nL.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={accessToken}', {\n    attribution: 'Map data &copy; <a href=\"https://openstreetmap.org\">OpenStreetMap</a> contributors, <a href=\"https://creativecommons.org/licenses/by-sa/2.0/\">CC-BY-SA</a>, Imagery © <a href=\"https://mapbox.com\">Mapbox</a>',\n    maxZoom: 18,\n    id: 'paulfoos.nlc0e989',\n    accessToken: 'pk.eyJ1IjoicGF1bGZvb3MiLCJhIjoiY2lmaWg0ejIyYmxmbHJ5bHhncWFicGZ6NSJ9.NemNGVt96OqxZsRaO7EbGw'\n}).addTo(map);\nmap.fitBounds([\n    [" . $map_params['swlat'] . "," . $map_params['swlong'] . "],\n    [" . $map_params['nelat'] . "," . $map_params['nelong'] . "]\n],{padding: [20,20]});\nvar markers = L.markerClusterGroup({ chunkedLoading: true });\n$markertext\n map.addLayer(markers);//]]>\n   </script>";
+<script type=\"text/javascript\">\n//<![CDATA[\n\nvar map = L.map('listMap').setView([" . $map_params['midlat'] . "," . $map_params['midlong'] . "], 17);\nL.tileLayer('https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}', {\n    attribution: 'Map data &copy; <a href=\"https://openstreetmap.org\">OpenStreetMap</a> contributors, <a href=\"https://creativecommons.org/licenses/by-sa/2.0/\">CC-BY-SA</a>, Imagery © <a href=\"https://mapbox.com\">Mapbox</a>',\n    tileSize: 512,\n maxZoom: 18,\n zoomOffset: -1,\n    id: 'mapbox/streets-v11',\n    accessToken: 'pk.eyJ1IjoicGF1bGZvb3MiLCJhIjoiY2lmaWg0ejIyYmxmbHJ5bHhncWFicGZ6NSJ9.NemNGVt96OqxZsRaO7EbGw'\n}).addTo(map);\nmap.fitBounds([\n    [" . $map_params['swlat'] . "," . $map_params['swlong'] . "],\n    [" . $map_params['nelat'] . "," . $map_params['nelong'] . "]\n],{padding: [20,20]});\nvar markers = L.markerClusterGroup({ chunkedLoading: true });\n$markertext\n map.addLayer(markers);//]]>\n   </script>";
 return $mapblock;
 }
 
@@ -642,7 +642,7 @@ $agency_details = sd_providersearch_agency_details($providerid,$countycode);
 
 
 $mapblock = "<div id=\"singleMap\"></div>
-<script type=\"text/javascript\">\n//<![CDATA[\n\n var map = L.map('singleMap').setView([" . $agency_details['lat'] . "," .  $agency_details['long'] . "], 17);\nL.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={accessToken}', {\n    attribution: 'Map data &copy; <a href=\"https://openstreetmap.org\">OpenStreetMap</a> contributors, <a href=\"https://creativecommons.org/licenses/by-sa/2.0/\">CC-BY-SA</a>, Imagery © <a href=\"https://mapbox.com\">Mapbox</a>',\n    maxZoom: 18,\n    id: 'paulfoos.nlc0e989',\n    accessToken: 'pk.eyJ1IjoicGF1bGZvb3MiLCJhIjoiY2lmaWg0ejIyYmxmbHJ5bHhncWFicGZ6NSJ9.NemNGVt96OqxZsRaO7EbGw'\n}).addTo(map);\n var markers = L.markerClusterGroup({ chunkedLoading: true });
+<script type=\"text/javascript\">\n//<![CDATA[\n\n var map = L.map('singleMap').setView([" . $agency_details['lat'] . "," .  $agency_details['long'] . "], 17);\nL.tileLayer('https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}', {\n    attribution: 'Map data &copy; <a href=\"https://openstreetmap.org\">OpenStreetMap</a> contributors, <a href=\"https://creativecommons.org/licenses/by-sa/2.0/\">CC-BY-SA</a>, Imagery © <a href=\"https://mapbox.com\">Mapbox</a>',\n    tileSize: 512,\n maxZoom: 18,\n zoomOffset: -1,\n    id: 'mapbox/streets-v11',\n    accessToken: 'pk.eyJ1IjoicGF1bGZvb3MiLCJhIjoiY2lmaWg0ejIyYmxmbHJ5bHhncWFicGZ6NSJ9.NemNGVt96OqxZsRaO7EbGw'\n}).addTo(map);\n var markers = L.markerClusterGroup({ chunkedLoading: true });
 \n$markertext\n map.addLayer(markers);//]]>\n    </script>";
 return $mapblock;
 }
@@ -1051,17 +1051,17 @@ function sd_providersearch_agency_details($agency_id, $county = '') {
  $query2 = $county && $county != '' ? "SELECT `codes`.`Code` `countycode`,`codes`.`Value` `countyname` from {ps_code_lookup} codes  WHERE `codes`.`Code` = '$county'" : "SELECT COUNT(`codes`.`Code`) `countycount`,`codes`.`Code` `countycode`,`codes`.`Value` `countyname` from {ps_billing} billing LEFT JOIN {ps_code_lookup} codes on `billing`.`CountyCode` = `codes`.`Code` WHERE `ProviderNumber` = $agency_id AND `billing`.`ServiceYearMonth` >= '$beginmonth' AND `billing`.`ServiceYearMonth` <= '$endmonth' GROUP BY `codes`.`Code` ORDER BY COUNT(`codes`.`Code`) DESC LIMIT 1";
 
  
-	// Setup a cache ID
-	$cid = 'sd_providersearch:agency_details:' . $agency_id . $county . $countyname;
-	// If a cached entry exists, return it
-	if ($cached = cache_get($cid)) {
-	 $agency_query2 = $cached->data;
-	} else {
-		$agency_query2 = db_query($query2)->fetch(PDO::FETCH_ASSOC);
-	
-  
-	// And cache it
-	cache_set($cid, $agency_query2, 'cache', strtotime('+5 days'));
+// Setup a cache ID
+$cid = 'sd_providersearch:agency_details:' . $agency_id . $county . $countyname;
+// If a cached entry exists, return it
+if ($cached = cache_get($cid)) {
+ $agency_query2 = $cached->data;
+} else {
+	$agency_query2 = db_query($query2)->fetch(PDO::FETCH_ASSOC);
+
+
+// And cache it
+cache_set($cid, $agency_query2, 'cache', strtotime('+5 days'));
   
 
 

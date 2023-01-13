@@ -80,7 +80,7 @@ function sd_providersearch_map_fit_points ($zip,$range,$county) {
 	{
 		
 	
-         $entries =  db_query('SELECT `latitude`,`longitude` FROM `{ps_cities}` WHERE `zipcode` = :zip', array(':zip' => "$zip"))->fetch(PDO::FETCH_ASSOC);
+         $entries =  db_query('SELECT `latitude`,`longitude` FROM `sta_ps_cities` WHERE `zipcode` = :zip', array(':zip' => "$zip"))->fetch(PDO::FETCH_ASSOC);
 
           if (!empty($entries)) {
           
@@ -141,7 +141,7 @@ function sd_providersearch_map_fit_points ($zip,$range,$county) {
 
 	   $return = array();    // declared here for scope
 
-$r =  db_query('SELECT `zipcode`,`latitude`,`longitude` FROM `{ps_cities}` WHERE `zipcode` <>:zip', array(':zip' => "$zip"));
+$r =  db_query('SELECT `zipcode`,`latitude`,`longitude` FROM `sta_ps_cities` WHERE `zipcode` <>:zip', array(':zip' => "$zip"));
 
 	  
 	   // $r = mysql_query($sql);
@@ -190,7 +190,7 @@ $r =  db_query('SELECT `zipcode`,`latitude`,`longitude` FROM `{ps_cities}` WHERE
        $countycoords = db_query($countycoordsquery)->fetchAll(PDO::FETCH_ASSOC);
       $countylat = $countycoords[0]['countylat'];
       $countylong = $countycoords[0]['countylong'];
- $r =  db_query("SELECT `id`, IF(`lat`,`lat`,'$countylat') `fixlat`,IF(`long`,`long`,'$countylong') `fixlong`  FROM `{ps_orgs_wa}` WHERE 1");
+ $r =  db_query("SELECT `id`, IF(`lat`,`lat`,'$countylat') `fixlat`,IF(`long`,`long`,'$countylong') `fixlong`  FROM `sta_ps_orgs_wa` WHERE 1");
 
 
 	   if (!$r) {    // sql error
