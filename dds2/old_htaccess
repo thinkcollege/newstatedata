@@ -1,0 +1,5 @@
+AuthUserFile /home/statedata/statedata.info/htdocs/dds2::/.htpasswd
+AuthName "Maryland DDA User"
+AuthType Basic
+require valid-user
+

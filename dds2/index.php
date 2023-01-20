@@ -3,29 +3,17 @@ error_reporting(E_ALL);
 ini_set('display_errors', TRUE);
 ini_set('display_startup_errors', TRUE);
 ini_set("include_path","../");
-include("common/classes_md.php");
+include("common/classes_ma.php");
 $template=new template;
 $template->debug();
-$template->define_file('mdda_template.php');
-$template->add_region('title','<?php $mre_base=new mre_base; echo $mre_base->mre_base_sitename;?> - MDDA Employment Outcome Information System');
+$template->define_file('dds_template.php');
+$template->add_region('title','<?php $mre_base=new mre_base; echo $mre_base->mre_base_sitename;?> - DDS Employment Outcome Data');
 $template->add_region('sidebar','<?php $area="home" ; $show_flash_link=0; ?>');
-$template->add_region('heading','MDDA Employment Outcome Information System');
+$template->add_region('heading','DDS Employment Supports Performance Outcome Information System');
 $template->add_region('content','
 
-<div valign="middle"><blockquote>
-  <img style="float: left; margin: 0px 15px 15px 0px; max-width:200px;" src="images/zenis.png" alt="Bernie Zenis">
-  <p style="font-size:larger; color:#57962A; font-style:italic;">
-“The Developmental Disabilities Administration has a robust data collection system that shows how we inform stakeholders and leaders of progress toward employment goals, and opportunities to improve system’s performance. This data has assisted us in making policy and budgetary decisions.”</p>
-
-<p>- Bernie Simons<br>
-Deputy Secretary for Developmental Disabilities</p>
-</blockquote>
-<p><strong>For more information visit <a href="http://dda.dhmh.maryland.gov/Pages/Employment.aspx">Employment 1st Maryland</a></strong></p>
-</div>
-
-<hr style="clear:both;">
-
-<p style="font-size:larger;">This website summarizes data collected at the individual level for people who receive employment or related day supports funded by the Maryland Developmental Disabilities Administration. Data on variables such as total wages or total hours of participation are for the two-week data collection interval.</p>
+<p>This web site summarizes findings from data collected on employment supports during a four-week period each April. Data were collected at the individual level for individuals who receive employment supports
+funded by the Department of Developmental Services. Data on variables such as total wages or total hours of participation are for the full four-week data collection interval.</p>
 
 
 

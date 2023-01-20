@@ -1,5 +1,5 @@
 <?php
-ini_set('display_errors', 'On'); 
+ini_set('display_errors', 'On');
 ini_set("include_path","../");
 include("common/classes.php");
 $template=new template;
@@ -28,5 +28,5 @@ Research Coordinator<br />
 </blockquote>');
 //write page
 include("header.php");
-$template->make_template(); 
+$template->make_template();
 include("footer.php");

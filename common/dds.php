@@ -9,7 +9,7 @@ class dds {
 
 	static private $vars = null;
 	function __construct() {}
-	
+
 	static function getVariables() {
 		if (self::$vars === null) {
 			$db = Database::getDatabase();
@@ -39,7 +39,7 @@ class dds {
 		for ($i = max($range['min'], 15); $i <= $range['max']; $i++) {
 			$age .= "<option>$i</option>";
 		}
-		
+
 		return '<p><label for="y">Select ' . ($report == 'trends' ? 'start' : '') . ' year:</label> ' . self::getYearSelect('y', $f['year']) . '</p>'
 				. ($report != 'region' && $report != 'individual' ? '<p><label for="r">Select region:</label> ' . self::getRegions("r", $f['region']) . "</p>"
 					. '<p><label for="ao">Select area office:</label> ' . self::getAreaOffices('ao', $f['areaOffice']) . "</p>" : '')
@@ -50,7 +50,7 @@ class dds {
 				. str_replace("<option>{$f['to']}</option>", "<option selected=\"selected\">{$f['to']}</option>", $age)
 				. '</select></p>';
 	}
-	
+
 	static function getFilterValues() {
 		return array('year' => !empty($_REQUEST['y']) ? abs($_REQUEST['y']) : 0,
 			'region' => !empty($_REQUEST['r']) ? $_REQUEST['r'] : '',
@@ -133,7 +133,7 @@ class dds {
 						. " UNION SELECT DISTINCT 'x_Central', 'Central' from spec_dmr6 where vendor_id = '$provider' and `region` and LEFT(CRS_Contract, 1) = " . self::getContractNumbers('Central');
 			}
 		}
-		
+
 		$db = Database::getDatabase();
 		$rs = $db->query($sql . " ORDER BY `opt`");
 		$html = $showAll == 1 && $db->num_rows($rs) > 1 ? '<option value="all">All Regions</option>' : '';
@@ -153,7 +153,7 @@ class dds {
 		}
 		return $ret;
 	}
-	
+
 	static function getRegionArrayById($provider_id) {
 		$db	 = Database::getDatabase();
 		$ret = array();
@@ -193,7 +193,7 @@ class dds {
 		}
 		return "<select id=\"$elementName\" name=\"$elementName\"><option value=\"\">All Area offices</option>$html</select>";
 	}
-	
+
 /*
 	function: getProviders
 	purpose: returns a dropdown of providers in a given region
@@ -202,7 +202,7 @@ class dds {
 		$db = Database::getDatabase();
 
 		$where = self::getRegionClause($region);
-		
+
 		$rs = $db->query("SELECT distinct `spec_dmr6`.`Vendor_ID` `IDBase`, `dmr_providers`.`Vendor` `VendorBase` FROM `spec_dmr6` LEFT JOIN `dmr_providers` ON `spec_dmr6`.`Vendor_ID` = `dmr_providers`.`provider_id` WHERE $where AND `dmr_providers`.`Vendor` IS NOT NULL ORDER BY `VendorBase`");
 		$html = "<select id=\"$element_name\" name=\"$element_name\">";
 		if ($showAll == 1) {
@@ -212,7 +212,7 @@ class dds {
 			$selected = isset($_REQUEST[$element_name]) && $_REQUEST[$element_name] == $row['val'] ? ' selected="selected"' : '';
 			$html .= "<option value=\"{$row['IDBase']}\"$selected>{$row['VendorBase']}</option>";
 		}
-		$html .= "</select>\n"; 
+		$html .= "</select>\n";
 		return $html;
 	}
 
@@ -419,7 +419,7 @@ class dds {
 		$sep	= '';
 		$pos	= strpos($variable, '_');
 		$type	= substr($variable, 0, $pos);
-		$total	= strpos($variable, '_total_') === $pos; 
+		$total	= strpos($variable, '_total_') === $pos;
 		$col	= $pos !== false ? substr($variable, ($total ? 6 : 0) + $pos + 1) : '1';
 		$yesNo	= strpos($col, 'YN') !== false || $col == 'IndSupEmp' || $col == 'GroupSupEmp';
 		foreach (self::getRegionColumnNamesArray($year) as $region) {
@@ -451,14 +451,14 @@ class dds {
 		$rs = $db->query("SELECT $cols FROM `spec_dmr6` WHERE `region` IS NOT NULL AND `region` <> '' $where GROUP BY `reporting_period`");
 		return $db->num_rows($rs) > 0 ? $db->fetch_row($rs) : array();
 	}
-	
+
 	static function getProviderComparisonArray($variable) {
 		$f		= dds::getFilterValues();
 		$cols	= '';
 		$sep	= '';
 		$pos	= strpos($variable, '_');
 		$type	= substr($variable, 0, $pos);
-		$total	= strpos($variable, '_total_') === $pos; 
+		$total	= strpos($variable, '_total_') === $pos;
 		$col	= $pos !== false ? substr($variable, ($total ? 6 : 0) + $pos + 1) : '1';
 		$yesNo	= strpos($col, 'YN') !== false || $col == 'IndSupEmp' || $col == 'GroupSupEmp';
 		$clause = '';
@@ -504,7 +504,7 @@ class dds {
 		$sep	= '';
 		$pos	= strpos($variable, '_');
 		$type	= substr($variable, 0, $pos);
-		$total	= strpos($variable, '_total_') === $pos; 
+		$total	= strpos($variable, '_total_') === $pos;
 		$col	= $pos !== false ? substr($variable, ($total ? 6 : 0) + $pos + 1) : '1';
 		$yesNo	= strpos($col, 'YN') !== false || $col == 'IndSupEmp' || $col == 'GroupSupEmp';
 		$clause = '';
@@ -563,7 +563,7 @@ class dds {
 				case 'meanhourlywage':			$vars = array('HrsInd', 'dol_ind', 'HrsGroup', 'dol_Group'); break;
 				case 'numberemployed10of12':	$vars = array('IndSupEmp', 'GroupSupEmp');	break;
 				default: 						$vars = array('YNIntegPartic', 'YNGroupPartic','YNSelfEmp','YNJobSearch','YNJSDisc','YNJSJobDev','YNWrap','YNWAComm','YNWADay','YNWAOth');
-			
+
 			}
 
 		} else {
@@ -576,7 +576,7 @@ class dds {
 				case 'meanhourlywage':			$vars = array('HrsInd', 'dol_ind', 'HrsGroup', 'dol_Group', 'hrsFac', 'dol_Facility'); break;
 				case 'numberemployed10of12':	$vars = array('IndSupEmp', 'GroupSupEmp');	break;
 				default: 						$vars = array('HrsInd', 'HrsGroup', 'HrsFac', 'HrsVolunteer', 'HrsTransition');
-			
+
 			}
 		}
 		if ($type == 'precentemployed10of12' && $f['year'] == 2009) {
@@ -675,16 +675,16 @@ class dds {
 		if ($extra) {
 			$hours[] = 'OthrNonpaid';
 		}
-		
+
 		// $cols = 'count(1) ' . ($f['year'] > 2005 ? ",\nSUM(`NewIndJob` = 'Y')" : '');
-		
+
 		if ($subreport == "number") {
 			$cols = 'count(1) ' . ($f['year'] > 2005 ? ",\nSUM(`NewIndJob` = 'Y')" : '');
 			if ($f['year'] >= 2017) {
 				$numbers = array('YNIntegPartic', 'YNGroupPartic','YNSelfEmp','YNJobSearch','YNWrap');
 				foreach ($numbers as $col) {
 					$cols  .= ",\nSUM(IF(TRIM(`$col`) = 'Y',1,0))";
-				} 
+				}
 				foreach ($numbers as $col) {
 					$cols  .= ",\nIF(COUNT(1) > 0, REPLACE(FORMAT((SUM(IF(TRIM(`$col`) = 'Y',1,0) > 0)  / COUNT(1)) * 100, 1), ',', ''), 0)";
 					}
@@ -698,23 +698,23 @@ class dds {
 					$cols  .= ",\nIF(COUNT(1) > 0, REPLACE(FORMAT((SUM(IFNULL($col, 0) > 0) / COUNT(1)) * 100, 1), ',', ''), 0)";
 					}
 			}
-			
-			
+
+
 		} elseif ($subreport == 'jswraparound') {
 			$cols = 'count(1), ';
 
 			$jswrapnumbers = array('YNJobSearch','YNJSDisc','YNJSJobDev','YNWrap','YNWAComm','YNWADay','YNWAOth');
-			
+
 			foreach ($jswrapnumbers as $col) {
 				$cols  .= "\nSUM(IF(TRIM(`$col`) = 'Y',1,0))";
 				if ($col !== end($jswrapnumbers)) $cols .= ",";
-			} 
+			}
 		//	foreach ($numbers as $col) {
 		//		$cols  .= ",\nIF(COUNT(1) > 0, REPLACE(FORMAT((SUM(IF(TRIM(`$col`) = 'Y',1,0) > 0)  / COUNT(1)) * 100, 1), ',', ''), 0)";
-		//	
-		
-		
-		
+		//
+
+
+
 
 		} elseif ($subreport =="hours") {
 			$cols = 'count(1) ' . ($f['year'] > 2005 ? ",\nSUM(`NewIndJob` = 'Y')" : '');
@@ -754,18 +754,18 @@ class dds {
 					$cols  .= "\nREPLACE(FORMAT(AVG(IF($col > 0, $col, NULL)), 2), ',', '')";
 					if ($col !== end($averages)) $cols .= ",";
 				}
-			
+
 		}
 
 		$having	= $subreport =='jswraparound' ? '(0,0' . str_repeat(',0', substr_count($cols, ",\n")) . ") <> ($cols)" :($subreport =='selfemp' ? '(0,0,0' . str_repeat(',0', substr_count($cols, ",\n")) . ") <> ($cols)" : '(0' . str_repeat(',0', substr_count($cols, ",\n")) . ") <> ($cols)");
 		$where	= dds::getFilterClause($report);
-		
+
 		$sql = "SELECT CONCAT('<aa/><strong>', `vendor`, '</strong>') AS `grouping`, $cols FROM `spec_dmr6` WHERE `region` IS NOT NULL AND `region` <> '' $where GROUP BY `vendor_id` HAVING $having\n";
 		if ($report == 'individual' && $f['region']) {
-			$sql .= 'UNION ' . "SELECT '<rr/><strong>{$f['region']}</strong>', $cols FROM `spec_dmr6` WHERE `region` = '{$f['region']}' AND `reporting_period` = {$f['year']} GROUP BY `region` HAVING $having\n"; 
+			$sql .= 'UNION ' . "SELECT '<rr/><strong>{$f['region']}</strong>', $cols FROM `spec_dmr6` WHERE `region` = '{$f['region']}' AND `reporting_period` = {$f['year']} GROUP BY `region` HAVING $having\n";
 		}
 		if ($report == 'individual') {
-			$sql .= 'UNION ' . "SELECT '<zz/><strong>State</strong>', $cols FROM `spec_dmr6` WHERE `region` IS NOT NULL AND `region` <> '' AND `reporting_period` = {$f['year']} GROUP BY `reporting_period` HAVING $having\n"; 
+			$sql .= 'UNION ' . "SELECT '<zz/><strong>State</strong>', $cols FROM `spec_dmr6` WHERE `region` IS NOT NULL AND `region` <> '' AND `reporting_period` = {$f['year']} GROUP BY `reporting_period` HAVING $having\n";
 		}
 		//print "<!-- $sql\n-->";
 		$db = Database::getDatabase();

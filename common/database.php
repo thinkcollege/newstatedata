@@ -4,8 +4,8 @@
  purpose: database abstraction functions
  */
 class database extends mre_base{
-	function mysqli_result($res,$row=0,$col=0){ 
-		$numrows = mysqli_num_rows($res); 
+	function mysqli_result($res,$row=0,$col=0){
+		$numrows = mysqli_num_rows($res);
 		if ($numrows && $row <= ($numrows-1) && $row >=0){
 			mysqli_data_seek($res,$row);
 			$resrow = (is_numeric($col)) ? mysqli_fetch_row($res) : mysqli_fetch_assoc($res);
@@ -101,7 +101,7 @@ class database extends mre_base{
 	 * @param int		$column
 	 * @return mixed
 	 */
-	
+
 	public function fetch_result($result, $row = null, $column = null) {
 		if ($this->database_type=="postgresql") {
 			return pg_fetch_result($result, $row, $column);
@@ -117,7 +117,7 @@ class database extends mre_base{
 	 * @param resource $results
 	 * @return array
 	 */
-	
+
 	function fetch_result_array($results) {
 		return mysqli_fetch_array($results);
 	}
@@ -211,7 +211,7 @@ class database extends mre_base{
 			return $this->query('SHOW COLUMNS FROM ' . $table);
 		}
 	}
-	
+
 
 
 	/*
@@ -235,24 +235,24 @@ class database extends mre_base{
 			return $this->fetch_array($result, MYSQLI_ASSOC);
 		}
 	}
-	
+
 	function fetch_array($rs, $type = MYSQLI_BOTH) {
 		if ($this->database_type == 'postregsql') {
-			
+
 		} else if ($this->database_type == 'mysql') {
 			return mysqli_fetch_array($rs,  $type);
 		}
 	}
-	
+
 	function fetch_row($rs) {
 		if ($this->database_type == 'postregsql') {
-			
+
 		} else if ($this->database_type == 'mysql') {
 			return $this->fetch_array($rs, MYSQLI_NUM);
 		}
 	}
-	
-	
+
+
 	function escape($str) {
 		if ($this->database_type == 'postgresql' && is_binary($str)) {
 			return pg_escape_bytes($str);
@@ -262,7 +262,7 @@ class database extends mre_base{
 			return mysqli_real_escape_string($GLOBALS["___mysqli_ston"], $str);
 		}
 	}
-	
+
 	/*
 	 function: search
 	 purpose: search database
