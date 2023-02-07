@@ -1,7 +1,7 @@
-<?php   
+<?php
 
 //define('MRE_DEBUG', ($_SERVER['REMOTE_ADDR'] == '158.121.240.90'));  //mre_debug = true;
-define('MRE_DEBUG', false);  //mre_debug = true;
+define('MRE_DEBUG', true);  //mre_debug = true;
 $mre_debug = MRE_DEBUG;
 if (MRE_DEBUG) {
 //	ini_set('display_errors', TRUE);
@@ -15,7 +15,7 @@ function write_debug($msg = '', $color='red') {
 	global $mre_debug;
 	static $mre_counter = 0;
 	//if (MRE_DEBUG == true) {
-	if ($mre_debug == true) {
+	if ($mre_debug == false) {
 		$mre_counter++;
 		$color = (preg_match('/([a-zA-Z]+|#\d{3}|#\d{6})/', $color, $m)) ? $m[1] : 'red';
 		echo "<span style=\"color:$color\">$mre_counter $msg</span><br/>";
@@ -23,7 +23,7 @@ function write_debug($msg = '', $color='red') {
 }
 
 
-require_once("config_md.php"); 	
+require_once("config_md.php");
 
 //require_once("article.php");
 require_once("bug.php");

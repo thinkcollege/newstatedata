@@ -47,6 +47,7 @@ if ($report == "number") {
 . "<th align=\"center\">Other day support<br />wrap-around services</th>"
 . "<th align=\"center\">Individual<br />competitive<br />employment</th>"
 . "<th align=\"center\">Group integrated<br />employment</th>"
+. "<th align=\"center\">Self<br />employment</th>"
 . "<th align=\"center\">Job Search (Total)</th>"
 
 . "<th align=\"center\">Other day support<br />wrap-around services</th>";

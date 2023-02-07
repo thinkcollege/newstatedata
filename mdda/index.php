@@ -5,7 +5,7 @@ ini_set('display_startup_errors', TRUE);
 ini_set("include_path","../");
 include("common/classes_md.php");
 $template=new template;
-$template->debug();
+//$template->debug();
 $template->define_file('mdda_template.php');
 $template->add_region('title','<?php $mre_base=new mre_base; echo $mre_base->mre_base_sitename;?> - MDDA Employment Outcome Information System');
 $template->add_region('sidebar','<?php $area="home" ; $show_flash_link=0; ?>');

@@ -144,7 +144,7 @@ class dds2 {
 	static function getRegions($element_name, $selected = '', $showAll = 1, $provider = 0, $regiontype = 'normal', $year = 0) {
 		$where = $provider == '0' ? "`region` != 'x'" : "`Vendor_ID` = '$provider'";
 		$sql = "SELECT distinct `region` AS `val`, `region` AS `opt` from `spec_dmr6` where $where and `Region` IS NOT NULL AND `Region` <> ''";
-		if ($_SERVER['PHP_AUTH_USER'] =='dmruser') {
+		//if ($_SERVER['PHP_AUTH_USER'] =='dmruser') {
 			if ($regiontype == 'normal') {
 				$sql .= " UNION SELECT 'x_Berkshire', 'Berkshire' UNION SELECT 'x_Holyoke/Chicopee', 'Holyoke/Chicopee' UNION SELECT 'x_West', 'West' UNION SELECT 'x_Central', 'Central'";
 			} else {
@@ -155,7 +155,7 @@ class dds2 {
 						. " UNION SELECT DISTINCT 'x_West', 'West' from spec_dmr6 where vendor_id = '$provider' and `region` and LEFT(CRS_Contract, 1) = " . self::getContractNumbers('West')
 						. " UNION SELECT DISTINCT 'x_Central', 'Central' from spec_dmr6 where vendor_id = '$provider' and `region` and LEFT(CRS_Contract, 1) = " . self::getContractNumbers('Central');
 			}
-		}
+	//	}
 
 		$db = Database::getDatabase();
 		$rs = $db->query($sql . " ORDER BY `opt`");
@@ -944,7 +944,9 @@ return $html;
 	$name = htmlentities($name, ENT_COMPAT, 'UTF-8');
 	$html = "<select id=\"$name\" name=\"$name\">";
 	$db = Database::getDatabase();
+	if($db) echo "Fuck yeah"; else echo "Fuck you";
 	$rs = $db->query('SELECT DISTINCT `reporting_period` AS `y` FROM `spec_dmr6` order by `y` DESC ');
+
 	while ($row = $db->fetch_assoc($rs)) {
 		$selected = $val == $row['y'] ? ' selected="selected"' : '';
 		$html .= "<option$selected>{$row['y']}</option>";

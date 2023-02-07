@@ -6,7 +6,7 @@ class mre_base {
 	/**
 	 * Configuration for all classes
 	 */
-	function mre_base() {
+	function __construct() {
 		//mre_base Configuration
 		$this->mre_base_version="2.3";
 		$this->mre_base_sitename="StateData.info";
@@ -24,7 +24,7 @@ class mre_base {
 		//Template Configuration
 		$this->template_dir="templates_ma/";
 		$this->template_tempdir="temp/";
-		$this->template_debug="true";
+		$this->template_debug="false";
 		//User Configuration
 		$this->user_cookie_path="/";
 		#$this->user_cookie_domain="127.0.0.1";

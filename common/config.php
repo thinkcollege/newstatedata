@@ -6,7 +6,7 @@ class mre_base {
 	/**
 	 * Configuration for all classes
 	 */
-	function mre_base() {
+	function __construct() {
 		//mre_base Configuration
 		$this->mre_base_version="2.3";
 		$this->mre_base_sitename="StateData.info";

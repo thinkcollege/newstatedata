@@ -1,4 +1,7 @@
 <?php
+error_reporting(E_ALL);
+ini_set('display_errors', TRUE);
+ini_set('display_startup_errors', TRUE);
 ini_set("include_path","../../");
 include("common/classes_ma.php");
 $template = new template;

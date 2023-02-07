@@ -4,6 +4,17 @@
  purpose: database abstraction functions
  */
 class database extends mre_base{
+
+
+	/**
+	 * Constructor for the database object.
+	 *
+	 */
+	 public function __construct()
+     {
+
+         parent::__construct();
+     }
 	function mysqli_result($res,$row=0,$col=0){
 		$numrows = mysqli_num_rows($res);
 		if ($numrows && $row <= ($numrows-1) && $row >=0){
@@ -15,12 +26,6 @@ class database extends mre_base{
 		}
 		return false;
 	}
-
-	/**
-	 * Constructor for the database object.
-	 *
-	 */
-	private function __construct() {}
 
 	/**
 	 * Creates the database object and connects to the database.
@@ -40,7 +45,7 @@ class database extends mre_base{
 	 * Connects to database
 	 */
 	private function connect() {
-		$this->mre_base();
+	//	$this->mre_base();
 		if ($this->database_type == "postgresql") {
 			$connstring = ($this->database_host <> "" ? $connstring .= " host=$this->database_host" : 'localhost')
 						. ($this->database_port <> "" ? $connstring .= " port=$this->database_port" : '')
