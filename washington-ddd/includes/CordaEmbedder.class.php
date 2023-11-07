@@ -129,7 +129,7 @@ class CordaEmbedder
 	var $addSICommand	= false;	// boolean
 	var $siFilename		= null;		// string
 	var $cookieHeader	= null;		// string
-	
+
 	// highwire private variables
 	var $highwireState	= NO_SPDF;	// int
 	var $highwire		= "";		// string
@@ -217,7 +217,7 @@ class CordaEmbedder
 			$this->encodeURLBAA[$c][2] = ord($hexChars[1]); //(byte)hexChars.charAt(1);
 		}
 	}
-	
+
 	// regular public functions
 
 	//_________________________________________________________________________
@@ -384,7 +384,7 @@ class CordaEmbedder
 				if((empty($this->clusterMonitorAddress)) ||
 					((indexOf($this->commportHost, "127.0.0.1") == 0) && ($this->commportPort == 2002)))
 				{
-					$response = "<b>ERROR: Can't connect to the commport of Corda Server - Connection Failed</b>";
+					$response = "";
 					$done = true;
 				}
 			}
@@ -511,7 +511,7 @@ class CordaEmbedder
 		{
 			$this->outputType = $this->imageType;
 		}
-		
+
 		// add output type command
 		if(!empty($this->outputType))
 		{
@@ -582,7 +582,7 @@ class CordaEmbedder
 	// takes a url or filename
 	// add ldRQ string with @_LOADREQUEST to cmdVector
 	//_________________________________________________________________________
-	
+
 	function loadCommandFile($ldRQ, $encoding=null)
 	{
 		if(!empty($ldRQ))
@@ -890,7 +890,7 @@ class CordaEmbedder
 					{
 						if($this->debugOn)
 						{
-							echo "<b>ERROR: Can't connect to the commport of Corda Server - Connection Failed</b>\n";
+							echo "";
 						}
 						$done = true;
 					}
@@ -1388,7 +1388,7 @@ class CordaEmbedder
 				if(!$this->pdfEmbedFonts)
 					$request .= "no";
 			}
-			
+
 			// screen readers allowed -> send dlink.xml langauge code
 			if(($this->pdfLock & AllowScreenReaders) == AllowScreenReaders)
 			{
@@ -1411,7 +1411,7 @@ class CordaEmbedder
 				{
 					$request .= "@_UPW" . $this->userPasswd;
 				}
-				
+
 				// owner password
 				if(!empty($this->ownerPasswd))
 				{

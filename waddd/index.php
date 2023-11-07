@@ -1,9 +1,9 @@
 <?php
 set_time_limit(300);
-if (in_array($_SERVER['REMOTE_ADDR'], array('98.216.239.14'))) {
-	error_reporting(E_ALL);
-	ini_set('display_errors', 'On');
-}
+
+error_reporting(E_ALL);
+ini_set('display_errors', 'On');
+
 if (function_exists('xdebug_disable')) {
 	xdebug_disable();
 }
@@ -12,7 +12,7 @@ define('LIVE', (isset($_SERVER['SERVER_ADDR']) && $_SERVER['SERVER_ADDR'] == '69
 $_ENV['PHP_CLASSPATH'] = dirname(__FILE__) . '/includes/';
 include('./includes/constants.php');
 include('./includes/utils.php');
-include(LIVE ? '/home/nercve/lib/lib.php' : '/Users/cnagle/workspace/lib/lib.php');
+include('/home/nercve/lib/lib.php');
 if (LIVE) {
 	include('/usr/local/Corda60/dev_tools/embedder/php/CordaEmbedder.php');
 }
@@ -67,14 +67,14 @@ if ($user->loggedIn() && $report > 0 && has_value($_REQUEST, 'action', 'delete')
 		if (has_value($_REQUEST, 'save') && has_value($_REQUEST, 'title')) {
 			$rpt->save($_REQUEST['title']);
 		}
-	
+
 		if (count($_POST) > 0 || count($_GET) > 1) {
 			$rpt->process();
 		}
 		$template->addRegion('content', $rpt->make(has_value($_POST, 'to') && valid_email($_POST['to'])));
 		$template->addRegion('title', $rpt->getLegend());
 		$template->addRegion('heading', $rpt->getLegend());
-				
+
 		if (has_value($_POST, 'to')) {
 			iF (!valid_email($_POST['to'])) {
 				error('Invalid e-mail address.');

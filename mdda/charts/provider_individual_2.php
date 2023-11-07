@@ -14,7 +14,7 @@ $sRegion	=  $f['region'];
 $sTo = $f['to'] ? $f['to'] : '';
 $template->add_region('heading',  "Provider Individual Report: " . mdda::getProviderName($f['provider']) . " Reporting Period: ". mdda::getReportingDates($f['year']) . " for "
 	. (!$sRegion || $sRegion == 'all' ? 'all regions' : $sRegion) . ($sFrom != '' ? ".&nbsp;&nbsp;Ages $sFrom to $sTo." : "") . '</em>');
-$template->add_region('sidebar', '<?php $area = "providerindividual"; $show_flash_link = ' . ($print + 0) . '; ?>');
+$template->add_region('sidebar', '<?php $area="providerindividual"; $show_flash_link = 0; ?>');
 
 $html		= '';
 
@@ -66,7 +66,7 @@ foreach ($reports as $report) {
            . '<td align="center">Self<br />employment</td>'
             	. '<td align="center">Group<br />integrated<br />job</td>'
 			   . '<td align="center">Facility<br />based<br />job</td>'
-			   
+
 				. '</td><td align="center"">Community<br />based<br />non work</td>'
 
 

@@ -142,10 +142,10 @@ class dds2 {
 	  purpose: returns a dropdown of regions
     */
 	static function getRegions($element_name, $selected = '', $showAll = 1, $provider = 0, $regiontype = 'normal', $year = 0) {
-		$where = $provider == '0' ? "`region` != 'x'" : "`Vendor_ID` = '$provider'";
+		$where = $provider == '0' ? "`region` != 'x'" : "`Vendor_ID` = '$provider' AND `Reporting_Period` = $year";
 		$sql = "SELECT distinct `region` AS `val`, `region` AS `opt` from `spec_dmr6` where $where and `Region` IS NOT NULL AND `Region` <> ''";
 		//if ($_SERVER['PHP_AUTH_USER'] =='dmruser') {
-			if ($regiontype == 'normal') {
+			/*if ($regiontype == 'normal') {
 				$sql .= " UNION SELECT 'x_Berkshire', 'Berkshire' UNION SELECT 'x_Holyoke/Chicopee', 'Holyoke/Chicopee' UNION SELECT 'x_West', 'West' UNION SELECT 'x_Central', 'Central'";
 			} else {
 				$sql   .= " UNION SELECT DISTINCT 'x_Berkshire', 'Berkshire' from `spec_dmr6` where vendor_id = '$provider' and `region` and CRS_contract in (" . self::getContractNumbers('Berkshire') . ")"
@@ -154,7 +154,7 @@ class dds2 {
 						. " UNION SELECT DISTINCT 'x_Holyoke/Chicopee', 'Holyoke/Chicopee' from spec_dmr6 where vendor_id = '$provider' and `region` and `CRS_contract` in (" . self::getContractNumbers('Holyoke/Chicopee') . ")"
 						. " UNION SELECT DISTINCT 'x_West', 'West' from spec_dmr6 where vendor_id = '$provider' and `region` and LEFT(CRS_Contract, 1) = " . self::getContractNumbers('West')
 						. " UNION SELECT DISTINCT 'x_Central', 'Central' from spec_dmr6 where vendor_id = '$provider' and `region` and LEFT(CRS_Contract, 1) = " . self::getContractNumbers('Central');
-			}
+			} */
 	//	}
 
 		$db = Database::getDatabase();
@@ -170,7 +170,7 @@ class dds2 {
 	static function getRegionArray($provider) {
 		$db = Database::getDatabase();
 		$ret = array();
-		$rs = $db->query("SELECT distinct region from spec_dmr6 where `vendor` = '$provider' and `region` order by `region`");
+		$rs = $db->query("SELECT distinct region from spec_dmr6 where `Vendor` = '$provider' and `Region` order by `Region`");
 		while ($row = $db->fetch_assoc($rs)) {
 			$ret[] = $row['region'];
 		}
@@ -298,7 +298,7 @@ class dds2 {
 					return array('Individual competitive employment', 'Group integrated employment');
             case 'numberinactivity':
             case 'percent':
-   				return array('Individual competitive employment', 'Group integrated employment','Self employment','Job Search (Total)','Job Search: Discovery or career planning','Job Search:Job development activities','Other day support wrap-around services','Day and wrap-around: Community based day services','Day and wrap-around: Day habilitation program','Day and wrap-around: Other day support services');
+   				return array('Individual competitive employment', 'Group integrated employment','Self employment','<span class="topCat">Job Search (total)</span>','<span class="subCat">&#8226;&nbsp;Discovery or career planning</span>','<span class="subCat">&#8226;&nbsp;Job development activities</span>','<span class="topCat">Day Wraparound Services (total)</span>','<span class="subCat">&#8226;&nbsp;Community Based Day Services</span>','<span class="subCat">&#8226;&nbsp;Day Habilitation program</span>','<span class="subCat">&#8226;&nbsp;Other day support</span>');
 
    		case 'totalwages':
 
@@ -329,7 +329,7 @@ class dds2 {
 			case 'percvol':
 			return array('Individual competitive employment','Group integrated employment');
 			 default:
-				return array('Individual competitive employment', 'Group integrated employment','Self employment','Job Search (Total)','Job Search: Discovery or career planning','Job Search:Job development activities','Other day support wrap-around services','Day and wrap-around: Community based day services','Day and wrap-around: Day habilitation program','Day and wrap-around: Other day support services');
+				return array('Individual competitive employment', 'Group integrated employment','Self employment','Job Search (total)','<span class="subCat">&#8226;&nbsp;Discovery or career planning</span>','<span class="subCat">&#8226;&nbsp;Job development activities</span>','<span class="topCat">Day Wraparound Services (total)</span>','<span class="subCat">&#8226;&nbsp;Community Based Day Services</span>','<span class="subCat">&#8226;&nbsp;Day Habilitation program</span>','<span class="subCat">&#8226;&nbsp;Other day support</span>');
 		}
 	}
 
@@ -587,7 +587,7 @@ class dds2 {
 	function: getActivityVariableArray
 	purpose: return the values in each column for an activity query
 */
-	static function getActivityVariableArray($type) {
+	static function getActivityVariableArray($type, $year = null) {
 		if (empty($type)) {
 			return array('error' => 'Please Select a variable on the previous page.');
 		}
@@ -615,21 +615,21 @@ class dds2 {
 					$vars = array('HrsInd', 'HrsGroup');	break;
 		 case 'avghours':
 		 case 'numover20':
-         case 'percover20':
-         case 'totalhours':
-         	$vars = array('HrsInd', 'HrsGroup','HrsSelfEmp');	break;
-             case 'numberinactivity':
-              case 'percent' :
-             	$vars = array('YNInd', 'YNGroup','YNSelfEmp','YNJobSearch','YNJSDisc','YNJSJobDev','YNWrap','YNWAComm','YNWADay','YNWAOth');	break;
-          case 'meanSelfemp':
-          case 'totalSelfemp':
-          case 'lowSelfemp':
-          case 'highSelfemp':
-          	$vars = array('HrsSelfEmp','dol_selfEmp', 'expens_selfEmp', 'net_selfEmp');	break;
-
-           case 'selfEmpnum':	$vars = array('HrsSelfEmp');	break;
-           case 'selfEmpperc':	$vars = array('HrsSelfEmp');	break;
-			default: 						$vars = array('HrsInd', 'HrsGroup', 'HrsSelfEmp');
+		 	$vars = $year && $year >= 2017 ? array('HrsInd', 'HrsGroup','HrsSelfEmp') :  array('HrsInd', 'HrsGroup');	break;
+     case 'percover20':
+    case 'totalhours':
+     $vars = array('HrsInd', 'HrsGroup','HrsSelfEmp');	break;
+    case 'numberinactivity':
+    case 'percent' :
+       	$vars = $year && $year >= 2017 ? array('HrsInd', 'HrsGroup','YNSelfEmp','YNJobSearch','YNJSDisc','YNJSJobDev','YNWrap','YNWAComm','YNWADay','YNWAOth') : array('HrsInd', 'HrsGroup');	break;
+    case 'meanSelfemp':
+    case 'totalSelfemp':
+    case 'lowSelfemp':
+    case 'highSelfemp':
+      	$vars = array('HrsSelfEmp','dol_selfEmp', 'expens_selfEmp', 'net_selfEmp');	break;
+	  case 'selfEmpnum':	$vars = array('HrsSelfEmp');	break;
+    case 'selfEmpperc':	$vars = array('HrsSelfEmp');	break;
+		default: 						$vars = array('HrsInd', 'HrsGroup', 'HrsSelfEmp');
 
 		}
 		 if ($type == 'paidtimeoff') {
@@ -662,9 +662,9 @@ class dds2 {
 				$col = $vars[$i];
 				$cols .= $sep;
 				switch ($type) {
-					case 'numberinactivity':		$cols .= "SUM((IF($col = 'Y',1,0))) AS `{$labels[$i]}`";		break;
+					case 'numberinactivity':		$cols .= "SUM(" . ($col == 'HrsInd' || $col == 'HrsGroup' ? "(IFNULL(`$col`, 0) > 0 )" :"(IF(`$col` = 'Y',1,0))" ) . ") AS `{$labels[$i]}`";		break;
 
-					case 'numberinactivitygroup':		$cols .= "SUM((IF(`YNGroup` = 'Y',1,0))) AS `Number in activity`";		break;
+					case 'numberinactivitygroup':		$cols .= "SUM((IFNULL(`HrsGroup`, 0) > 0 )) AS `Number in activity`";		break;
 
 
                case 'selfEmpnum':
@@ -673,7 +673,7 @@ class dds2 {
 					case 'numberinactivity2':
 
                	$cols .= "SUM((IFNULL(`$col`, 0) > 0)) AS `{$labels[$i]}`";		break;
-					case 'percent':					$cols .= "FORMAT((SUM((IF(`$col` = 'Y',1,0) > 0)) / COUNT(1)) * 100, 1) AS `{$labels[$i]}`"; break;
+					case 'percent':					$cols .= "FORMAT((SUM(" . ($col == 'HrsInd' || $col == 'HrsGroup' ? "(IFNULL(`$col`, 0) > 0 )" :"(IF(`$col` = 'Y',1,0))" ) . ") / COUNT(1)) * 100, 1) AS `{$labels[$i]}`"; break;
 					case 'percent2':
                case 'selfEmpperc':
                				$cols .= "FORMAT((SUM((IFNULL(`$col`, 0) > 0)) / COUNT(1)) * 100, 1) AS `{$labels[$i]}`"; break;
@@ -718,9 +718,9 @@ class dds2 {
 		}
 		$db = Database::getDatabase();
 		$cols = "REPLACE(" . substr(preg_replace("/ AS `(.+?)`(?:,\n)?/", ", ',', '') AS `\\1`,\nREPLACE(", $cols), 0, -10);
-      if ($type == 'numberinactivity2' || $type == 'numberinactivity') $cols .= ', SUM((IFNULL(`HrsInd`, 0) = 0) AND (IFNULL(`HrsGroup`, 0) = 0) AND (IFNULL(`HrsSelfEmp`, 0) = 0) AND (IFNULL(`YNJobSearch`, 0) = 0) AND (IFNULL(`YNJSDisc`, 0) = 0) AND (IFNULL(`YNJSJobDev`, 0) = 0) AND (IFNULL(`YNWrap`, 0) = 0) AND (IFNULL(`YNWAComm`, 0) = 0) AND (IFNULL(`YNWADay`, 0) = 0) AND (IFNULL(`YNWAOth`, 0) = 0)) AS "No Activity Participation" ';
+      if ($type == 'numberinactivity2' || $type == 'numberinactivity') $cols .= ', SUM((IFNULL(`HrsInd`, 0) = 0) AND (IFNULL(`HrsGroup`, 0) = 0) AND (IFNULL(`HrsSelfEmp`, 0) = 0)) AS "Not in paid employment" ';
 
-   if ($type == 'percent2' || $type == 'percent') $cols .= ", FORMAT((SUM((IFNULL(`HrsInd`, 0) = 0)  AND (IFNULL(`HrsGroup`, 0) = 0) AND (IFNULL(`HrsSelfEmp`, 0) = 0)  AND (IFNULL(`YNJobSearch`, 0) = 0) ) / COUNT(1)) * 100, 1) AS `No Activity Participation`";
+   if ($type == 'percent2' || $type == 'percent') $cols .= ", FORMAT((SUM((IFNULL(`HrsInd`, 0) = 0)  AND (IFNULL(`HrsGroup`, 0) = 0) AND (IFNULL(`HrsSelfEmp`, 0) = 0) ) / COUNT(1)) * 100, 1) AS `Not in paid employment`";
 		$rs = $db->query("SELECT $cols from `spec_dmr6` where `region` is not null and `region` != '' $where GROUP BY `reporting_period`");
 
 		return $db->num_rows($rs) > 0 ? $db->fetch_assoc($rs) : array();
@@ -834,22 +834,23 @@ class dds2 {
 	static function getRowData($report, $subreport, $level = 'provider') {
 	$f		= dds2::getFilterValues();
 $extra	= !$f['year'] || $f['year'] >= 2007 && $f['year'] < 2017;
-$hours	= $f['year'] >= 2017 ? array('HrsInd', 'HrsGroup') : array('HrsInd', 'HrsGroup', 'HrsFac', 'HrsVolunteer', 'HrsTransition');
+$hours	= $f['year'] >= 2017 ? array('HrsInd', 'HrsGroup') : array('HrsInd', 'HrsGroup', 'HrsFac');
 if ($extra) {
-	$hours[] = 'OthrNonpaid';
+	//$hours[] = 'OthrNonpaid';
 }
 
 // $cols = 'count(1) ' . ($f['year'] > 2005 ? ",\nSUM(`NewIndJob` = 'Y')" : '');
 
 if ($subreport == "number") {
 	$cols = 'count(1) ' . ($f['year'] > 2005 ? ",\nSUM(`NewIndJob` = 'Y')" : '');
-	if ($f['year'] >= 2017) {
-		$numbers = array('YNIntegPartic', 'YNGroupPartic','YNSelfEmp','YNJobSearch','YNWrap');
+	if ($f['year'] >= 2004) {
+		$numbers = array('HrsInd', 'HrsGroup','YNSelfEmp','YNJobSearch','YNWrap');
 		foreach ($numbers as $col) {
-			$cols  .= ",\nSUM(IF(TRIM(`$col`) = 'Y',1,0))";
+			$cols  .= ",\nSUM(" . ($col == 'HrsInd' || $col == 'HrsGroup' ? "(IFNULL(`$col`, 0) > 0 )" :"IF(TRIM(`$col`) = 'Y',1,0)" ) . ")";
+
 		}
 		foreach ($numbers as $col) {
-			$cols  .= ",\nIF(COUNT(1) > 0, REPLACE(FORMAT((SUM(IF(TRIM(`$col`) = 'Y',1,0) > 0)  / COUNT(1)) * 100, 1), ',', ''), 0)";
+			$cols  .= ",\nIF(COUNT(1) > 0, REPLACE(FORMAT((SUM(" . ($col == 'HrsInd' || $col == 'HrsGroup' ? "(IFNULL(`$col`, 0) > 0 )" :"IF(TRIM(`$col`) = 'Y',1,0)" ) . ")  / COUNT(1)) * 100, 1), ',', ''), 0)";
 			}
 	} else {
 
@@ -858,7 +859,7 @@ if ($subreport == "number") {
 			$cols  .= ",\nSUM(IFNULL($col, 0) > 0)";
 		}
 		foreach ($hours as $col) {
-			$cols  .= ",\nIF(COUNT(1) > 0, REPLACE(FORMAT((SUM(IFNULL($col, 0) > 0) / COUNT(1)) * 100, 1), ',', ''), 0)";
+			$cols  .= ",\nIF(COUNT(1) > 0, REPLACE(FORMAT((SUM(" . ($col == 'HrsInd' || $col == 'HrsGroup' ? "(IFNULL(`$col`, 0) > 0 )" :"IF(TRIM(`$col`) = 'Y',1,0)" ) . "), ',', ''), 0)";
 			}
 	}
 
@@ -904,7 +905,7 @@ if ($subreport == "number") {
 		foreach ($wages as $col) {
 			$cols  .= ",\nREPLACE(FORMAT(AVG(IF($col > 0, $col, NULL)), 2), ',', '')";
 			}
-		$wages	= array('YNInd', 'YNGroup');
+		$wages	= array('YNInd','YNGroup');
 		foreach ($wages as $col) {
 			$cols  .= ",\nIF(SUM(TRIM($col) IN ('N','Y')) > 0, REPLACE(FORMAT((SUM(TRIM($col) ='Y') / SUM(TRIM($col) IN ('N','Y'))) * 100, 1), ',', ''), 0)";
 			}
@@ -944,7 +945,6 @@ return $html;
 	$name = htmlentities($name, ENT_COMPAT, 'UTF-8');
 	$html = "<select id=\"$name\" name=\"$name\">";
 	$db = Database::getDatabase();
-	if($db) echo "Fuck yeah"; else echo "Fuck you";
 	$rs = $db->query('SELECT DISTINCT `reporting_period` AS `y` FROM `spec_dmr6` order by `y` DESC ');
 
 	while ($row = $db->fetch_assoc($rs)) {

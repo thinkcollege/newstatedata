@@ -1,4 +1,4 @@
-<?php 
+<?php
 ini_set("include_path","../../");
 include("common/classes_md.php");
 error_reporting(E_ALL);
@@ -13,24 +13,24 @@ $template->define_file($print ? 'mdda_print_template.php' : 'mdda_template.php')
 if ($sumtype =='wages') {
    $template->add_region('title','<?php $mre_base=new mre_base; echo $mre_base->mre_base_sitename;?> - Wage Summary');
 $template->add_region('heading', 'Wage Summary');
-$variable 	= 'percent'; } 
+$variable 	= 'percent'; }
 else if ($sumtype == 'hours') {
    $template->add_region('title','<?php $mre_base=new mre_base; echo $mre_base->mre_base_sitename;?> - Hours Summary');
-$template->add_region('heading', 'Hours Summary'); 
+$template->add_region('heading', 'Hours Summary');
    $variable 	= 'hoursumm';
-} 
+}
 else if ($sumtype == 'selfEmployment') {
    $template->add_region('title','<?php $mre_base=new mre_base; echo $mre_base->mre_base_sitename;?> - Self Employment Summary');
-$template->add_region('heading', 'Self Employment Summary'); 
+$template->add_region('heading', 'Self Employment Summary');
    $variable 	= 'selfEmployment';
 }
 else {
    $template->add_region('title','<?php $mre_base=new mre_base; echo $mre_base->mre_base_sitename;?> - Hours Summary');
-$template->add_region('heading', 'Hours Summary'); 
+$template->add_region('heading', 'Hours Summary');
    $variable 	= 'hoursumm';
-   
+
 }
-$template->add_region("sidebar", "<?php \$area = \"activity\"; \$show_flash_link = " . ($print + 0) . "; ?>");
+$template->add_region("sidebar", '<?php $area="providerindividual"; $show_flash_link = 0; ?>');
 
 
 $f			= mdda::getFilterValues();
@@ -81,10 +81,10 @@ if ($sumtype == 'wages') {
 $data = array_merge_recursive($data2,$data3,$data1,$data4,$data0,/*$data5,*/$data6,$data7);
 
 
-$totalpar = mdda::getActivityTotalArray('grandtotalwages'); 
+$totalpar = mdda::getActivityTotalArray('grandtotalwages');
 $totalrow = number_format($totalpar['totalparticipants'],0,'.',',');
 
-$totavggross =  mdda::getActivityTotalArray('averagegrosswage'); 
+$totavggross =  mdda::getActivityTotalArray('averagegrosswage');
 $totalrow2 = $totavggross['avggrosswage'];
 $totavghourly = mdda::getActivityTotalArray('averagehourly');
  $totalrow3 = $totavghourly['averagehourly'];
@@ -96,19 +96,19 @@ $totsa = mdda::getActivityTotalArray('percentsa');
 $totalrow6 = $totsa['setaside']; }
 else if ($sumtype == 'hours') {
    $data = array_merge_recursive($data12,$data13,$data8,$data9,$data10,$data5);
-   
-   $totalpar = mdda::getActivityTotalArray('grandtotal'); 
+
+   $totalpar = mdda::getActivityTotalArray('grandtotal');
 $totalrow =    number_format($totalpar['totalparticipants'],0,'.',',');
 
-   $colavghrs =  mdda::getActivityTotalArray('colavghrs'); 
+   $colavghrs =  mdda::getActivityTotalArray('colavghrs');
    $totalrow2 = $colavghrs['avghrs'];
    $numover20 = mdda::getActivityTotalArray('colnumover20');
     $totalrow3 = $numover20['numover20'];
-   
+
    $colpercover20= mdda::getActivityTotalArray('colpercover20');
    $totalrow4 = $colpercover20['percover20'];
-   
-   
+
+
    $coltotalhours = mdda::getActivityTotalArray('coltotalhrs');
    $totalrow5 = $coltotalhours['totalhours'];
    $colpercvol = mdda::getActivityTotalArray('colpercvol');
@@ -149,28 +149,28 @@ if ($sumtype == 'wages') {
    $html 	=  /* $mychart->getEmbeddingHTML() . */ '<table id="tablehold" border="1" cellpadding="3" cellspacing="0">'
 		. "<caption>$legend</caption><thead><tr><th>Activity</th><th>Number of Individuals<br /> in Activity</th><th>Percent of Individuals<br /> in Activity</th><th>Average Gross Wage</th><th>Average Hourly Wage</th><th>Total Wages</th><th>Percent Who Receive<br />Paid Time Off</th><th>Percent Who Work<br />On a Set-aside Contract</th></thead><tbody>";
 } else if ($sumtype == 'hours') {
-   
+
    $html 	= '<table id="tablehold" border="1" cellpadding="3" cellspacing="0">'
    		. "<caption>$legend</caption><thead><tr><th>Activity</th><th>Number of Individuals<br /> in Activity</th><th>Percent of Individuals<br /> in Activity</th><th>Average Hours in Activity</th><th>Number worked more than 20 hours/week</th><th>Percent worked more than 20 hours /week</th><th>Total hours worked this period</th><tbody>";
-   
+
 }
 
 
-if ($sumtype == 'wages') { 
+if ($sumtype == 'wages') {
    $html 	= $table = /* $mychart->getEmbeddingHTML() . */ '<table id="tablehold" border="1" cellpadding="3" cellspacing="0">'
 		. "<caption>$legend</caption><thead><tr><th>Activity</th><th>Number of Individuals<br /> in Activity</th><th>Percent of Individuals<br /> in Activity</th><th>Average Gross Wage</th><th>Average Hourly Wage</th><th>Total Wages</th><th>Percent Who Receive<br />Paid Time Off</th><th>Percent Who Work<br />On a Set-aside Contract</th></thead><tbody>";
 } else if ($sumtype == 'hours') {
-   
+
    $html 	=  '<table id="tablehold" border="1" cellpadding="3" cellspacing="0">'
    		. "<caption>$legend</caption><thead><tr><th>Activity</th><th>Number of Individuals<br /> in Activity</th><th>Percent of Individuals<br /> in Activity</th><th>Average Hours in Activity</th><th>Number worked more than 20 hours/week</th><th>Percent worked more than 20 hours /week</th><th>Total hours worked this period</th></thead><tbody>";
-   
+
 }
 
 else if ($sumtype == 'selfEmployment') {
-   
+
    $html 	=  $table = '<h3>' . $legend . '</h3><br /><table id="tablehold" border="1" cellpadding="3" cellspacing="0">'
    		. "<thead><tr><th>&nbsp;</th><th>Number of individuals</th><th>Percent of total served</th></thead><tbody>";
-   
+
 }
 
 $where ="";
@@ -179,14 +179,14 @@ $aWhere = array();
 
 foreach ($data as $label=>$val) {
 
-   if (is_array($val)) { 
+   if (is_array($val)) {
        $aWhere = '<tr><th scope ="row">' . $label . '</th><td>'. implode('</td><td>',$val);
    }
    else {
        $aWhere = '<tr><th scope ="row">' . $label . '</th><td>' . $val;
    }
    $where .=  $aWhere . "</td></tr>";
-   
+
 }
 
 $html .= $where;
@@ -203,16 +203,16 @@ if($sumtype == 'selfEmployment') {
           $where ="";
 
           $aWhere = array();
-        
+
           foreach ($data2 as $label=>$val) {
 
-             if (is_array($val)) { 
-                
-                
-                
+             if (is_array($val)) {
+
+
+
                  $aWhere = '<tr><th scope ="row">' . $label . '</th><td>'. implode('</td><td>',$val);
-                 
-                 
+
+
              }
              else {
                  $aWhere = '<tr><th scope ="row">' . $label . '</th><td>' . $val;
@@ -221,7 +221,7 @@ if($sumtype == 'selfEmployment') {
           }
           $html .= $where;
 $html .= "</tbody></table>";
-         
+
 
 
        }
@@ -232,6 +232,6 @@ $template->add_region('content', $html); ?>
 
 <?php include("header.php");
 
-$template->make_template(); 
+$template->make_template();
 
 include("footer.php");

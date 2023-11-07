@@ -1,4 +1,4 @@
-<?php 
+<?php
 // this file feeds csv files to catada.info, hosted on Github pages
 /*error_reporting(E_ALL);
 ini_set('display_errors', 1);
@@ -21,9 +21,9 @@ $csvReqString = '&tqx=reqId:1;out:csv';
 // output headers so that the file is downloaded rather than displayed
 header('Content-Type: text/csv; charset=utf-8');
 header('Content-Disposition: attachment; filename=' . $csvFilename);
-$outFile = fopen('php://output', 'w'); 
+$outFile = fopen('php://output', 'w');
 for($i = 0 ; $i < count($sendString) ; $i++) {
-  
+
   $fullURL = $chartURL . '/gviz/tq?' . $sendSheetname[$i] . 'headers=1&tq=' . $sendString[$i] . $csvReqString;
   // echo $fullURL ."<br />";
   ${'inFile_' .$i} = fopen($fullURL,'r');
@@ -39,15 +39,15 @@ $line =  fgetcsv( ${'inFile_' .$i});
 fputcsv($outFile, $header);
 
 while ($line !== false) {
-    
+
     fputcsv($outFile, $line);
   $line = fgetcsv( ${'inFile_' .$i});
 }
-  
-fclose($inFile);
+// removed this: broke in PHP 8  doesn't make sense anyway
+// fclose($inFile);
 
 }
-fclose($outFile); 
+fclose($outFile);
 $sendString = array();
 $sendTitle = array();
 $sendSheetname = array();

@@ -12,6 +12,7 @@
 	border-bottom: 1px solid gray;
 	z-index:99;
 }
+#side_menu.dds2 { top:134px;}
 
 #side_menu ul {
 	width:21em;
@@ -20,7 +21,7 @@
 	padding: 0px;
 	list-style-type: none;
 	text-align: right;
-}	
+}
 
 
 #side_menu ul li {

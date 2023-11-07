@@ -1,4 +1,4 @@
-<?php 
+<?php
 ini_set("include_path","../../");
 include("common/classes.php");
 $template = new template;
@@ -47,9 +47,9 @@ if ($report == "number") {
 
 	if($f['year'] >= 2017) {
 		$colspan = 5;
-		
+
 			$html .= "<th rowspan=\"2\">Number entered a <BR>new individual job in the <br />previous 12 months</th>";
-		
+
 		$html  .= "<th colspan=\"$colspan\" align=\"center\">Number Participating in activity</th>"
 				. "<th colspan=\"$colspan\" align=\"center\">Percent participating in activity</th>"
 				. "</tr><tr><th align=\"center\">Individual Competitive Employment</th>"
@@ -62,7 +62,7 @@ if ($report == "number") {
 				. "<th align=\"center\">Self Employment</th>"
 				. "<th align=\"center\">Job Search</th>"
 				. "<th align=\"center\">Other day support wrap-around services</th>";
-		
+
 	}
 
 	$html .= "</tr>";
@@ -98,11 +98,11 @@ if ($report == "number") {
 			. "<th align=\"center\">Group Supported Job</th><th align=\"center\">Facility Based Work</th>"
 			. "<th align=\"center\">Individual Supported Job</th><th align=\"center\">Group Supported Job</th>"
 			. "<th align=\"center\">Facility Based Work</th></tr>";
-} 
+}
 $html  .= "</thead><tbody>" . dds::getRowData('provider', $report)
 		. "</tbody></table><br><script type=\"text/javascript\" src=\"../common/sorttable.js\"></script>";
 
 $template->add_region('content', $html);
 include("header.php");
-$template->make_template(); 
+$template->make_template();
 include("footer.php");

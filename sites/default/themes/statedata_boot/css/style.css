@@ -381,3 +381,4 @@ hr.pubDivider {width: 60%; color: #333333; margin: 1.2em auto; border-style: sol
     vertical-align: middle; }
 
     div.panel-heading > h3 {color:white;}
+    div.form-type-checkboxes div.form-type-checkbox > input.form-checkbox, div.form-type-radios div.form-type-radio > input { display:none;}

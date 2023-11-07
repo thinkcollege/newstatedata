@@ -1,7 +1,7 @@
 <?php
 define('DIR','/washington-ddd/');
-define('DOMAIN', LIVE ? 'new.statedata.info' : $_SERVER['HTTP_HOST']);
-define('DATA_DIR', '/home/statedata/statedata.info/htdocs/wa-ddd/');
+define('DOMAIN', LIVE ? 'statedata.local' : $_SERVER['HTTP_HOST']);
+define('DATA_DIR', '/home/statedata/wa-ddd/');
 define('DEBUG', LIVE ? 0 : 1);
 define('TEMPLATE', 'waddd_template');
 define('ADMIN_EMAIL', 'paul.foos@umb.edu');

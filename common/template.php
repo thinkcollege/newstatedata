@@ -47,10 +47,8 @@ class template extends mre_base {
 			$f = str_replace('{' . $region . '}', $val, $f);
 		}
 		$tempfile = $this->mre_base_path.$this->template_tempdir.rand(111111111,999999999).".php";
-
 		$temp = @fopen($tempfile,"w+");
 		fwrite($temp, $f);
-
 		fclose($temp);
 		include($tempfile);
 		if (!$this->debug) {

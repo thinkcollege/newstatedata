@@ -40,7 +40,7 @@ $page = isset($_REQUEST['page']) ? preg_replace('/[^a-z0-9]+/i', '', $_REQUEST['
 $report = isset($_GET['report']) ? $_GET['report'] : '';
 
 $ajax = isset($_REQUEST['ajax']) ? preg_replace('/[^a-z0-9]+/i', '', $_REQUEST['ajax']) : '' ;
-$template = template::getTemplate(TEMPLATE, 'https://' . DOMAIN . DIR);
+$template = template::getTemplate(TEMPLATE, 'http://' . DOMAIN . DIR);
 $template->addRegion('title', ' - WA-DDD Employment Outcome Data');
 $t = microtime(true);
 $msgs = array('Start: ' . 0);

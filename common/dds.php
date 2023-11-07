@@ -52,10 +52,11 @@ class dds {
 	}
 
 	static function getFilterValues() {
+		$pvar =  (int) $_REQUEST['p'];
 		return array('year' => !empty($_REQUEST['y']) ? abs($_REQUEST['y']) : 0,
 			'region' => !empty($_REQUEST['r']) ? $_REQUEST['r'] : '',
 			'areaOffice' => !empty($_REQUEST['ao']) ? $_REQUEST['ao'] : '',
-			'provider' => !empty($_REQUEST['p']) ? abs($_REQUEST['p']) : '',
+			'provider' => !empty($_REQUEST['p']) ? abs($pvar) : '',
 			'from' => !empty($_REQUEST['age']['from']) && $_REQUEST['age']['from'] > 0 ? abs($_REQUEST['age']['from']) : 0,
 			'to' => !empty($_REQUEST['age']['to']) && $_REQUEST['age']['to'] > 0 ? abs($_REQUEST['age']['to']) : 0);
 	}
@@ -374,7 +375,7 @@ class dds {
 	function: getRegionAxisLabel
 	purpose: return the axis label for the region view
 */
-	function getRegionAxisLabel($variable) {
+	static function getRegionAxisLabel($variable) {
 		$vars =& self::getVariables();
 		return isset($vars[$variable]) ? $vars[$variable]['axis'] : '';
 	}

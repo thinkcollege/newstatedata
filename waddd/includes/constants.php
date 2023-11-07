@@ -1,6 +1,6 @@
 <?php
 define('DIR', '/waddd/');
-define('DOMAIN', 'www.statedata.info');
+define('DOMAIN', 'statedata.local');
 define('DATA_DIR','/home/statedata/wa-ddd/');
 define('DEBUG', 0);
 define('TEMPLATE', 'waddd_template');

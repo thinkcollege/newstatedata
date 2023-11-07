@@ -2,49 +2,49 @@
 class report {
 	const TREND = 'trend', SUMMARY = 'summary', STEP_FINAL = 0, STEP_FIRST = 1, STEP_COUNTY = 2,
 		STEP_PROVIDER = 3, MAX_STEP = 3; // report::MAX_STEP should always equal the highest number step.
-	
+
 	protected $_step = 1, $_nextStep = 1, $type = 0, $_js = true, $serviceCode = '', $outcome = '',
 		$timeframe = '', $region = '', $county = '', $provider = '', $gender = '', $fsc = '',
 		$cps = -2, $casl = '', $esl = '', $ageStart = 0, $ageEnd = 0, $residenceType = '', $summary = 0,
 		$residenceTypes = array('All Residency Settings' => 0, 'Lives in Own Home' => 1, 'Lives with Family	' => 2, 'Small Group Setting ' => 3, 'Facility' => 4, 'Other' => 5, 'Homeless' => 6, 'Unknown' => 7),
 		$regions = null, $counties = null, $providers = null, $filters = null, $serviceCodes = null, $legend = '';
-	
+
 	public function __construct($type, $init = false) {
 		global $msgs, $t;
 		$this->setType($type);
-		
+
 		if ($init == true) {
 			$msgs[] = 'Creating base report:' . (microtime(true) - $t);
 			$rs = fQuery('SELECT c.Code AS `Value`, c.`Value` AS `Option` FROM ' . TABLE_CODE_LOOKUP . ' c
 						   WHERE c.`grouping` = \'DV\' AND EXISTS (SELECT 1 FROM ' . TABLE_BILLING . ' WHERE ServiceCode = c.Code LIMIT 0,1) ORDER BY `Option`');
 			$this->serviceCodes = $rs->toSelect('serviceCode', 'Select Service Type');
 			$msgs[] = 'Created Service Code Select:' . (microtime(true) - $t);
-			
+
 			$rs = fQuery('SELECT cl.`Value` AS `Option`, cl.`Code` AS `Value` FROM ' . TABLE_CODE_LOOKUP . ' cl
 						   WHERE cl.Code RLIKE \'RG0[1-6]\' AND EXISTS (SELECT 1 FROM ' . TABLE_BILLING . ' WHERE RegionCode = cl.Code LIMIT 0,1) ORDER BY cl.`Value`');
 			$this->regions = $rs->toSelect('region', 'All Regions');
 			$msgs[] = 'Determined Regions:' . (microtime(true) - $t);
-			
+
 			$rs = fQuery('SELECT cl.`Value` AS `Option`, cl.`Code` AS `Value`,
 								 (SELECT RegionCode FROM Billing WHERE CountyCode = cl.Code LIMIT 0,1) AS `Grouping`
 							FROM CodeLookup cl
-			 			   WHERE cl.`Grouping` = \'CY\' AND EXISTS (SELECT 1 FROM Billing WHERE CountyCode = cl.`Code` LIMIT 0,1) 
+			 			   WHERE cl.`Grouping` = \'CY\' AND EXISTS (SELECT 1 FROM Billing WHERE CountyCode = cl.`Code` LIMIT 0,1)
 UNION SELECT `Value` AS `Option`, `Option1` AS `Value`, `Grouping`  from CombCty ORDER BY `Grouping`, `Option`');
 			$counties = array('all' => array('All Counties' => 0));
-			
-			while ($row = $rs->fetchAssoc()) { 
+
+			while ($row = $rs->fetchAssoc()) {
 				if (!has_value($counties, $row['Grouping'])) {
 					$counties[$row['Grouping']]['All Counties'] = 0;
 				}
 				$counties[$row['Grouping']][$row['Option']] = $row['Value'];
 				$counties['all'][$row['Option']] = $row['Value'];
 			}
-		
+
 			uksort($counties['all'], 'geoSort');
 			$this->counties = $counties;
-		
+
 			$msgs[] = 'Determined Counties:' . (microtime(true) - $t);
-			
+
 			$rs = fQuery('SELECT DISTINCT p.`Number` AS `Value`, p.`Name` AS `Option`, `b`.`RegionCode`, `b`.`CountyCode`
 							FROM ' . TABLE_PROVIDER . ' p LEFT JOIN ' . TABLE_BILLING . ' b ON b.`ProviderNumber` = `p`.`number`
 						ORDER BY RegionCode, CountyCode, p.Name');
@@ -68,16 +68,16 @@ UNION SELECT `Value` AS `Option`, `Option1` AS `Value`, `Grouping`  from CombCty
 				uksort($providers[$region]['all'], 'geoSort');
 			}
 			$this->providers = $providers;
-			
+
 			$msgs[] = 'Determined Providers:'  . (microtime(true) - $t);
 			$this->filters = $this->filters();
 			$msgs[] = 'Created Filters:' . (microtime(true) - $t);
 		}
-	}	
-		
+	}
+
 	public function process() {
 		if (has_value($_REQUEST, 'restart')) {
-			$this->serviceCode = $this->outcome = $this->timeframe = $this->region = $this->county = ''; 
+			$this->serviceCode = $this->outcome = $this->timeframe = $this->region = $this->county = '';
 			$this->provider = $this->gender = $this->fsc = $this->casl = $this->esl = '';
 			$this->ageStart = $this->ageEnd = $this->residenceType = $this->summary = '';
 			$this->cps = -2;
@@ -115,7 +115,7 @@ UNION SELECT `Value` AS `Option`, `Option1` AS `Value`, `Grouping`  from CombCty
 			header('Location: ./?' . $_SERVER['QUERY_STRING']);
 			exit;
 		}
-		
+
 		if (has_value($_REQUEST, 't')
 			&& ((has_value($_REQUEST, 'serviceCode') && has_value($_REQUEST, 'outcome'))
 				|| has_value($_REQUEST, 'summary'))) {
@@ -125,7 +125,7 @@ UNION SELECT `Value` AS `Option`, `Option1` AS `Value`, `Grouping`  from CombCty
 			$this->setRegion($cUser->getRegion(), self::STEP_COUNTY);
 		} else if (has_value($_REQUEST, 'region')) {
 			$this->setRegion($_REQUEST['region'], self::STEP_COUNTY);
-		} 
+		}
 		if ($cUser->getCounty() != '' && $this->getStep() > self::STEP_FIRST) {
 			$this->setCounty($cUser->getCounty(), self::STEP_PROVIDER);
 		} else if (has_value($_REQUEST, 'county') && (!has_value($_REQUEST, 'nojs', 1) || !has_value($_REQUEST, 'region'))) {
@@ -142,15 +142,15 @@ UNION SELECT `Value` AS `Option`, `Option1` AS `Value`, `Grouping`  from CombCty
 		if (has_value($_REQUEST, 'fsc')) {
 			$this->setFundingSource($_REQUEST['fsc']);
 		}
-		
+
 		if (has_value($_REQUEST, 'cps')) {
 			$this->setCognitivePreformanceScore($_REQUEST['cps']);
 		}
-		
+
 		if (has_value($_REQUEST, 'casl')) {
 			$this->setCommunityAccessSupportLevel($_REQUEST['casl']);
 		}
-		
+
 		if (has_value($_REQUEST, 'esl')) {
 			$this->setEmploymentSupportLevel($_REQUEST['esl']);
 		}
@@ -174,55 +174,55 @@ UNION SELECT `Value` AS `Option`, `Option1` AS `Value`, `Grouping`  from CombCty
 			$this->residenceType = $this->residenceType != ''	? $this->residenceType : 0;
 			$this->setNextStep(self::STEP_FINAL);
 		}
-		
+
 		if (!hasError()) {
 			$this->setStep($this->getNextStep());
 		}
 	}
-	
+
 	protected function setNextStep($step) {
 		if ($step >= 0 && $step <= self::MAX_STEP && !hasError()) {
 			$this->_nextStep = $step;
 		}
 	}
-	
+
 	public function getNextStep() {
 		return $this->_nextStep;
 	}
-	
+
 	public function getStep() {
 		return $this->_step;
 	}
-	
+
 	private function setStep($step) {
 		if ($step >= 0 && $step <= self::MAX_STEP) {
 			$this->_step = $step;
 		}
 	}
-	
+
 	public function getType() {
 		return $this->type;
 	}
-	
+
 	public function setType($type) {
 		if (self::validType($type)) {
 			$this->type = $type;
 		}
 	}
-	
+
 	static public function validType($type) {
 		return in_array($type, self::getTypes());
 	}
-	
+
 	static public function getTypes() {
 		return array(self::TREND, self::SUMMARY);
 	}
-		
+
 	public function getLegend() {
 		return $this->legend;
 	}
-	
-	
+
+
 	public function make($displayOnly = false) {
 		$content = '';
 		$this->generateHeading();
@@ -250,15 +250,15 @@ UNION SELECT `Value` AS `Option`, `Option1` AS `Value`, `Grouping`  from CombCty
 		}
 		if ($this->getCounty() != '' && $cUser->getProvider() != '') {
 			$geo .= ', ' . new label('Provider:', 'provider') . $this->providers;
-		} 
-		
+		}
+
 		else if ($this->getCounty() != '') {
 			$geo .= ', ' . new label('Provider:', 'provider');
-			if (is_array($this->providers)) { 
+			if (is_array($this->providers)) {
 				if ($this->getCounty() == 'CY91') {
 					$arr91 = array_merge($this->providers['RG02']['CY03'] , $this->providers['RG02']['CY11']);
 					$geo .= select::fromArray($arr91, 'provider', 'provider');
-					 } 
+					 }
 					else if ($this->getCounty() == 'CY90') {
 					$arr91 = array_merge($this->providers['RG06']['CY23'] , $this->providers['RG0']['CY34']);
 					$geo .= select::fromArray($arr91, 'provider', 'provider');
@@ -272,15 +272,15 @@ UNION SELECT `Value` AS `Option`, `Option1` AS `Value`, `Grouping`  from CombCty
 					$geo .= select::fromArray($arr91, 'provider', 'provider');
 					 }
 					else {
-				
+
 				$geo .= select::fromArray($this->providers[$this->getRegion()][$this->getCounty()], 'provider', 'provider'); }
-			
+
 				 }
 				}
-		
+
 		 else {
 			$geo .= ', ' . new label('Provider:', 'provider') . new select('provider', 'provider', 1, false, false);
-		} 
+		}
 
 		$geo .= new br();
 		if ($this->getType() == self::TREND && $this->getStep() == self::STEP_FIRST) {
@@ -302,13 +302,13 @@ UNION SELECT `Value` AS `Option`, `Option1` AS `Value`, `Grouping`  from CombCty
 				new label('Job Coaching Hours', 'outcome6'), new br(),
 				new input(OUTCOME_RECORD_KEEPING, input::RADIO, 'outcome', 'outcome7'),
 				new label('Record Keeping Hours', 'outcome7'));
-			
+
 			$timeframe = 'From: ' . select::fromArray(array('Month' => 0, 'Jan - Q1' => 1, 'Feb' => 2, 'Mar' => 3, 'Apr - Q2' => 4, 'May' => 5, 'Jun' => 6, 'Jul - Q3' => 7, 'Aug' => 8, 'Sep' => 9, 'Oct - Q4' => 10, 'Nov' => 11, 'Dec' => 12), 'tm', 't[m]');
 			$rs = fQuery('SELECT DISTINCT YEAR(ServiceYearMonth) AS `Value` FROM ' . TABLE_BILLING . ' ORDER BY `Value` DESC');
 			$years = $rs->toSelect('ty');
 			$years->setName('t[y]');
 			$timeframe .= ' ' . $years . ' for ' . select::fromArray(array(1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24), 'td', 't[d]') . ' ' . select::fromArray(array('Select Unit' => 0, 'Month(s)' => 'm', 'Quarter(s)' => 'q', 'Year(s)' => 'y'), 'tu', 't[u]');
-			
+
 			$content = $sc . ' ' . $timeframe . ' ' . $fs . $geo . $this->filters;
 		} else if ($this->getType() == self::SUMMARY && $this->getStep() == self::STEP_FIRST) {
 			$rs = fQuery('SELECT DISTINCT YEAR(ServiceYearMonth) AS `Value` FROM ' . TABLE_BILLING . ' ORDER BY `Value` DESC');
@@ -316,7 +316,7 @@ UNION SELECT `Value` AS `Option`, `Option1` AS `Value`, `Grouping`  from CombCty
 			$years->setName('t[y]');
 			$timeframe = 'From: ' . select::fromArray(array('Month' => 0, 'Jan - Q1' => 1, 'Feb' => 2, 'Mar' => 3, 'Apr - Q2' => 4, 'May' => 5, 'Jun' => 6, 'Jul - Q3' => 7, 'Aug' => 8, 'Sep' => 9, 'Oct - Q4' => 10, 'Nov' => 11, 'Dec' => 12), 'tm', 't[m]')
 				. ' ' . $years . new input(1, input::HIDDEN, 't[d]', 'td') . new input('m', input::HIDDEN, 't[u]', 'tu');
-			
+
 			$summary = new fieldset();
 			$summary->add(new legend('Summary of'), new input(1, input::RADIO, 'summary', 'summary1'), ' ',
 				new label('Hours Paid by Activity.', 'summary1'), new br(),
@@ -331,9 +331,9 @@ UNION SELECT `Value` AS `Option`, `Option1` AS `Value`, `Grouping`  from CombCty
 			if ($rs->queriedRows() > 0) {
 				$graph = $this->generateGraph($rs);
 				$filterSettings = $this->generateFilterSettings($displayOnly);
-		
 
-			$content = $this->getType() == self::TREND ? $graph . $filterSettings . $rs->toTable('Results', '', 1, '', 'clear') : $rs->toTable('Results', '', 1, '', 'clear lastRow') . $filterSettings;	
+
+			$content = $this->getType() == self::TREND ? $graph . $filterSettings . $rs->toTable('Results', '', 1, '', 'clear') : $rs->toTable('Results', '', 1, '', 'clear lastRow') . $filterSettings;
 			} else {
 				$content = new p('There is no data for the options you have selected.', 'error');
 			}
@@ -367,7 +367,7 @@ UNION SELECT `Value` AS `Option`, `Option1` AS `Value`, `Grouping`  from CombCty
 		CSVEscape($footnote);
 		print "$footnote\n";
 	}
-	
+
 	protected function filters() {
 		global $msgs, $t;
 		if ($this->filters !== null) {
@@ -377,19 +377,19 @@ UNION SELECT `Value` AS `Option`, `Option1` AS `Value`, `Grouping`  from CombCty
 		$gender->setSelected($this->getGender() != '' ? $this->getGender() : (isset($_POST['gender']) ? $_POST['gender'] : 'all'));
 		$gLabel = new label('Gender:', $gender);
 		$msgs[] = 'Created Gender: ' . (microtime(true) - $t);
-		
+
 		$rs = fQuery('SELECT cl.`Code` AS `Value`, cl.`Value` AS `Option` FROM ' . TABLE_CODE_LOOKUP . ' cl
 					   WHERE cl.`grouping` = \'FS\' AND EXISTS (SELECT 1 FROM ' . TABLE_BILLING . ' WHERE FundSourceCode = cl.`Code` LIMIT 0,1)
 				--	ORDER BY cl.`Code`');
 		$fsc = $rs->toSelect('fsc', 'All Sources');
 		$fscLabel = new label('Funding Source:', $fsc);
 		$msgs[] = 'Created Funding Source: ' . (microtime(true) - $t);
-		
+
 		$cps = select::fromArray(array('All Scores' => -1, 0,1,2,3,4,5,6), 'cps', 'cps');
 		$cps->setSelected($this->getCognitivePerformanceScore() > -2 ? $this->getCognitivePerformanceScore() : (isset($_POST[$cps->getName()]) ? $_POST[$cps->getName()] : -1));
 		$cpsLabel = new label('Cognitive Performance Score:', $cps);
 		$msgs[] = 'Created Cognitive Performance Score: ' . (microtime(true) - $t);
-		
+
 		/* $caslSel = $this->getCommunityAccessSupportLevel() != '' ? $this->getCommunityAccessSupportLevel() : (isset($_POST['casl']) ? $_POST['casl'] : '');
 		$rs = fQuery('SELECT cl.`code` AS `Value`, cl.`Value` AS `Option` FROM ' . TABLE_CODE_LOOKUP . ' cl
 					   WHERE cl.`grouping` = \'DL\' AND EXISTS (SELECT 1 FROM ' . TABLE_BILLING . ' WHERE CommunityAccessSupportLevelCode = cl.`Code` LIMIT 0,1)
@@ -397,7 +397,7 @@ UNION SELECT `Value` AS `Option`, `Option1` AS `Value`, `Grouping`  from CombCty
 		$casl = $rs->toSelect('casl', 'All levels');
 		$caslLabel = new label('Community Access Support Level:', $casl);
 		$msgs[] = 'Created Community Access Support Level: ' . (microtime(true) - $t); */
-		
+
 		$eslSel = $this->getEmploymentSupportLevel() != '' ? $this->getEmploymentSupportLevel() : (isset($_POST['esl']) ? $_POST['esl'] : '');
 		// $esl = $casl->copy(); #toSelect('esl', 'All Levels');
 		$rs = fQuery('SELECT cl.`code` AS `Value`, cl.`Value` AS `Option` FROM ' . TABLE_CODE_LOOKUP . ' cl
@@ -408,16 +408,16 @@ UNION SELECT `Value` AS `Option`, `Option1` AS `Value`, `Grouping`  from CombCty
 		$esl->setId('esl');
 		$eslLabel = new Label('Employment Support Level:', $esl);
 		$msgs[] = 'Created Employment Support Level: ' . (microtime(true) - $t);
-			
+
 		$maxAge = getVar('SELECT YEAR(FROM_DAYS(DATEDIFF(CURDATE(), MIN(ClientDOB)))) FROM ' . TABLE_BILLING);
 		$msgs[] = 'Created Got Max Age: ' . (microtime(true) - $t);
-		
+
 		$ages = array('All' => 0);
 		for ($i = 16; $i <= $maxAge; $i++) {
 			$ages[] = $i;
 		}
 		$msgs[] = 'Created Ages Array: ' . (microtime(true) - $t);
-		
+
 		$agS = select::fromArray($ages, 'ags', 'ag[start]');
 		#$agE = $agS->copy();
 		#$agE->setName('age[end]');
@@ -426,18 +426,18 @@ UNION SELECT `Value` AS `Option`, `Option1` AS `Value`, `Grouping`  from CombCty
 		$agSLabel = new label('from: ', $agS);
 		$agELabel = new label(' to ', $agE);
 		$msgs[] = 'Created Age Select: ' . (microtime(true) - $t);
-		
+
 		$rt = select::fromArray($this->residenceTypes, 'rt', 'rt');
 		$rtLabel = new label('Residence Type:', $rt);
 		$msgs[] = 'Created Residency Type: ' . (microtime(true) - $t);
-		
+
 		$filters = new div('','','filters');
 		$filters->add($gLabel, $gender, new br(), $fscLabel, $fsc, new br(), $cpsLabel, $cps,
 			new br(), $eslLabel, $esl, new br(), 'Age Range ',
 			$agSLabel, $agS, $agELabel, $agE, new br(), $rtLabel, $rt);
 		return $filters;
 	}
-	
+
 	public function makeTimeFrameClause($tf) {
 		if (!has_value($tf, 'u', '/^[mqy]$/', COMP_REGEX)) {
 			header('Location: ./?' . $_SERVER['QUERY_STRING']);
@@ -455,7 +455,7 @@ UNION SELECT `Value` AS `Option`, `Option1` AS `Value`, `Grouping`  from CombCty
 			error('Unknown month.');
 			return;
 		}
-		
+
 		$tf['d']	= intval($tf['d']) > 0 ? intval($tf['d']) - 1: 0;
 		$tf['y']	= intval($tf['y']);
 		$tf['m']	= intval($tf['m']);
@@ -469,13 +469,13 @@ UNION SELECT `Value` AS `Option`, `Option1` AS `Value`, `Grouping`  from CombCty
 		return " `ServiceYearMonth` BETWEEN $date AND DATE_ADD($date, INTERVAL {$tf['d']} {$tf['u']})"
 			 . " AND `ServiceYearMonth` <= DATE_ADD($cDate, INTERVAL -" . DATA_RELEASE_DELAY . " MONTH) ";
 	}
-	
+
 	protected function generateQuery() {
 		$where = $this->makeTimeFrameClause($this->timeframe);
 		if ($this->ageStart > 0 && $this->ageEnd > 0) {
 			$where .= ' AND ClientDOB BETWEEN \'' . $this->timeframe['y'] . '-' . $this->timeframe['m']
 					. '-01\' - INTERVAL ' . $this->ageEnd . ' YEAR AND \'' . $this->timeframe['y']
-					. '-' . $this->timeframe['m'] . '-01\' - INTERVAL ' . $this->ageStart . ' YEAR';  
+					. '-' . $this->timeframe['m'] . '-01\' - INTERVAL ' . $this->ageStart . ' YEAR';
 		} else if ($this->ageStart > 0) {
 			$where .= ' AND ClientDOB < \'' . $this->timeframe['y'] . '-' . $this->timeframe['m']
 					. ' =01\' - INTERVAL ' . $this->ageStart . ' YEAR';
@@ -491,7 +491,7 @@ UNION SELECT `Value` AS `Option`, `Option1` AS `Value`, `Grouping`  from CombCty
 			case 5: $where .= ' AND ClientResidentTypeCode = \'RI32\'';	break;
 			case 6: $where .= ' AND ClientResidentTypeCode = \'RI38\'';	break;
 			case 7: $where .= ' AND ClientResidentTypeCode IN (\'RI29\', \'RI33\', \'RICA\')';	break;
-		} 
+		}
 		$where .= ($this->getRegion() != 'all'					? ' AND RegionCode = \'' . e($this->region) . '\'' : '');
 		if( $this->getCounty() == 'all' ||  $this->getCounty() == '0') {
 			$where .= ''; }
@@ -503,7 +503,7 @@ UNION SELECT `Value` AS `Option`, `Option1` AS `Value`, `Grouping`  from CombCty
 				$where .= ' AND (CountyCode = \'CY04\' OR CountyCode = \'CY09\')'; }
 					else if ( $this->getCounty() == 'CY93') {
 				$where .= ' AND (CountyCode = \'CY10\' OR CountyCode = \'CY33\')'; }
-				
+
 				else { $where .= ' AND CountyCode = \'' . e($this->county) . '\'';}
 	//			$where .= ($this->getCounty() != 'all'					? ' AND CountyCode = \'' . e($this->county) . '\'' : '')
 				$where .= ($this->getProvider() != 'all'				? ' AND ProviderNumber IN (\'' . str_replace(',', "','", e($this->provider)) . '\')' : '')
@@ -513,16 +513,16 @@ UNION SELECT `Value` AS `Option`, `Option1` AS `Value`, `Grouping`  from CombCty
 				. ($this->getCommunityAccessSupportLevel() != 'all'	? ' AND CommunityAccessSupportLevelCode = \'' . e($this->casl) . '\'' : '')
 				. ($this->getEmploymentSupportLevel() != 'all'	? ' AND EmploymentSupportLevelCode = \'' . e($this->getEmploymentSupportLevel()) . '\'' : '')
 				. ($this->getType() == self::TREND 				? ' AND serviceCode = \'' . e($this->getActivity()) . "'" : '');
-			
+
 		$join = $this->getType() == self::SUMMARY ? 'INNER JOIN ' . TABLE_CODE_LOOKUP . ' cl ON cl.`Code` = b.`ServiceCode`' : '';
 		$sql = 'SELECT ' . $this->generateColumns(0) . ' FROM '. TABLE_BILLING . ' b ' . $join . ' WHERE '. $where .  ' GROUP BY b.ServiceCode UNION SELECT ' . $this->generateColumns(1) . ' FROM '. TABLE_BILLING . ' b ' . $join . ' WHERE '. $where;
 		if ($this->getType() == self::TREND) {
 			$sql .= ' UNION SELECT ' . $this->generateNColumns() . ' FROM '. TABLE_BILLING . ' b ' . $join . ' WHERE '. $where . ' GROUP BY b.ServiceCode';
 		}
-	
+
 		return $sql;
 	}
-	
+
 	protected function generateColumns($totalrow = 0) {
 		$ret = '';
 		if ($this->getType() == self::TREND) {
@@ -561,8 +561,8 @@ UNION SELECT `Value` AS `Option`, `Option1` AS `Value`, `Grouping`  from CombCty
 			$ret = ($totalrow == 0 ? 'cl.Value AS `Activity`' : '\'Total (unduplicated)\' AS \'Total (unduplicated)\'') . ', COUNT(DISTINCT b.ClientID) AS `# Served`,
 					COUNT(DISTINCT IF(b.GrossWages > 0, b.ClientID, NULL)) AS `# Served' . "\n" . 'w/ Gross Wages > 0`,
 					IF(COUNT(DISTINCT IF(b.GrossWages > 0, b.ClientID, NULL)) NOT BETWEEN 1 AND ' . MIN_ALLOWED_RECORDS . ', FORMAT(AVG(IF(b.GrossWages > 0, b.GrossWages, NULL)), 2), \'&dagger;\') AS `Avg. Gross Wages`';
-					
-		// Hack PF --changed #Served query to reflect total ids in system, not hours of support.  Removed this:  COUNT(DISTINCT IF(b.`TotalHoursOfSupport` > 0 OR b.`JobPrepHours` > 0 OR b.`JobDevelopmentHours` > 0 OR b.`JobCoachingHours` > 0 OR b.`RecordKeepingHours` > 0, b.ClientID, NULL)) AS `# Served`,			
+
+		// Hack PF --changed #Served query to reflect total ids in system, not hours of support.  Removed this:  COUNT(DISTINCT IF(b.`TotalHoursOfSupport` > 0 OR b.`JobPrepHours` > 0 OR b.`JobDevelopmentHours` > 0 OR b.`JobCoachingHours` > 0 OR b.`RecordKeepingHours` > 0, b.ClientID, NULL)) AS `# Served`,
 		} else if ($this->summary == 3) {
 			$ret = ($totalrow == 0 ? 'cl.Value AS `Activity`' : '\'Total (unduplicated)\' AS \'Total (unduplicated)\'') . ',
 					COUNT(DISTINCT b.ClientID) AS `# Served`,
@@ -580,7 +580,7 @@ UNION SELECT `Value` AS `Option`, `Option1` AS `Value`, `Grouping`  from CombCty
 		}
 		return $ret;
 	}
-	
+
 	protected function generateNColumns() {
 		$ret = '';
 		if ($this->getType() == self::TREND) {
@@ -603,7 +603,7 @@ UNION SELECT `Value` AS `Option`, `Option1` AS `Value`, `Grouping`  from CombCty
 		}
 		return $ret;
 	}
-	
+
 	protected function generateHeading() {
 		$tf = $this->getTimeFrame();
 		if ($this->getStep() != self::STEP_FINAL) {
@@ -637,7 +637,7 @@ UNION SELECT `Value` AS `Option`, `Option1` AS `Value`, `Grouping`  from CombCty
 			}
 			$heading .= ' for ';
 			switch ($tf['u']) {
-				case 'y':	$heading .= date('F Y', mktime(0,0,0,$tf['m'], 1, $tf['y'])) . ' to ' . date('F Y', mktime(0,0,0,$tf['m'] - 1, 1, $tf['y'] + 1));	break;	
+				case 'y':	$heading .= date('F Y', mktime(0,0,0,$tf['m'], 1, $tf['y'])) . ' to ' . date('F Y', mktime(0,0,0,$tf['m'] - 1, 1, $tf['y'] + 1));	break;
 				case 'q':	$heading .= 'Q' . $m[2] . ' ' . $m[1];							break;
 				case 'm':	$heading .= date('F Y', mktime(0,0,0,$tf['m'], 1, $tf['y']));	break;
 				default: 'category';
@@ -645,20 +645,20 @@ UNION SELECT `Value` AS `Option`, `Option1` AS `Value`, `Grouping`  from CombCty
 		}
 		$this->legend = $heading;
 	}
-	
+
 	protected function generateFilterSettings($displayOnly = false) {
 		$query = 'SELECT cl.Value FROM ' . TABLE_CODE_LOOKUP . ' cl WHERE cl.Code = \'';
-		
+
 		$gender = 'Gender: ' . ($this->gender != 'all' && $this->gender != 'N/A' ? getVar($query . e($this->gender) . '\'') : ($this->gender == 'all' ? 'All.' : 'Unknown'));
 		$fsc = 'Funding Source Code: ' . ($this->fsc != 'all' ? getVar($query . e($this->fsc) . '\'') : 'All.');
 		$cps = 'Cognitive Performance Score: ' . ($this->cps != -1 ? $cps : 'All.');
-		$casl = 'Community Access Support Level: ' . ($this->casl != 'all' ? getVar($query . e($this->casl) . '\'') : 'All.');	
+		$casl = 'Community Access Support Level: ' . ($this->casl != 'all' ? getVar($query . e($this->casl) . '\'') : 'All.');
 		$esl = 'Employment Support Level: ' . ($this->esl != 'all' ? getVar($query . e($this->esl) . '\'') : 'All.');
 		$region = 'Region: ' . ($this->region != 'all' ? getVar($query . e($this->region) . '\'') : 'All regions.');
-		
-		
+
+
 		$county = 'County: ';
-		 if ($this->county == 'all')  { $county .= 'All counties.'; } 
+		 if ($this->county == 'all')  { $county .= 'All counties.'; }
 		else if ($this->county == 'CY90') {
 			$county .= 'Mason/Thurston'; }
 		else if ($this->county == 'CY91') {
@@ -667,13 +667,13 @@ UNION SELECT `Value` AS `Option`, `Option1` AS `Value`, `Grouping`  from CombCty
 			$county .= 'Chelan/Douglas'; }
 		else if ($this->county == 'CY93') {
 			$county .= 'Ferry/Stevens'; }
-			
+
 		else {
 			$county .= getVar($query . e($this->county) . '\'');
 		}
 		$provider = 'Provider: ' . ($this->provider != 'all'
 			? getVar('SELECT `Name` FROM ' . TABLE_PROVIDER . ' WHERE `Number` = \'' . e($this->provider) . '\' LIMIT 0,1') : 'All providers.');
-		
+
 		$ageGroup = 'Age Group from: ' . ($this->ageStart > 0 ? $this->ageStart : 'all') . ' to ' . ($this->ageEnd ? $this->ageEnd : 'all');
 		$residenceType = 'Residence Type: ';
 		foreach ($this->residenceTypes as $key => $val) {
@@ -693,14 +693,14 @@ if (!$displayOnly) {
 			$save .= '<div><a href="./?ajax=downloadReport">Download CSV data file</a> | <a id="email-link" href="mailto:?subject=A Report from the Washington State DSHS Employment Reporting Outcomes Information System&body=Here+is+a+report+I+thought+you+would+find+interesting%0A%0A' . urlencode($url) . '">E-mail Report</a> | <form action="' . htmlentities($url, ENT_COMPAT, 'UTF-8') . '&amp;edit=1" method="post" style="display:inline;"><input type="submit" value="Edit Report"/></form></div>';
 		}
 		$save .= '<p><noscript>To print this report go to the File menu and select print</noscript></p>';
-		
-		
+
+
 		return '<div class="float-left"><strong>Filter Settings</strong><br />' . $region . ' '
 			. $county . ' ' . $provider . '<br />' . $gender . '<br />' . $fsc . '<br />'
 			. $cps . '<br />' . $casl . '<br />' . $esl . '<br />' . $ageGroup . '<br />'
-			. $residenceType . $save . '</div>';   
+			. $residenceType . $save . '</div>';
 	}
-	
+
 	protected function generateGraph($rs) {
 		if ($this->getType() != self::TREND) {
 			return '';
@@ -733,7 +733,7 @@ if (!$displayOnly) {
 			  . "<Properties BorderType='None' AutoWidth='True' HJustification='Center' LeftMargin='5' RightMargin='5' FillColor='#ffffff' Font='Size:10; Style:Bold; Color:black;' />"
 			  . "<Text>$axis</Text></Textbox>)";
 		$categoryLabelFont = "graph.AddPCXML(<CategoryScale LimitLabelLength='False' MaxLengthRotatedText='10' StaggerLabels='False' RotateLabels='-45' LowOuterLine='Color:#7f7f7f;' HighOuterLine='Color:#7f7f7f;' MajorTick='Visible:False;' MinorTick='Size:Large;' MajorGrid='Color:#7f7f7f;'  Font='Size:12; Style:Bold Italic; Color:#3366ff;' MinorFont='Size:10;' />)";
-		
+
 		$myImage = new CordaEmbedder();
 		$myImage->externalServerAddress = "69.20.125.203:8080";
 		$myImage->internalCommPortAddress = "69.20.125.203:8081";
@@ -748,8 +748,8 @@ if (!$displayOnly) {
 		#return '<div class="float-left">' . htmlentities($myImage->pcScript, ENT_COMPAT, 'UTF-8') . '</div>';
 		return '<div class="float-left">' . preg_replace('#<(no)?script.*</\1?script>#sUi', '', $myImage->getEmbeddingHTML()) . '</div>';
 	}
-	
-	
+
+
 	public function save($title) {
 		if (strlen($title) === 0) {
 			error('Please provide a name to save the report.');
@@ -766,14 +766,14 @@ if (!$displayOnly) {
 						. e($this->residencyType) . '\')';
 			$rs = fQuery($query);
 			if ($rs->affectedRows() == 0) {
-				error('Unable to save report.');	
+				error('Unable to save report.');
 			} else {
 				header('Location: ./?report=' . $rs->insert_id(), true, 301);
 			}
 		}
 		return true;
 	}
-	
+
 	static public function getSavedReport($id) {
 		$id = intval($id);
 		if ($id <= 0) {
@@ -796,7 +796,7 @@ if (!$displayOnly) {
 		$rpt->setStep(self::STEP_FINAL);
 		return $rpt;
 	}
-	
+
 	static public function getSavedReports() {
 		$rs = fQuery('SELECT ReportID,Title,Type FROM ' . TABLE_USER_REPORT . ' WHERE UserID = ' . user::getInstance()->getID() . ' ORDER BY type,title');
 		if ($rs->queriedRows() == 0) {
@@ -816,7 +816,7 @@ if (!$displayOnly) {
 		}
 		return new h2('Saved Reports') . $l;
 	}
-	
+
 	static public function deleteSavedReport($id) {
 		$id = intval($id);
 		if ($id == 0) {
@@ -826,8 +826,8 @@ if (!$displayOnly) {
 		$rs = fQuery('DELETE FROM ' . TABLE_USER_REPORT . ' WHERE UserID = ' . user::getInstance()->getID() . ' AND ReportID = ' . $id);
 		return $rs->affectedRows() > 0;
 	}
-	
-	
+
+
 	public function setActivity($activity) {
 		preg_match('/^DV\d{2}$/', $activity, $m);
 		if (count($m) > 0) {
@@ -841,7 +841,7 @@ if (!$displayOnly) {
 			// error('Please select a Service Type.');
 		}
 	}
-	
+
 	public function setOutcome($outcome) {
 		$outcome = intval($outcome);
 		if ($outcome === 0) {
@@ -855,7 +855,7 @@ if (!$displayOnly) {
 			$this->outcome = $outcome;
 		}
 	}
-	
+
 	public function setTimeframe($tf) {
 		if (!has_value($tf, 'm') || $tf['m'] < 1 || $tf['m'] > 12
 			|| !has_value($tf, 'y') || $tf['y'] < 2005 || $tf['y'] > date('Y')
@@ -864,7 +864,7 @@ if (!$displayOnly) {
 				exit;
 		}
 		$tf['m'] = $tf['u'] == 'q' ? intval($tf['m']) - ((intval($tf['m']) - 1)  % 3) : intval($tf['m']);
-		
+
 		if (mktime(0,0,0, $tf['m'], 1, $tf['y']) > mktime(0,0,0, date('m') - DATA_RELEASE_DELAY, 1)) {
 			header('Location: ./?' . $_SERVER['QUERY_STRING']);
 			exit;
@@ -878,7 +878,7 @@ if (!$displayOnly) {
 			}
 		}
 	}
-	
+
 	public function setSummary($summary) {
 		$summary = intval($summary);
 		if ($summary > 0 && $summary < 4) {
@@ -887,7 +887,7 @@ if (!$displayOnly) {
 			error('Unknown Summary report.');
 		}
 	}
-	
+
 	public function setRegion($region, $step) {
 		preg_match(REGEX_REGION_CODE, $region, $m);
 		if (count($m) > 0) {
@@ -905,7 +905,7 @@ if (!$displayOnly) {
 			error('Unknown region.');
 		}
 	}
-	
+
 	public function setCounty($county, $step) {
 		preg_match(REGEX_COUNTY_CODE, $county, $m);
 		if (count($m) > 0) {
@@ -925,14 +925,14 @@ if (!$displayOnly) {
 			error('Unknown county code.');
 		}
 	}
-	
+
 	public function setProvider($provider, $step) {
 		if (!empty($provider) && preg_match(REGEX_PROVIDER_NUMBER, $provider, $m)) {
 			$regionCode = $this->region != 'all' ? '`RegionCode` = \'' . e($this->region) . '\'' : '1';
 			if ($this->county == 'all') { $countyCode = '1'; }
-			
+
 				else if ( $this->county == 'CY90' ) { $countyCode =  '(`CountyCode` = \'CY23\' OR `CountyCode` = \'CY34\')' ;
-				} 
+				}
 				else if ( $this->county == 'CY91' ) { $countyCode =  '(`CountyCode` = \'CY03\' OR `CountyCode` = \'CY11\')' ;
 				}
 				else if ( $this->county == 'CY92' ) { $countyCode =  '(`CountyCode` = \'CY04\' OR `CountyCode` = \'CY01\')' ;
@@ -941,8 +941,8 @@ if (!$displayOnly) {
 				} else {
 				$countyCode =  '`CountyCode` = \'' . e($this->county) . '\'' ;
 			}
-				
-			
+
+
 			$rs = fQuery('SELECT DISTINCT `ProviderNumber` FROM ' . TABLE_BILLING . ' WHERE `ProviderNumber` IN (\'' . str_replace(',', "','", e($m[0]))
 					   . '\') AND ' . $regionCode . ' AND ' . $countyCode . ' ');
 			if ($rs->queriedRows() == 0) {
@@ -951,7 +951,7 @@ if (!$displayOnly) {
 				$provider = '';
 				while ($row = $rs->fetchArray()) {
 					$provider .= (empty($provider) ? '' : ',') . $row[0];
-				}					
+				}
 				$this->provider = $provider;
 				$this->setNextStep(hasError() ? $this->getStep() : $step);
 			}
@@ -962,7 +962,7 @@ if (!$displayOnly) {
 			error('Unknown provider.');
 		}
 	}
-	
+
 	public function setGender($gender) {
 		preg_match('#^(?:GN(?:MA|FE)|all|N/A)$#', $gender, $m);
 		if (count($m) > 0) {
@@ -971,7 +971,7 @@ if (!$displayOnly) {
 			error('Invalid Gender selection.');
 		}
 	}
-	
+
 	public function setFundingSource($fsc) {
 		preg_match('/^[a-z0-9+]{1,3}$/i', $fsc, $m);
 			if (count($m) > 0) {
@@ -989,7 +989,7 @@ if (!$displayOnly) {
 				error('Invalid Funding Source.');
 			}
 	}
-	
+
 	public function setCognitivePreformanceScore($cps) {
 		if (isFloat($cps)) {
 				$cps = floatval($cps);
@@ -1002,7 +1002,7 @@ if (!$displayOnly) {
 				error('Invalid Coginitive Preformance Score.');
 			}
 	}
-	
+
 	public function setCommunityAccessSupportLevel($casl) {
 		preg_match('/^(?:0|DL0\d)$/', $casl, $m);
 		if (count($m) > 0 && $m[0] === '0') {
@@ -1018,7 +1018,7 @@ if (!$displayOnly) {
 			error('Invalid Community Access Suport Level.');
 		}
 	}
-	
+
 	public function setEmploymentSupportLevel($esl) {
 		preg_match('/^(?:0|DL0\d)$/', $esl, $m);
 		if (count($m) > 0 && $m[0] == '0') {
@@ -1032,7 +1032,7 @@ if (!$displayOnly) {
 			}
 		}
 	}
-	
+
 	public function setAgeGroup($ag) {
 		if (!has_value($ag, 'start', 0, COMP_GE) || !has_value($ag, 'end', 0, COMP_GE)) {
 			error('Start age or end age missing.');
@@ -1043,7 +1043,7 @@ if (!$displayOnly) {
 			$this->ageEnd = intval($ag['end']);
 		}
 	}
-	
+
 	public function setResidenceType($rt) {
 		$rt = intval($_REQUEST['rt']);
 		if (in_array($rt, $this->residenceTypes)) {
@@ -1051,65 +1051,65 @@ if (!$displayOnly) {
 		} else {
 			error('Unknown Residence Ty;e.');
 		}
-	}	
+	}
 
 	public function getActivity() {
 		return $this->serviceCode;
 	}
-	
+
 	public function getOutcome() {
 		return $this->outcome;
 	}
-	
+
 	public function getTimeFrame() {
 		return $this->timeframe;
 	}
-	
+
 	public function getSummary() {
 		return $this->summary;
 	}
-	
+
 	public function getRegion() {
 		return $this->region;
 	}
-	
+
 	public function getCounty() {
-		
+
 		return $this->county;
 	}
-	
+
 	public function getProvider() {
 		return $this->provider;
 	}
-	
+
 	public function getGender() {
 		return $this->gender;
 	}
-	
+
 	public function getFundingSource() {
 		return $this->fsc;
 	}
-	
+
 	public function getCognitivePerformanceScore() {
 		return $this->cps;
 	}
-	
+
 	public function getCommunityAccessSupportLevel() {
 		return $this->casl;
 	}
-	
+
 	public function getEmploymentSupportLevel() {
 		return $this->esl;
 	}
-	
+
 	public function getAgeGroup() {
 		return $this->ageGroup;
 	}
-	
+
 	public function getResidenceType() {
 		return $this->residenceType;
 	}
-	
+
 	/**
 	 * Copy the current report ot make a complete seperate report.
 	 * @return report
@@ -1127,15 +1127,15 @@ if (!$displayOnly) {
 		}
 		return $rpt;
 	}
-	
+
 	public function getRegions() {
 		return $this->regions;
 	}
-	
+
 	public function getCountiesInRegion($r) {
 		return has_value($this->counties, $r) ? $this->counties[$r] : array();
 	}
-	
+
 	public function getProvidersInRegionCounty($r, $c) {
 		if (has_value($this->providers, $r) && (has_value($this->providers[$r], $c) || in_array($c, array('CY90','CY91','CY92','CY93')))) {
 			if ($c == 'CY91') {
@@ -1151,12 +1151,12 @@ if (!$displayOnly) {
 				$provarray93 = array_merge($this->providers['RG01']['CY10'], $this->providers['RG01']['CY33']);
 				return $provarray93;
 			}
-			
-			
+
+
 		return  $this->providers[$r][$c]; }
 		else { return array(); }
 	}
-	
+
 	public function lastUpdated() {
 		return getVar('SELECT MAX(`ServerYearMonth`) FROM ' . TABLE_BILLING);
 	}

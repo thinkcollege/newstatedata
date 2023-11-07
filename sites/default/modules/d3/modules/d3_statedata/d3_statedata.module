@@ -660,6 +660,12 @@ function d3_statedata_appendix_run_all($firstparameter= null) {
 
 function d3_statedata_appendix_chart($firstparameter = '',$secondparameter = '',$filecall = false,$limitmaxyear = null) {
   $stored =   isset($_SESSION["vars" . $firstparameter]) ? $_SESSION["vars" . $firstparameter] : _d3_statedata_unserialize_stored($firstparameter);
+  $maxyearquery = "SELECT DISTINCT `noDis`.`YEAR` FROM `sta_d3_acs_post08_nodis`
+    `noDis` LEFT JOIN `sta_d3_acs_post08_AnyDis` `anyDis` ON `noDis`.`STATE` = `anyDis`.`STATE` AND `noDis`.`YEAR` =
+     `anyDis`.`YEAR` LEFT JOIN `sta_d3_acs_post08_Cognitive` `postCog` ON `noDis`.`STATE` = `postCog`.`STATE` AND
+      `noDis`.`YEAR` = `postCog`.`YEAR` WHERE (`noDis`.`STATE` = '$state' OR `noDis`.`STATE` = 'US') AND (`noDis`.`YEAR` = (SELECT MAX(`YEAR`) from `sta_d3_acs_post08_nodis` WHERE `STATE` = 'US'))";
+       //$maxyear =  db_query($maxyearquery)->fetchField();
+       $limitmaxyear = $limitmaxyear ? $limitmaxyear : db_query($maxyearquery)->fetchField();
 
   //$table = substr($stored['agency'],0,2) == 'AC' || substr($stored['agency'],0,2) == 'VR' ? $stored['category'] : $stored['agency'];
 
@@ -693,7 +699,7 @@ function d3_statedata_appendix_chart($firstparameter = '',$secondparameter = '',
           `anyDis`.`YEAR` LEFT JOIN `sta_d3_acs_post08_Cognitive` `postCog` ON `noDis`.`STATE` = `postCog`.`STATE` AND
            `noDis`.`YEAR` = `postCog`.`YEAR` WHERE (`noDis`.`STATE` = '$state' OR `noDis`.`STATE` = 'US') AND (`noDis`.`YEAR` = (SELECT MAX(`YEAR`) from `sta_d3_acs_post08_nodis` WHERE `STATE` = 'US'))";
             //$maxyear =  db_query($maxyearquery)->fetchField();
-            $maxyear = db_query($maxyearquery)->fetchField() <= $limitmaxyear ? db_query($maxyearquery)->fetchField() : $limitmaxyear;
+            $maxyear = db_query($maxyearquery)->fetchField() <= $limitmaxyear ? db_query($maxyearquery)->fetchField() : ($limitmaxyear ? $limitmaxyear : db_query($maxyearquery)->fetchField() );
 
            $legend1array = array("Percentage of people with no disability who are employed",
              "Percentage people with any disability who are employed","Percentage people with a cognitive disability who are employed");
@@ -790,8 +796,7 @@ function d3_statedata_appendix_chart($firstparameter = '',$secondparameter = '',
             "Percentage people with any disability who are employed","Percentage people with a cognitive disability who are employed");
 
             $subquery = "SELECT FORMAT((`noDis`.`Perwork` * 100),2) `noDisPerwork`, FORMAT((`anyDis`.`Perwork` * 100),2) `anyDisPerwork`,FORMAT((`postCog`.`Perwork` * 100),2) `postCogPerwork` FROM `sta_d3_acs_post08_nodis`
-              `noDis` LEFT JOIN `sta_d3_acs_post08_AnyDis` `anyDis` ON `noDis`.`STATE` = `anyDis`.`STATE` AND `noDis`.`YEAR` =
-               `anyDis`.`YEAR` LEFT JOIN `sta_d3_acs_post08_Cognitive` `postCog` ON `noDis`.`STATE` = `postCog`.`STATE` AND `noDis`.`YEAR` =
+              `noDis` LEFT JOIN `sta_d3_acs_post08_AnyDis` `anyDis` ON `noDis`.`STATE` = `anyDis`.`STATE` AND `noDis`.`YEAR` =`anyDis`.`YEAR` LEFT JOIN `sta_d3_acs_post08_Cognitive` `postCog` ON `noDis`.`STATE` = `postCog`.`STATE` AND `noDis`.`YEAR` =
                 `postCog`.`YEAR` WHERE `noDis`.`STATE` IN $stategroup2 and `noDis`.`YEAR` = $maxyear ORDER BY FIELD(`noDis`.`STATE`, 'US','$state')";
                  $namefields = array('noDisPerwork','anyDisPerwork','postCogPerwork');
                  $category_name = "Percentage Employed: Working-Age People (Ages 16 to 64), $maxyear";
@@ -806,7 +811,7 @@ function d3_statedata_appendix_chart($firstparameter = '',$secondparameter = '',
 
      $chartvars = $appendix != 'app2' && $appendix != 'app5' ?  db_query($subquery)->fetchAll(PDO::FETCH_ASSOC) : array();
 
-   $numfields = count($chartvars[0]);
+   $numfields = $chartvars[0] ? count($chartvars[0]) : 0;
   if ($appendix == 'app1') {
    for($i = 0; $i < $numfields ; $i ++) {
 

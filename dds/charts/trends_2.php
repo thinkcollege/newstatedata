@@ -1,4 +1,4 @@
-<?php 
+<?php
 ini_set("include_path","../../");
 include("common/classes.php");
 $template = new template;
@@ -7,9 +7,9 @@ $print = !empty($_REQUEST["print"])  && strlen($_REQUEST["print"]) < 3 ? htmlent
 $template->define_file($print ? 'dds_print_template.php' : 'dds_template.php');
 $template->add_region('title', '<?php $mre_base=new mre_base; echo $mre_base->mre_base_sitename;?> - Trend Report');
 $template->add_region('heading', 'Trend Report');
-$template->add_region('sidebar', '<?php $area = "region"; $show_flash_link = ' . ($print + 0) . '; ?>');
+$template->add_region('sidebar', '<?php $area = "region"; $show_flash_link = 0; ?>');
 
-$var	= isset($_REQUEST["var"]) && strlen($_REQUEST["var"]) < 20 ? htmlentities($_REQUEST['var']) : ''; 
+$var	= isset($_REQUEST["var"]) && strlen($_REQUEST["var"]) < 20 ? htmlentities($_REQUEST['var']) : '';
 $f		= dds::getFilterValues();
 $values	= dds::getTrendVariableArray($var);
 $axis	= dds::getRegionAxisLabel($var);
@@ -44,5 +44,5 @@ if (!$print) {
 }
 $template->add_region('content', $html);
 include("header.php");
-$template->make_template(); 
+$template->make_template();
 include("footer.php");

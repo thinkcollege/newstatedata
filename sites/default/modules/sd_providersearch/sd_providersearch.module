@@ -25,6 +25,10 @@
  * form examples. Note that most of the menu items
  * have page callbacks and page arguments set, with
  * page arguments set to be functions in external files.
+ *
+ * error_reporting(E_ALL);
+ * ini_set('display_errors', TRUE);
+ * ini_set('display_startup_errors', TRUE);
  */
   include('sd_providersearch_map.inc');
 function sd_providersearch_menu() {
@@ -196,13 +200,13 @@ function sd_providersearch_intromap() {
  $startmonth =  new DateTime("$now - 16 months");
  $beginmonth = date_format($startmonth, 'Y-m-') . '01';
 
-  $provarrayquery = "select DISTINCT `ProviderNumber` from {ps_billing} WHERE (`ServiceYearMonth` >= '$beginmonth' AND (`ServiceCode` = 'DV29' OR `ServiceCode` = 'DV26') AND `HoursPaid` > 0)";
+  $provarrayquery = "select DISTINCT `ProviderNumber` from `sta_ps_billing` `billing` LEFT JOIN `sta_ps_orgs_wa` `orgs` on `billing`.`ProviderNumber` = `orgs`.`ProviderNumber` WHERE (`ServiceYearMonth` >= '$beginmonth' AND (`ServiceCode` = 'DV29' OR `ServiceCode` = 'DV26') AND `HoursPaid` > 0) AND `orgs`.`long` IS NOT NULL";
   $providerarrayassoc = db_query($provarrayquery)->fetchAll(PDO::FETCH_ASSOC);
   $providerarray = array();
  foreach($providerarrayassoc as $numberkey) { $providerarray[]= $numberkey['ProviderNumber'];}
  $providerarrayflat = implode(',',$providerarray);
 
-$query = "select `orgs`.`id` from {ps_orgs_wa} orgs
+$query = "select `orgs`.`id` from `sta_ps_orgs_wa` orgs
  WHERE  `orgs`.`id` in ($providerarrayflat)";
 $mapids = db_query($query)->fetchAll(PDO::FETCH_ASSOC);
 
@@ -211,7 +215,7 @@ foreach($mapids as $provider) { $idarray[]= $provider['id'];}
 $idtext = implode(',',$idarray);
 
 
- $query = "select  MIN(`orgs`.`lat`) swlat, MIN(`orgs`.`long`) swlong, MAX(`orgs`.`lat`) nelat, MAX(`orgs`.`long`) nelong,((MIN(`orgs`.`lat`) + MAX(`orgs`.`lat`)) /2) midlat, ((MIN(`orgs`.`long`) + MAX(`orgs`.`long`)) /2) midlong from {ps_orgs_wa} orgs  WHERE `orgs`.`id` IN ($idtext)";
+ $query = "select  MIN(`orgs`.`lat`) swlat, MIN(`orgs`.`long`) swlong, MAX(`orgs`.`lat`) nelat, MAX(`orgs`.`long`) nelong,((MIN(`orgs`.`lat`) + MAX(`orgs`.`lat`)) /2) midlat, ((MIN(`orgs`.`long`) + MAX(`orgs`.`long`)) /2) midlong from `sta_ps_orgs_wa` orgs  WHERE `orgs`.`id` IN ($idtext)";
 
 $map_params = db_query($query)->fetch(PDO::FETCH_ASSOC);
 
@@ -259,7 +263,7 @@ $excludes = implode(',',$excludearray);
    $beginmonth = date_format($startmonth, 'Y-m-') . '01';
    $endmonth = date_format($lastmonth, 'Y-m-') . '01';
  db_set_active('default');
- $query = "SELECT DISTINCT(`ProviderNumber`) FROM {ps_billing} WHERE `CountyCode` = :countycode AND `ServiceYearMonth` >= '$beginmonth' " .(!empty($geoprovs) ? "AND ProviderNumber NOT IN ($excludes)" : "") . "ORDER BY `ProviderNumber`";
+ $query = "SELECT DISTINCT(`ProviderNumber`) FROM `sta_ps_billing` `billing` LEFT JOIN `sta_ps_orgs_wa` `orgs` on `billing`.`ProviderNumber` = `orgs`.`id` WHERE `CountyCode` = :countycode AND `ServiceYearMonth` >= '$beginmonth' " .(!empty($geoprovs) ? "AND ProviderNumber NOT IN ($excludes) AND `orgs`.`lat` IS NOT NULL " : "") . "ORDER BY `ProviderNumber`";
  $entries =  db_query($query, array(':countycode' => $countycode))->fetchAll(PDO::FETCH_ASSOC);
  db_set_active('default');
  $countyprovs = array();
@@ -286,7 +290,7 @@ return $countyprovs;
     $beginmonth = date_format($startmonth, 'Y-m-') . '01';
     $endmonth = date_format($lastmonth, 'Y-m-') . '01';
   db_set_active('default');
-  $entries =  db_query("SELECT DISTINCT(`ProviderNumber`) FROM {ps_billing} WHERE `CountyCode` = :countycode AND `ServiceYearMonth` >= '$beginmonth' AND ProviderNumber IN ($countyprovids) ORDER BY `ProviderNumber`", array(':countycode' => $countycode))->fetchAll(PDO::FETCH_ASSOC);
+  $entries =  db_query("SELECT DISTINCT(`ProviderNumber`) FROM `sta_ps_billing` WHERE `CountyCode` = :countycode AND `ServiceYearMonth` >= '$beginmonth' AND ProviderNumber IN ($countyprovids) ORDER BY `ProviderNumber`", array(':countycode' => $countycode))->fetchAll(PDO::FETCH_ASSOC);
 
       if (!empty($entries))
       {
@@ -320,14 +324,14 @@ foreach ($entries as $entry) {
 
  $startmonth =  new DateTime("$now - 16 months");
  $beginmonth = date_format($startmonth, 'Y-m-') . '01';
- $provarrayquery = "select DISTINCT `ProviderNumber` from {ps_billing} WHERE `ServiceYearMonth` >= '$beginmonth' AND `CountyCode` = '$coderesult'";
+ $provarrayquery = "select DISTINCT `ProviderNumber` from `sta_ps_billing` WHERE `ServiceYearMonth` >= '$beginmonth' AND `CountyCode` = '$coderesult'";
  $providerarrayassoc = db_query($provarrayquery)->fetchAll(PDO::FETCH_ASSOC);
  $providerarray = array();
 foreach($providerarrayassoc as $numberkey) { $providerarray[]= $numberkey['ProviderNumber'];}
 $providerarrayflat = implode(',',$providerarray);
 
- $query = "select `id` from {ps_orgs_wa} orgs LEFT JOIN {ps_cities} cities ON LOWER(`orgs`.`city`) = LOWER(`cities`.`Name`) WHERE id in ($providerarrayflat) AND ((`lat` > 0 OR `latitude` > 0) AND( `city` = '$value1'";
- $queryids = sd_providersearch_build_in_clause($zip_result,$value2,$coderesult);
+ $query = "select `id` from `sta_ps_orgs_wa` orgs LEFT JOIN `sta_ps_cities` cities ON LOWER(`orgs`.`city`) = LOWER(`cities`.`Name`) WHERE id in ($providerarrayflat) AND ((`lat` > 0 OR `latitude` > 0) AND( `city` = '$value1'";
+ $queryids = sd_providersearch_build_in_clause($coderesult,$zip_result,$value2);
 
  if($queryids) { $query .= $queryids;
 
@@ -418,7 +422,7 @@ function sd_providersearch_checkbox_action($form,&$form_state, $provid, $agencyn
 
     '#return_value' => "$provid",
     '#attributes' => array(
-       'class' => 'compareChk',
+       'class' => array('compareChk'),
      ),
     '#ajax' => array(
       'callback' => 'sd_providersearch_checkbox_callback',
@@ -578,7 +582,7 @@ if(isset($_SESSION['compareids_cty']))   {
 
 function _sd_providersearch_comparison_reset($form, &$form_state) {
 $_SESSION['compareids'] = array();
-$_SESSION[compareids_cty] = array();
+$_SESSION['compareids_cty'] = array();
 $form_state['rebuild'] = FALSE;
 }
 
@@ -601,7 +605,7 @@ $idarray = array();
 foreach($mapids as $provider) { $idarray[]= $provider[0];}
 $idtext = implode(',',$idarray);
 
- $query = "select MIN(`lat`) swlat, MIN(`long`) swlong, MAX(`lat`) nelat, MAX(`long`) nelong,((MIN(`lat`) + MAX(`lat`)) /2) midlat, ((MIN(`long`) + MAX(`long`)) /2) midlong from {ps_orgs_wa} WHERE `id` IN ($idtext)";
+ $query = "select MIN(`lat`) swlat, MIN(`long`) swlong, MAX(`lat`) nelat, MAX(`long`) nelong,((MIN(`lat`) + MAX(`lat`)) /2) midlat, ((MIN(`long`) + MAX(`long`)) /2) midlong from `sta_ps_orgs_wa` WHERE `id` IN ($idtext)";
 
 $map_params = db_query($query)->fetch(PDO::FETCH_ASSOC);
 
@@ -649,7 +653,7 @@ return $mapblock;
 
    function sd_providersearch_ind_profile($value1,$value2) {
   db_set_active('default');
-   $query = "select DISTINCT (`county_code`) from {ps_cities} WHERE `county` = '$value2'";
+   $query = "select DISTINCT (`county_code`) from `sta_ps_cities` WHERE `county` = '$value2'";
 
   $countysearch = db_query($query)->fetch(PDO::FETCH_ASSOC);
   $countycode = $countysearch['county_code'];
@@ -677,6 +681,11 @@ return $mapblock;
     $hidegroupfigs = $agencytables['groupclientcount'] < 5 && $agencytables['groupclientcount'] > 0 ? TRUE : FALSE;
     $agencyclients = $hideindfigs ? "&nbsp;&dagger;&nbsp;" : $agencytables['clientcount'];
     $agencyclientsind = $hideindfigs ? "&nbsp;&dagger;&nbsp;" :   $agencytables['indclientcount'];
+    $agencyall = $agencytables['allcount'] ? $agencytables['allcount'] : 0;
+    $agencyindempservices = $agencytables['indempservices'] ? $agencytables['indempservices'] : 0;
+    $agencygrpempservices = $agencytables['grpempservices'] ? $agencytables['grpempservices'] : 0;
+    $agencycominclusion = $agencytables['cominclusion'] ? $agencytables['cominclusion'] : 0;
+
 
 
          $agencyclientsgroup = $hidegroupfigs ? "&nbsp;&dagger;&nbsp;" :   $agencytables['groupclientcount'];
@@ -687,42 +696,50 @@ return $mapblock;
 
      $countyclientsind = $countytables['indclientcount'];
      $countyclientsgroup = $countytables['groupclientcount'];
+     $countyall = $countytables['allcount'];
+     $countyindempservices = $countytables['indempservices'];
+     $countygrpempservices = $countytables['grpempservices'] ? $countytables['grpempservices'] : 0;
+     $countycominclusion = $countytables['cominclusion'] ? $countytables['cominclusion'] : 0;
 
      $statetables = _sd_providersearch_client_totals($value1,$beginmonth,$endmonth,$countycode,'state');
       $stateclients = $statetables['clientcount'];
-          $stateclientsind = $statetables['indclientcount'];
-          $stateclientsgroup = $statetables['groupclientcount'];
+      $stateclientsind = $statetables['indclientcount'];
+      $stateclientsgroup = $statetables['groupclientcount'];
+      $stateall = $statetables['allcount'];
+      $stateindempservices = $statetables['indempservices'];
+      $stategrpempservices = $statetables['grpempservices'] ? $statetables['grpempservices'] : 0;
+      $statecominclusion = $statetables['cominclusion'] ? $statetables['cominclusion'] : 0;
 
-       $agencyclientsindpct = $hideindfigs ? "&nbsp;&dagger;&nbsp;" :  sprintf("%.1f%%", ($agencyclients != 0 ? ($agencyclientsind/$agencyclients) * 100 : 0));
-       $agencyclientsgrouppct = $hidegroupfigs ? "&nbsp;&dagger;&nbsp;" : sprintf("%.1f%%", ($agencyclients != 0 ? ($agencyclientsgroup/$agencyclients) * 100 : 0));
+       $agencyclientsindpct = $hideindfigs ? "&nbsp;&dagger;&nbsp;" :  sprintf("%.1f%%", (floatval($agencyclients) != 0 ? (floatval($agencyclientsind)/floatval($agencyclients)) * 100 : 0));
+       $agencyclientsgrouppct = $hidegroupfigs ? "&nbsp;&dagger;&nbsp;" : sprintf("%.1f%%", (floatval($agencyclients) != 0 ? (floatval($agencyclientsgroup)/floatval($agencyclients)) * 100 : 0));
 
 
-       $countyclientsindpct = sprintf("%.1f%%", ($countyclients != 0 ? ($countyclientsind/$countyclients) * 100 : 0));
-       $countyclientsgrouppct = sprintf("%.1f%%", ($countyclients != 0 ? ($countyclientsgroup/$countyclients) * 100 : 0 ));
+       $countyclientsindpct = sprintf("%.1f%%", (floatval($countyclients) != 0 ? (floatval($countyclientsind)/floatval($countyclients)) * 100 : 0));
+       $countyclientsgrouppct = sprintf("%.1f%%", (floatval($countyclients) != 0 ? (floatval($countyclientsgroup)/floatval($countyclients)) * 100 : 0 ));
 
 
-       $stateclientsindpct = sprintf("%.1f%%", ($stateclients != 0 ? ($stateclientsind/$stateclients) * 100 : 0));
-       $stateclientsgrouppct = sprintf("%.1f%%", ($stateclients != 0 ? ($stateclientsgroup/$stateclients) * 100 : 0));
+       $stateclientsindpct = sprintf("%.1f%%", (floatval($stateclients) != 0 ? (floatval($stateclientsind)/floatval($stateclients)) * 100 : 0));
+       $stateclientsgrouppct = sprintf("%.1f%%", (floatval($stateclients) != 0 ? (floatval($stateclientsgroup)/floatval($stateclients)) * 100 : 0));
 
 
 
    setlocale(LC_MONETARY, 'en_US.UTF-8');
-$agencyclientswage = $hidefigs ? "&nbsp;&dagger;&nbsp;" :  money_format('%.2n', $agencytables['totalavgwage']);
-   $agencyclientsindwage = $hideindfigs ? "&nbsp;&dagger;&nbsp;" :  money_format('%.2n',$agencytables['indavgwage']);
+$agencyclientswage = $hidefigs ? "&nbsp;&dagger;&nbsp;" : "$" . sprintf('%01.2f', $agencytables['totalavgwage']);
+   $agencyclientsindwage = $hideindfigs ? "&nbsp;&dagger;&nbsp;" : "$" . sprintf('%01.2f',$agencytables['indavgwage']);
 
 
-        $agencyclientsgroupwage = $hidegroupfigs ? "&nbsp;&dagger;&nbsp;" :  money_format('%.2n',$agencytables['groupavgwage']);
+        $agencyclientsgroupwage = $hidegroupfigs ? "&nbsp;&dagger;&nbsp;" : "$" . sprintf('%01.2f',$agencytables['groupavgwage']);
 
 
 
-    $countyclientswage = money_format('%.2n',$countytables['totalavgwage']);
+    $countyclientswage = "$" . sprintf('%01.2f',$countytables['totalavgwage']);
 
-    $countyclientsindwage = money_format('%.2n',$countytables['indavgwage']);
-    $countyclientsgroupwage = money_format('%.2n',$countytables['groupavgwage']);
+    $countyclientsindwage = "$" . sprintf('%01.2f',$countytables['indavgwage']);
+    $countyclientsgroupwage = "$" . sprintf('%01.2f',$countytables['groupavgwage']);
 
-     $stateclientswage = money_format('%.2n',$statetables['totalavgwage']);
-         $stateclientsindwage = money_format('%.2n',$statetables['indavgwage']);
-         $stateclientsgroupwage = money_format('%.2n',$statetables['groupavgwage']);
+     $stateclientswage = "$" . sprintf('%01.2f',$statetables['totalavgwage']);
+         $stateclientsindwage = "$" . sprintf('%01.2f',$statetables['indavgwage']);
+         $stateclientsgroupwage = "$" . sprintf('%01.2f',$statetables['groupavgwage']);
 
 
 $agencyclientshours = $hidefigs ? "&nbsp;&dagger;&nbsp;" :  number_format( $agencytables['totalavghours'], 1, '.', ',');
@@ -784,14 +801,14 @@ $state912table = _sd_providersearch_client_totals($value1,$beginmonth,$endmonth,
 
 $captionyear = date_format($lastmonth, 'F, Y');
 $captionbeginyear = date_format($startmonth, 'F, Y');
-$firsttable = "<table class=\"providerResult\"><caption>Number of people working for pay: $captionyear</caption><tr><th rowspan=\"2\"></th><th colspan=\"3\">Number of People</th><th colspan=\"2\">Percent of Total</th></tr>
-<tr><th class='hoverTh'><span class='defTerm'>Individual Supported Employment</span><div class='defPop'><p><strong>Individual Supported Employment</strong> services are individualized services necessary to help persons with developmental disabilities obtain and continue integrated, competitive employment in the in a typical community business or industry setting.  This service may include creating work opportunities through job development, support to the employee’s supervisors and/or co-workers to enable them to support the person on the job, on-the-job training, and modification of work site or tasks, employment retention and follow along support, and development of career and promotional opportunities.</p></div></th><th class='hoverTh'><span class='defTerm'>Group Supported Employment</span><div class='defPop'><p><strong>Group Supported Employment</strong> services are a part of a pathway to individual employment.  These services are supervised employment and training activities in a typical business and industry settings for groups of no more than eight (8) workers with disabilities.  Typical program examples include enclaves, mobile crews, and other business-based programs employing small groups of workers with disabilities in integrated employment.  Services are intended to be short term and should further habilitation goals that lead to competitive employment at or above minimum wage.</p></div><th>Total</th><th class='hoverTh'><span class='defTerm'>Individual Supported Employment</span><div class='defPop'><p><strong>Individual Supported Employment</strong> services are individualized services necessary to help persons with developmental disabilities obtain and continue integrated, competitive employment in the in a typical community business or industry setting.  This service may include creating work opportunities through job development, support to the employee’s supervisors and/or co-workers to enable them to support the person on the job, on-the-job training, and modification of work site or tasks, employment retention and follow along support, and development of career and promotional opportunities.</p></div></th><th class='hoverTh'><span class='defTerm'>Group Supported Employment</span><div class='defPop'><p><strong>Group Supported Employment</strong> services are a part of a pathway to individual employment.  These services are supervised employment and training activities in a typical business and industry settings for groups of no more than eight (8) workers with disabilities.  Typical program examples include enclaves, mobile crews, and other business-based programs employing small groups of workers with disabilities in integrated employment.  Services are intended to be short term and should further habilitation goals that lead to competitive employment at or above minimum wage.</p></div></tr>
+$firsttable = "<table class=\"providerResult\"><caption>" . $provider_all['agency'] .  " clients <u>in $countyname County only</u>:  $captionyear &nbsp;&nbsp;&nbsp; Numbers of people:</caption>
+<tr><td></td><th class='hoverTh'>Receiving any DDA service</th><th class='hoverTh'>Receiving <span class='defTerm'>individual supported employment</span> services<div class='defPop'><p><strong>Individual Supported Employment</strong> services are individualized services necessary to help persons with developmental disabilities obtain and continue integrated, competitive employment in the in a typical community business or industry setting.  This service may include creating work opportunities through job development, support to the employee’s supervisors and/or co-workers to enable them to support the person on the job, on-the-job training, and modification of work site or tasks, employment retention and follow along support, and development of career and promotional opportunities.</p></div></th><th class='hoverTh'>Working in an individual job</th><th class='hoverTh'>Receiving <span class='defTerm'>group supported employment</span> services<div class='defPop'><p><strong>Group Supported Employment</strong> services are a part of a pathway to individual employment.  These services are supervised employment and training activities in a typical business and industry settings for groups of no more than eight (8) workers with disabilities.  Typical program examples include enclaves, mobile crews, and other business-based programs employing small groups of workers with disabilities in integrated employment.  Services are intended to be short term and should further habilitation goals that lead to competitive employment at or above minimum wage.</p></div></th><th class='hoverTh'>Working in a group supported job</th><th>Participating in community inclusion</th></tr>
 
-<tr><th>Agency: " . $provider_all['agency'] . "&#42;" . "</th><td>$agencyclientsind</td><td>$agencyclientsgroup</td><td>$agencyclients</td><td>$agencyclientsindpct</td><td>$agencyclientsgrouppct</td></tr>
+<tr><th>Agency: " . $provider_all['agency'] . "&#42;" . "</th><td>$agencyall</td><td>$agencyindempservices</td><td>$agencyclientsind</td><td>$agencygrpempservices</td><td>$agencyclientsgroup</td><td>$agencycominclusion</td></tr>
 
-<tr><th>County: $countyname</th><td>$countyclientsind</td><td>$countyclientsgroup</td><td>$countyclients</td><td>$countyclientsindpct</td><td>$countyclientsgrouppct</td></tr>
+<tr><th>County: $countyname</th><td>$countyall</td><td>$countyindempservices</td><td>$countyclientsind</td><td>$countygrpempservices</td><td>$countyclientsgroup</td><td>$countycominclusion</td></tr>
 
-<tr><th>State</th><td>$stateclientsind</td><td>$stateclientsgroup</td><td>$stateclients</td><td>$stateclientsindpct</td><td>$stateclientsgrouppct</td></tr></table><p><em>&#42; " . $provider_all['agency'] . " clients in $countyname County only.</em>" . ($hidefigs || $hideindfigs || $hidegroupfigs ? "<br><em>&dagger; symbol indicates less than 5 individuals served.  Figures have not been provided to protect individual privacy.</em>" : "") . "</p>";
+<tr><th>State</th><td>$stateall</td><td>$stateindempservices</td><td>$stateclientsind</td><td>$stategrpempservices</td><td>$stateclientsgroup</td><td>$statecominclusion</td></tr></table><p>&nbsp;&nbsp;<br />" . ($hidefigs || $hideindfigs || $hidegroupfigs ? "<br><em>&dagger; symbol indicates less than 5 individuals served.  Figures have not been provided to protect individual privacy.</em>" : "") . "<br />&nbsp;</p>";
 
 
 $secondtable = "<table class=\"providerResult\"><caption>Average weekly wages: $captionyear</caption><tr><th rowspan=\"2\"></th><th colspan=\"3\">Average weekly wages</th></tr>
@@ -801,7 +818,7 @@ $secondtable = "<table class=\"providerResult\"><caption>Average weekly wages: $
 
 <tr><th>County: $countyname</th><td>$countyclientsindwage</td><td>$countyclientsgroupwage</td><td>$countyclientswage</td></tr>
 
-<tr><th>State</th><td>$stateclientsindwage</td><td>$stateclientsgroupwage</td><td>$stateclientswage</td></tr></table><p><em>&#42; " . $provider_all['agency'] . " clients in $countyname County only.</em>" . ($hidefigs || $hideindfigs || $hidegroupfigs ? "<br><em>&dagger; symbol indicates less than 5 individuals served.  Figures have not been provided to protect individual privacy.</em>" : "") . "</p>";
+<tr><th>State</th><td>$stateclientsindwage</td><td>$stateclientsgroupwage</td><td>$stateclientswage</td></tr></table><p>&nbsp;&nbsp;<br /><em>&#42; " . $provider_all['agency'] . " clients in $countyname County only.</em>" . ($hidefigs || $hideindfigs || $hidegroupfigs ? "<br><em>&dagger; symbol indicates less than 5 individuals served.  Figures have not been provided to protect individual privacy.</em>" : "") . "</p>";
 
 
 $thirdtable = "<table class=\"providerResult\"><caption>Average weekly hours: $captionyear</caption><tr><th rowspan=\"2\"></th><th colspan=\"3\">Average weekly hours</th></tr>
@@ -811,7 +828,7 @@ $thirdtable = "<table class=\"providerResult\"><caption>Average weekly hours: $c
 
 <tr><th>County: $countyname</th><td>$countyclientsindhours</td><td>$countyclientsgrouphours</td><td>$countyclientshours</td></tr>
 
-<tr><th>State</th><td>$stateclientsindhours</td><td>$stateclientsgrouphours</td><td>$stateclientshours</td></tr></table><p><em>&#42; " . $provider_all['agency'] . " clients in $countyname County only.</em>" . ($hidefigs || $hideindfigs || $hidegroupfigs  ? "<br><em>&dagger; symbol indicates less than 5 individuals served.  Figures have not been provided to protect individual privacy.</em>" : "") . "</p>";
+<tr><th>State</th><td>$stateclientsindhours</td><td>$stateclientsgrouphours</td><td>$stateclientshours</td></tr></table><p>&nbsp;&nbsp;<br /><em>&#42; " . $provider_all['agency'] . " clients in $countyname County only.</em>" . ($hidefigs || $hideindfigs || $hidegroupfigs  ? "<br><em>&dagger; symbol indicates less than 5 individuals served.  Figures have not been provided to protect individual privacy.</em>" : "") . "</p>";
 $fourthtable = "<table class=\"providerResult\"><caption>Number of people working 9 of the last 12 months: $captionbeginyear through $captionyear</caption><tr><th rowspan=\"2\">&nbsp;</th><th colspan=\"3\">Number of people</th><th colspan=\"3\">Percent of total clients working 9 of 12 months</th></tr>
 <tr><th class='hoverTh'><span class='defTerm'>Individual Supported Employment</span><div class='defPop'><p><strong>Individual Supported Employment</strong> services are individualized services necessary to help persons with developmental disabilities obtain and continue integrated, competitive employment in the in a typical community business or industry setting.  This service may include creating work opportunities through job development, support to the employee’s supervisors and/or co-workers to enable them to support the person on the job, on-the-job training, and modification of work site or tasks, employment retention and follow along support, and development of career and promotional opportunities.</p></div></th><th class='hoverTh'><span class='defTerm'>Group Supported Employment</span><div class='defPop'><p><strong>Group Supported Employment</strong> services are a part of a pathway to individual employment.  These services are supervised employment and training activities in a typical business and industry settings for groups of no more than eight (8) workers with disabilities.  Typical program examples include enclaves, mobile crews, and other business-based programs employing small groups of workers with disabilities in integrated employment.  Services are intended to be short term and should further habilitation goals that lead to competitive employment at or above minimum wage.</p></div><th>Individual and Group</th><th class='hoverTh'><span class='defTerm'>Individual Supported Employment</span><div class='defPop'><p><strong>Individual Supported Employment</strong> services are individualized services necessary to help persons with developmental disabilities obtain and continue integrated, competitive employment in the in a typical community business or industry setting.  This service may include creating work opportunities through job development, support to the employee’s supervisors and/or co-workers to enable them to support the person on the job, on-the-job training, and modification of work site or tasks, employment retention and follow along support, and development of career and promotional opportunities.</p></div></th><th class='hoverTh'><span class='defTerm'>Group Supported Employment</span><div class='defPop'><p><strong>Group Supported Employment</strong> services are a part of a pathway to individual employment.  These services are supervised employment and training activities in a typical business and industry settings for groups of no more than eight (8) workers with disabilities.  Typical program examples include enclaves, mobile crews, and other business-based programs employing small groups of workers with disabilities in integrated employment.  Services are intended to be short term and should further habilitation goals that lead to competitive employment at or above minimum wage.</p></div><th>Individual and Group</th></tr>
 
@@ -819,7 +836,7 @@ $fourthtable = "<table class=\"providerResult\"><caption>Number of people workin
 
 <tr><th>County: $countyname</th><td>$countyclientsind912</td><td>$countyclientsgroup912</td><td>$countyclients912</td><td>$countyclientsind912pct</td><td>$countyclientsgroup912pct</td><td>$countyclients912pct</td></tr>
 
-<tr><th>State</th><td>$stateclientsind912</td><td>$stateclientsgroup912</td><td>$stateclients912</td><td>$stateclientsind912pct</td><td>$stateclientsgroup912pct</td><td>$stateclients912pct</td></tr></table><p><em>&#42; " . $provider_all['agency'] . " clients in $countyname County only.</em></p>";
+<tr><th>State</th><td>$stateclientsind912</td><td>$stateclientsgroup912</td><td>$stateclients912</td><td>$stateclientsind912pct</td><td>$stateclientsgroup912pct</td><td>$stateclients912pct</td></tr></table><p>&nbsp;&nbsp;<br /><em>&#42; " . $provider_all['agency'] . " clients in $countyname County only.</em></p>";
 
 $jobtest = array_filter($jobtables);
 
@@ -863,132 +880,136 @@ return $build;
 
 
  function sd_providersearch_agency_comparison() {
-if(empty($_SESSION['compareids']))
- { $build['sometext'] = array( drupal_set_message(t("No agencies selected for comparison.  Please search again using the form on the left and check the boxes next to agency names to build a comparison list")));
-return $build; } else
-{ $providernos = array();
-$provcounty = array();
-$providernos = $_SESSION['compareids'];
-$countyarray = $_SESSION['compareids_cty'];
-for($i = 0; $i < count($countyarray); $i++) {
-foreach($countyarray[$i] as $key => $value) {
-if(in_array($key,$providernos)){
-$provcounty[] = array($key =>$value);
-}
-}
-}
-    $now = date('Y-m');
-   $lastmonth= new DateTime("$now - 5 months");
-   $startmonth =  new DateTime("$now - 16 months");
-   $beginmonth = date_format($startmonth, 'Y-m-') . '01';
-   $endmonth = date_format($lastmonth, 'Y-m-') . '01';
-$captionyear = date_format($lastmonth, 'F, Y');
-$captionbeginyear = date_format($startmonth, 'F, Y');
-$firsttable = "<table class=\"providerResult\"><caption>Number of people working for pay: $captionyear</caption><tr><th rowspan=\"2\">Agency Name and County</th><th colspan=\"3\">Number of People</th><th colspan=\"2\">Percent of Total</th></tr>
-<tr><th class='hoverTh'><span class='defTerm'>Individual Supported Employment</span><div class='defPop'><p><strong>Individual Supported Employment</strong> services are individualized services necessary to help persons with developmental disabilities obtain and continue integrated, competitive employment in the in a typical community business or industry setting.  This service may include creating work opportunities through job development, support to the employee’s supervisors and/or co-workers to enable them to support the person on the job, on-the-job training, and modification of work site or tasks, employment retention and follow along support, and development of career and promotional opportunities.</p></div></th><th class='hoverTh'><span class='defTerm'>Group Supported Employment</span><div class='defPop'><p><strong>Group Supported Employment</strong> services are a part of a pathway to individual employment.  These services are supervised employment and training activities in a typical business and industry settings for groups of no more than eight (8) workers with disabilities.  Typical program examples include enclaves, mobile crews, and other business-based programs employing small groups of workers with disabilities in integrated employment.  Services are intended to be short term and should further habilitation goals that lead to competitive employment at or above minimum wage.</p></div><th>Total</th><th class='hoverTh'><span class='defTerm'>Individual Supported Employment</span><div class='defPop'><p><strong>Individual Supported Employment</strong> services are individualized services necessary to help persons with developmental disabilities obtain and continue integrated, competitive employment in the in a typical community business or industry setting.  This service may include creating work opportunities through job development, support to the employee’s supervisors and/or co-workers to enable them to support the person on the job, on-the-job training, and modification of work site or tasks, employment retention and follow along support, and development of career and promotional opportunities.</p></div></th><th class='hoverTh'><span class='defTerm'>Group Supported Employment</span><div class='defPop'><p><strong>Group Supported Employment</strong> services are a part of a pathway to individual employment.  These services are supervised employment and training activities in a typical business and industry settings for groups of no more than eight (8) workers with disabilities.  Typical program examples include enclaves, mobile crews, and other business-based programs employing small groups of workers with disabilities in integrated employment.  Services are intended to be short term and should further habilitation goals that lead to competitive employment at or above minimum wage.</p></div></tr>";
-
-
-$secondtable = "<table class=\"providerResult\"><caption>Average weekly wages: $captionyear</caption><tr><th rowspan=\"2\">Agency and County</th><th colspan=\"3\">Average weekly wages</th></tr>
-<tr><th class='hoverTh'><span class='defTerm'>Individual Supported Employment</span><div class='defPop'><p><strong>Individual Supported Employment</strong> services are individualized services necessary to help persons with developmental disabilities obtain and continue integrated, competitive employment in the in a typical community business or industry setting.  This service may include creating work opportunities through job development, support to the employee’s supervisors and/or co-workers to enable them to support the person on the job, on-the-job training, and modification of work site or tasks, employment retention and follow along support, and development of career and promotional opportunities.</p></div></th><th class='hoverTh'><span class='defTerm'>Group Supported Employment</span><div class='defPop'><p><strong>Group Supported Employment</strong> services are a part of a pathway to individual employment.  These services are supervised employment and training activities in a typical business and industry settings for groups of no more than eight (8) workers with disabilities.  Typical program examples include enclaves, mobile crews, and other business-based programs employing small groups of workers with disabilities in integrated employment.  Services are intended to be short term and should further habilitation goals that lead to competitive employment at or above minimum wage.</p></div><th>All Job Types</th></tr>";
-
-$thirdtable = "<table class=\"providerResult\"><caption>Average weekly hours: $captionyear</caption><tr><th rowspan=\"2\">Agency and County</th><th colspan=\"3\">Average weekly hours</th></tr>
-<tr><th class='hoverTh'><span class='defTerm'>Individual Supported Employment</span><div class='defPop'><p><strong>Individual Supported Employment</strong> services are individualized services necessary to help persons with developmental disabilities obtain and continue integrated, competitive employment in the in a typical community business or industry setting.  This service may include creating work opportunities through job development, support to the employee’s supervisors and/or co-workers to enable them to support the person on the job, on-the-job training, and modification of work site or tasks, employment retention and follow along support, and development of career and promotional opportunities.</p></div></th><th class='hoverTh'><span class='defTerm'>Group Supported Employment</span><div class='defPop'><p><strong>Group Supported Employment</strong> services are a part of a pathway to individual employment.  These services are supervised employment and training activities in a typical business and industry settings for groups of no more than eight (8) workers with disabilities.  Typical program examples include enclaves, mobile crews, and other business-based programs employing small groups of workers with disabilities in integrated employment.  Services are intended to be short term and should further habilitation goals that lead to competitive employment at or above minimum wage.</p></div><th>All work settings</th></tr>";
-
-$fourthtable = "<table class=\"providerResult\"><caption>Number of people working 9 of the last 12 months: $captionbeginyear through $captionyear</caption><tr><th rowspan=\"2\">Agency and County</th><th colspan=\"3\">Number of people</th><th colspan=\"3\">Percent of total clients working 9 of 12 months</th></tr><tr><th class='hoverTh'><span class='defTerm'>Individual Supported Employment</span><div class='defPop'><p><strong>Individual Supported Employment</strong> services are individualized services necessary to help persons with developmental disabilities obtain and continue integrated, competitive employment in the in a typical community business or industry setting.  This service may include creating work opportunities through job development, support to the employee’s supervisors and/or co-workers to enable them to support the person on the job, on-the-job training, and modification of work site or tasks, employment retention and follow along support, and development of career and promotional opportunities.</p></div></th><th class='hoverTh'><span class='defTerm'>Group Supported Employment</span><div class='defPop'><p><strong>Group Supported Employment</strong> services are a part of a pathway to individual employment.  These services are supervised employment and training activities in a typical business and industry settings for groups of no more than eight (8) workers with disabilities.  Typical program examples include enclaves, mobile crews, and other business-based programs employing small groups of workers with disabilities in integrated employment.  Services are intended to be short term and should further habilitation goals that lead to competitive employment at or above minimum wage.</p></div><th>Individual and Group</th><th class='hoverTh'><span class='defTerm'>Individual Supported Employment</span><div class='defPop'><p><strong>Individual Supported Employment</strong> services are individualized services necessary to help persons with developmental disabilities obtain and continue integrated, competitive employment in the in a typical community business or industry setting.  This service may include creating work opportunities through job development, support to the employee’s supervisors and/or co-workers to enable them to support the person on the job, on-the-job training, and modification of work site or tasks, employment retention and follow along support, and development of career and promotional opportunities.</p></div></th><th class='hoverTh'><span class='defTerm'>Group Supported Employment</span><div class='defPop'><p><strong>Group Supported Employment</strong> services are a part of a pathway to individual employment.  These services are supervised employment and training activities in a typical business and industry settings for groups of no more than eight (8) workers with disabilities.  Typical program examples include enclaves, mobile crews, and other business-based programs employing small groups of workers with disabilities in integrated employment.  Services are intended to be short term and should further habilitation goals that lead to competitive employment at or above minimum wage.</p></div><th>Individual and Group</th></tr>";
- $hidefigscount = 0; $hideindfigscount = 0;$hidegroupfigs = 0;
-for($i = 0; $i < count($provcounty); $i++) { foreach($provcounty[$i] as $key => $value) {
-$thisprov = $key;
-$countyarg = $value;
-// echo"<br />Thisprov: $thisprov<br />Countyarg: $countyarg<br />";
- $provider_all = sd_providersearch_agency_details($thisprov,$countyarg);
-   $countycode = $provider_all['countycode'];
-   $countyname = $provider_all['countyname'];
-
-
-
-    $agencytables = _sd_providersearch_client_totals($thisprov,$beginmonth,$endmonth,$countycode,'agency',$provider_all['agency']);
-    $hidefigs = $agencytables['clientcount'] < 5 ? TRUE : FALSE;
-    $hideindfigs = $agencytables['indclientcount'] < 5  && $agencytables['indclientcount'] > 0 ? TRUE : FALSE;
-    $hidegroupfigs = $agencytables['groupclientcount'] < 5  && $agencytables['groupclientcount'] > 0 ? TRUE : FALSE;
-
-    $agencyclients = $hidefigs ? "&nbsp;&dagger;&nbsp;" : $agencytables['clientcount'];
-
-    $agencyclientsind = $hideindfigs ? "&nbsp;&dagger;&nbsp;" :   $agencytables['indclientcount'];
-
-
-         $agencyclientsgroup = $hidegroupfigs ? "&nbsp;&dagger;&nbsp;" :   $agencytables['groupclientcount'];
-
-
-       $agencyclientsindpct = $hideindfigs ? "&nbsp;&dagger;&nbsp;" :  sprintf("%.1f%%", ($agencyclientsind/$agencyclients) * 100);
-       $agencyclientsgrouppct = $hidegroupfigs ? "&nbsp;&dagger;&nbsp;" :  sprintf("%.1f%%", ($agencyclientsgroup/$agencyclients) * 100);
-
-
-
-
-
-   setlocale(LC_MONETARY, 'en_US.UTF-8');
-$agencyclientswage = $hidefigs ? "&nbsp;&dagger;&nbsp;" :  money_format('%.2n', $agencytables['totalavgwage']);
-   $agencyclientsindwage = $hideindfigs ? "&nbsp;&dagger;&nbsp;" :  money_format('%.2n',$agencytables['indavgwage']);
-
-
-        $agencyclientsgroupwage = $hidegroupfigs ? "&nbsp;&dagger;&nbsp;" :  money_format('%.2n',$agencytables['groupavgwage']);
-
-
-
-
-$agencyclientshours = $hidefigs ? "&nbsp;&dagger;&nbsp;" :  number_format( $agencytables['totalavghours'], 1, '.', ',');
-   $agencyclientsindhours = $hideindfigs ? "&nbsp;&dagger;&nbsp;" :   number_format($agencytables['indavghours'], 1, '.', ',');
-
-
-        $agencyclientsgrouphours = $hidegroupfigs ? "&nbsp;&dagger;&nbsp;" :  number_format($agencytables['groupavghours'], 1, '.', ',');
-
-
-
-
-   $agency912table = _sd_providersearch_client_totals($thisprov,$beginmonth,$endmonth,$countycode,'agency912',$provider_all['agency']);
-
-   $agencyclients912 = $agency912table['9of12'];
-   $agencyclientsind912 = $agency912table['indtotal912'];
-
-
-        $agencyclientsgroup912 = $agency912table['grouptotal912'];
-
-
-   $agencyclients912pct = sprintf("%.1f%%", ($agency912table['9of12']/$agency912table['all']) * 100);
-
-
-
-        $agencyclientsgroup912pct = sprintf("%.1f%%", ($agency912table['grouptotal912']/$agency912table['grouptotal']) * 100);
-
-   $agencyclientsind912pct = sprintf("%.1f%%", ($agency912table['indtotal912']/$agency912table['indtotal']) * 100);
-
-
-$agencylink = "<a href=\"/washington/profile/$thisprov/" . $provider_all['countyname'] . "\">" . $provider_all['agency'] . "</a> (in " . $provider_all['countyname'] . " County)";
-
-$firsttable .= "<tr><th>$agencylink</th><td>$agencyclientsind</td><td>$agencyclientsgroup</td><td>$agencyclients</td><td>$agencyclientsindpct</td><td>$agencyclientsgrouppct</td></tr>";
-
-
-
-
-
-$secondtable .= "<tr><th>$agencylink</th><td>$agencyclientsindwage</td><td>$agencyclientsgroupwage</td><td>$agencyclientswage</td></tr>";
-
-
-
-$thirdtable .= "<tr><th>$agencylink</th><td>$agencyclientsindhours</td><td>$agencyclientsgrouphours</td><td>$agencyclientshours</td></tr>";
-
-$fourthtable .= "<tr><th>$agencylink</th><td>$agencyclientsind912</td><td>$agencyclientsgroup912</td><td>$agencyclients912</td><td>$agencyclientsind912pct</td><td>$agencyclientsgroup912pct</td><td>$agencyclients912pct</td></tr>";
-
-
-
-if ($hidefigs) $hidefigscount ++;
-if ($hideindfigs) $hideindfigscount ++;
-
-if ($hidegroupfigs) $hidegroupfigscount ++;
-
-
-
+   if(empty($_SESSION['compareids']))
+   { $build['sometext'] = array( drupal_set_message(t("No agencies selected for comparison.  Please search again using the form on the left and check the boxes next to agency names to build a comparison list")));
+  return $build; } else
+  { $providernos = array();
+  $provcounty = array();
+  $providernos = $_SESSION['compareids'];
+  $countyarray = $_SESSION['compareids_cty'];
+  for($i = 0; $i < count($countyarray); $i++) {
+    foreach($countyarray[$i] as $key => $value) {
+      if(in_array($key,$providernos)){
+        $provcounty[] = array($key =>$value);
+        }
+    }
   }
+      $now = date('Y-m');
+     $lastmonth= new DateTime("$now - 5 months");
+     $startmonth =  new DateTime("$now - 16 months");
+     $beginmonth = date_format($startmonth, 'Y-m-') . '01';
+     $endmonth = date_format($lastmonth, 'Y-m-') . '01';
+  $captionyear = date_format($lastmonth, 'F, Y');
+  $captionbeginyear = date_format($startmonth, 'F, Y');
+  $firsttable = "<table class=\"providerResult\"><caption>Number of people: $captionyear</caption><tr><td></td><th class='hoverTh'>Receiving any DDA service</th><th class='hoverTh'>Receiving <span class='defTerm'>individual supported employment</span> services<div class='defPop'><p><strong>Individual Supported Employment</strong> services are individualized services necessary to help persons with developmental disabilities obtain and continue integrated, competitive employment in the in a typical community business or industry setting.  This service may include creating work opportunities through job development, support to the employee’s supervisors and/or co-workers to enable them to support the person on the job, on-the-job training, and modification of work site or tasks, employment retention and follow along support, and development of career and promotional opportunities.</p></div></th><th class='hoverTh'>Working in an individual job</th><th class='hoverTh'>Receiving <span class='defTerm'>group supported employment</span> services<div class='defPop'><p><strong>Group Supported Employment</strong> services are a part of a pathway to individual employment.  These services are supervised employment and training activities in a typical business and industry settings for groups of no more than eight (8) workers with disabilities.  Typical program examples include enclaves, mobile crews, and other business-based programs employing small groups of workers with disabilities in integrated employment.  Services are intended to be short term and should further habilitation goals that lead to competitive employment at or above minimum wage.</p></div></th><th class='hoverTh'>Working in a group supported job</th><th>Participating in community inclusion</th></tr>";
+
+
+  $secondtable = "<table class=\"providerResult\"><caption>Average weekly wages: $captionyear</caption><tr><th rowspan=\"2\">Agency and County</th><th colspan=\"3\">Average weekly wages</th></tr>
+  <tr><th class='hoverTh'><span class='defTerm'>Individual Supported Employment</span><div class='defPop'><p><strong>Individual Supported Employment</strong> services are individualized services necessary to help persons with developmental disabilities obtain and continue integrated, competitive employment in the in a typical community business or industry setting.  This service may include creating work opportunities through job development, support to the employee’s supervisors and/or co-workers to enable them to support the person on the job, on-the-job training, and modification of work site or tasks, employment retention and follow along support, and development of career and promotional opportunities.</p></div></th><th class='hoverTh'><span class='defTerm'>Group Supported Employment</span><div class='defPop'><p><strong>Group Supported Employment</strong> services are a part of a pathway to individual employment.  These services are supervised employment and training activities in a typical business and industry settings for groups of no more than eight (8) workers with disabilities.  Typical program examples include enclaves, mobile crews, and other business-based programs employing small groups of workers with disabilities in integrated employment.  Services are intended to be short term and should further habilitation goals that lead to competitive employment at or above minimum wage.</p></div><th>All Job Types</th></tr>";
+
+  $thirdtable = "<table class=\"providerResult\"><caption>Average weekly hours: $captionyear</caption><tr><th rowspan=\"2\">Agency and County</th><th colspan=\"3\">Average weekly hours</th></tr>
+  <tr><th class='hoverTh'><span class='defTerm'>Individual Supported Employment</span><div class='defPop'><p><strong>Individual Supported Employment</strong> services are individualized services necessary to help persons with developmental disabilities obtain and continue integrated, competitive employment in the in a typical community business or industry setting.  This service may include creating work opportunities through job development, support to the employee’s supervisors and/or co-workers to enable them to support the person on the job, on-the-job training, and modification of work site or tasks, employment retention and follow along support, and development of career and promotional opportunities.</p></div></th><th class='hoverTh'><span class='defTerm'>Group Supported Employment</span><div class='defPop'><p><strong>Group Supported Employment</strong> services are a part of a pathway to individual employment.  These services are supervised employment and training activities in a typical business and industry settings for groups of no more than eight (8) workers with disabilities.  Typical program examples include enclaves, mobile crews, and other business-based programs employing small groups of workers with disabilities in integrated employment.  Services are intended to be short term and should further habilitation goals that lead to competitive employment at or above minimum wage.</p></div><th>All work settings</th></tr>";
+
+  $fourthtable = "<table class=\"providerResult\"><caption>Number of people working 9 of the last 12 months: $captionbeginyear through $captionyear</caption><tr><th rowspan=\"2\">Agency and County</th><th colspan=\"3\">Number of people</th><th colspan=\"3\">Percent of total clients working 9 of 12 months</th></tr><tr><th class='hoverTh'><span class='defTerm'>Individual Supported Employment</span><div class='defPop'><p><strong>Individual Supported Employment</strong> services are individualized services necessary to help persons with developmental disabilities obtain and continue integrated, competitive employment in the in a typical community business or industry setting.  This service may include creating work opportunities through job development, support to the employee’s supervisors and/or co-workers to enable them to support the person on the job, on-the-job training, and modification of work site or tasks, employment retention and follow along support, and development of career and promotional opportunities.</p></div></th><th class='hoverTh'><span class='defTerm'>Group Supported Employment</span><div class='defPop'><p><strong>Group Supported Employment</strong> services are a part of a pathway to individual employment.  These services are supervised employment and training activities in a typical business and industry settings for groups of no more than eight (8) workers with disabilities.  Typical program examples include enclaves, mobile crews, and other business-based programs employing small groups of workers with disabilities in integrated employment.  Services are intended to be short term and should further habilitation goals that lead to competitive employment at or above minimum wage.</p></div><th>Individual and Group</th><th class='hoverTh'><span class='defTerm'>Individual Supported Employment</span><div class='defPop'><p><strong>Individual Supported Employment</strong> services are individualized services necessary to help persons with developmental disabilities obtain and continue integrated, competitive employment in the in a typical community business or industry setting.  This service may include creating work opportunities through job development, support to the employee’s supervisors and/or co-workers to enable them to support the person on the job, on-the-job training, and modification of work site or tasks, employment retention and follow along support, and development of career and promotional opportunities.</p></div></th><th class='hoverTh'><span class='defTerm'>Group Supported Employment</span><div class='defPop'><p><strong>Group Supported Employment</strong> services are a part of a pathway to individual employment.  These services are supervised employment and training activities in a typical business and industry settings for groups of no more than eight (8) workers with disabilities.  Typical program examples include enclaves, mobile crews, and other business-based programs employing small groups of workers with disabilities in integrated employment.  Services are intended to be short term and should further habilitation goals that lead to competitive employment at or above minimum wage.</p></div><th>Individual and Group</th></tr>";
+   $hidefigscount = 0; $hideindfigscount = 0;$hidegroupfigs = 0;
+  for($i = 0; $i < count($provcounty); $i++) {
+    foreach($provcounty[$i] as $key => $value) {
+      $thisprov = $key;
+      $countyarg = $value;
+      // echo"<br />Thisprov: $thisprov<br />Countyarg: $countyarg<br />";
+      $provider_all = sd_providersearch_agency_details($thisprov,$countyarg);
+      $countycode = $provider_all['countycode'];
+      $countyname = $provider_all['countyname'];
+
+
+
+      $agencytables = _sd_providersearch_client_totals($thisprov,$beginmonth,$endmonth,$countycode,'agency',$provider_all['agency']);
+      $hidefigs = $agencytables['clientcount'] < 5 ? TRUE : FALSE;
+      $hideindfigs = $agencytables['indclientcount'] < 5  && $agencytables['indclientcount'] > 0 ? TRUE : FALSE;
+      $hidegroupfigs = $agencytables['groupclientcount'] < 5  && $agencytables['groupclientcount'] > 0 ? TRUE : FALSE;
+
+      $agencyclients = $hidefigs ? "&nbsp;&dagger;&nbsp;" : $agencytables['clientcount'];
+
+      $agencyclientsind = $hideindfigs ? "&nbsp;&dagger;&nbsp;" :   $agencytables['indclientcount'];
+
+
+      $agencyclientsgroup = $hidegroupfigs ? "&nbsp;&dagger;&nbsp;" :   $agencytables['groupclientcount'];
+      $agencyall = $agencytables['allcount'] < 5 && $agencytables['allcount'] > 0 ? "&nbsp;&dagger;&nbsp;" :$agencytables['allcount'];
+      $agencyindempservices = $agencytables['indempservices'] < 5 && $agencytables['indempservices'] > 0 ? "&nbsp;&dagger;&nbsp;" : $agencytables['indempservices'] ;
+      $agencygrpempservices = $agencytables['grpempservices'] < 5 && $agencytables['grpempservices'] > 0 ? "&nbsp;&dagger;&nbsp;" : $agencytables['grpempservices'];
+      $agencycominclusion = $agencytables['cominclusion'] ? $agencytables['cominclusion'] : 0;
+
+
+       $agencyclientsindpct = $hideindfigs ||floatval($agencyclients) <= 0 ? "&nbsp;&dagger;&nbsp;" :  sprintf("%.1f%%", (floatval($agencyclientsind)/floatval($agencyclients)) * 100);
+       $agencyclientsgrouppct = $hidegroupfigs ||floatval($agencyclients) <= 0  ? "&nbsp;&dagger;&nbsp;" :  sprintf("%.1f%%", (floatval($agencyclientsgroup)/floatval($agencyclients)) * 100);
+
+
+
+
+
+       setlocale(LC_MONETARY, 'en_US.UTF-8');
+       $agencyclientswage = $hidefigs ? "&nbsp;&dagger;&nbsp;" : sprintf('%01.2f', $agencytables['totalavgwage']);
+       $agencyclientsindwage = $hideindfigs ? "&nbsp;&dagger;&nbsp;" : sprintf('%01.2f',$agencytables['indavgwage']);
+
+
+      $agencyclientsgroupwage = $hidegroupfigs ? "&nbsp;&dagger;&nbsp;" : sprintf('%01.2f',$agencytables['groupavgwage']);
+
+
+
+
+      $agencyclientshours = $hidefigs ? "&nbsp;&dagger;&nbsp;" :  number_format( $agencytables['totalavghours'], 1, '.', ',');
+      $agencyclientsindhours = $hideindfigs ? "&nbsp;&dagger;&nbsp;" :   number_format($agencytables['indavghours'], 1, '.', ',');
+
+
+      $agencyclientsgrouphours = $hidegroupfigs ? "&nbsp;&dagger;&nbsp;" :  number_format($agencytables['groupavghours'], 1, '.', ',');
+
+
+
+
+     $agency912table = _sd_providersearch_client_totals($thisprov,$beginmonth,$endmonth,$countycode,'agency912',$provider_all['agency']);
+
+     $agencyclients912 = $agency912table['9of12'];
+     $agencyclientsind912 = $agency912table['indtotal912'];
+
+
+      $agencyclientsgroup912 = $agency912table['grouptotal912'];
+
+
+      $agencyclients912pct = sprintf("%.1f%%", ($agency912table['9of12']/$agency912table['all']) * 100);
+
+
+
+      $agencyclientsgroup912pct = $agency912table['grouptotal912'] > 0 ? sprintf("%.1f%%", ($agency912table['grouptotal912']/$agency912table['grouptotal']) * 100) : 0;
+
+      $agencyclientsind912pct = floatval($agency912table['indtotal']) > 0 ? sprintf("%.1f%%", (floatval($agency912table['indtotal912'])/floatval($agency912table['indtotal'])) * 100) : 0;
+
+
+      $agencylink = "<a href=\"/washington/profile/$thisprov/" . $provider_all['countyname'] . "\">" . $provider_all['agency'] . "</a> (in " . $provider_all['countyname'] . " County)";
+
+      $firsttable .= "<tr><th>$agencylink</th><td>$agencyall</td><td>$agencyindempservices</td><td>$agencyclientsind</td><td>$agencygrpempservices</td><td>$agencyclientsgroup</td><td>$agencycominclusion</td></tr>";
+
+
+
+
+
+      $secondtable .= "<tr><th>$agencylink</th><td>$agencyclientsindwage</td><td>$agencyclientsgroupwage</td><td>$agencyclientswage</td></tr>";
+
+
+
+      $thirdtable .= "<tr><th>$agencylink</th><td>$agencyclientsindhours</td><td>$agencyclientsgrouphours</td><td>$agencyclientshours</td></tr>";
+
+      $fourthtable .= "<tr><th>$agencylink</th><td>$agencyclientsind912</td><td>$agencyclientsgroup912</td><td>$agencyclients912</td><td>$agencyclientsind912pct</td><td>$agencyclientsgroup912pct</td><td>$agencyclients912pct</td></tr>";
+
+
+
+      if ($hidefigs) $hidefigscount ++;
+      if ($hideindfigs) $hideindfigscount ++;
+
+      if ($hidegroupfigs) $hidegroupfigscount ++;
+
+
+
+    }
   }
  $firsttable .= "</table>" . ($hidefigscount > 0 || $hideindfigscount > 0 || $hidegroupfigscount > 0 ? "<br /><strong><em>&dagger; symbol indicates less than 5 individuals served.  Figures have not been provided to protect individual privacy.</em></strong>" : "") . "<br /> <br />";
  $secondtable .= "</table>" . ($hidefigscount > 0 || $hideindfigscount > 0 || $hidegroupfigscount > 0  ? "<br /><strong><em>&dagger; symbol indicates less than 5 individuals served.  Figures have not been provided to protect individual privacy.</em></strong>" : "") . "<br /> <br />";
@@ -1011,7 +1032,7 @@ return $build;
 
 
 
-function sd_providersearch_build_in_clause ($zip_code, $range="5",$county)
+function sd_providersearch_build_in_clause ($county,$zip_code,$range="5")
 {
 
 	$count = 0;
@@ -1043,14 +1064,14 @@ function sd_providersearch_agency_details($agency_id, $county = '') {
  $startmonth =  new DateTime("$now - 16 months");
  $beginmonth = date_format($startmonth, 'Y-m-') . 1;
  $endmonth = date_format($lastmonth, 'Y-m-') . 1;
- $query = "select * from {ps_orgs_wa} orgs LEFT JOIN {ps_cities} cities ON LOWER(`orgs`.`city`) = LOWER(`cities`.`Name`) WHERE `id` = $agency_id LIMIT 1";
+ $query = "select * from `sta_ps_orgs_wa` orgs LEFT JOIN `sta_ps_cities` cities ON LOWER(`orgs`.`city`) = LOWER(`cities`.`Name`) WHERE `id` = $agency_id LIMIT 1";
  $agency_query = db_query($query)->fetch(PDO::FETCH_ASSOC);
 
 
  db_set_active('default');
- $query2 = $county && $county != '' ? "SELECT `codes`.`Code` `countycode`,`codes`.`Value` `countyname` from {ps_code_lookup} codes  WHERE `codes`.`Code` = '$county'" : "SELECT COUNT(`codes`.`Code`) `countycount`,`codes`.`Code` `countycode`,`codes`.`Value` `countyname` from {ps_billing} billing LEFT JOIN {ps_code_lookup} codes on `billing`.`CountyCode` = `codes`.`Code` WHERE `ProviderNumber` = $agency_id AND `billing`.`ServiceYearMonth` >= '$beginmonth' AND `billing`.`ServiceYearMonth` <= '$endmonth' GROUP BY `codes`.`Code` ORDER BY COUNT(`codes`.`Code`) DESC LIMIT 1";
+ $query2 = $county && $county != '' ? "SELECT `codes`.`Code` `countycode`,`codes`.`Value` `countyname` from `sta_ps_code_lookup` codes  WHERE `codes`.`Code` = '$county'" : "SELECT COUNT(`codes`.`Code`) `countycount`,`codes`.`Code` `countycode`,`codes`.`Value` `countyname` from `sta_ps_billing` billing LEFT JOIN `sta_ps_code_lookup` codes on `billing`.`CountyCode` = `codes`.`Code` WHERE `ProviderNumber` = $agency_id AND `billing`.`ServiceYearMonth` >= '$beginmonth' AND `billing`.`ServiceYearMonth` <= '$endmonth' GROUP BY `codes`.`Code` ORDER BY COUNT(`codes`.`Code`) DESC LIMIT 1";
 
- 
+
 // Setup a cache ID
 $cid = 'sd_providersearch:agency_details:' . $agency_id . $county . $countyname;
 // If a cached entry exists, return it
@@ -1062,13 +1083,13 @@ if ($cached = cache_get($cid)) {
 
 // And cache it
 cache_set($cid, $agency_query2, 'cache', strtotime('+5 days'));
-  
+
 
 
 
 	}
 
-   if (!$agency_query['city'] || $agency_query['city'] == '') { $altquery = "select * from  {ps_cities} cities  WHERE `county` = '" . $agency_query2['countyname'] . "' AND county_seat = 1 LIMIT 1";
+   if (!$agency_query['city'] || $agency_query['city'] == '') { $altquery = "select * from  `sta_ps_cities` cities  WHERE `county` = '" . $agency_query2['countyname'] . "' AND county_seat = 1 LIMIT 1";
    $agency_query_alt = db_query($altquery)->fetch(PDO::FETCH_ASSOC);
    $agency_query['city'] = $agency_query_alt['Name'];
    $agency_query['longitude'] = $agency_query_alt['longitude'];
@@ -1149,7 +1170,11 @@ $where2 = "";
 
 
 
- if($totaltype == 'agency' || $totaltype == 'county' || $totaltype == 'state')  $entries2  = "SELECT" . ($totaltype == 'agency' ? " `orgnames`.`agency`," : "") . " count(DISTINCT `ClientID`) clientcount,SUM(IF(ServiceCode = 'DV29', 1,0)) `indclientcount`,SUM(IF(ServiceCode = 'DV26', 1,0)) `groupclientcount`,`CountyCode`, SUM(`GrossWages`) `totalwagesum`,SUM(IF(ServiceCode = 'DV29', `GrossWages`,0)) `indwagesum`,SUM(IF(ServiceCode = 'DV26', `GrossWages`,0)) `groupwagesum`, SUM(`HoursPaid`) `totalhourspaid`,SUM(IF(ServiceCode = 'DV29', `HoursPaid`,0)) `indhourspaid`,SUM(IF(ServiceCode = 'DV26', `HoursPaid`,0)) `grouphourspaid` from {ps_billing} billing" . ($totaltype == 'agency' ? " LEFT JOIN {ps_orgs_wa} orgnames ON `billing`.`ProviderNumber` = orgnames.id" : "") . " WHERE$monthspan$where and (`billing`.`ServiceCode` = 'DV26' OR `billing`.`ServiceCode` = 'DV29') AND `HoursPaid` > 0";
+ if($totaltype == 'agency' || $totaltype == 'county' || $totaltype == 'state') {
+   $entries2  = "SELECT" . ($totaltype == 'agency' ? " `orgnames`.`agency`," : "") . " count(DISTINCT `ClientID`) clientcount,SUM(IF(ServiceCode = 'DV29', 1,0)) `indclientcount`,SUM(IF(ServiceCode = 'DV26', 1,0)) `groupclientcount`,`CountyCode`, SUM(`GrossWages`) `totalwagesum`,SUM(IF(ServiceCode = 'DV29', `GrossWages`,0)) `indwagesum`,SUM(IF(ServiceCode = 'DV26', `GrossWages`,0)) `groupwagesum`, SUM(`HoursPaid`) `totalhourspaid`,SUM(IF(ServiceCode = 'DV29', `HoursPaid`,0)) `indhourspaid`,SUM(IF(ServiceCode = 'DV26', `HoursPaid`,0)) `grouphourspaid` from `sta_ps_billing` billing" . ($totaltype == 'agency' ? " LEFT JOIN `sta_ps_orgs_wa` orgnames ON `billing`.`ProviderNumber` = orgnames.id" : "") . " WHERE$monthspan$where and (`billing`.`ServiceCode` = 'DV26' OR `billing`.`ServiceCode` = 'DV29') AND `HoursPaid` > 0";
+
+   $entries3  = "SELECT" . ($totaltype == 'agency' ? " `orgnames`.`agency`," : "") . " count(DISTINCT `ClientID`) `allcount`, SUM(IF(`ServiceCode` = 'DV29',1,0)) 'indempservices', SUM(IF(`ServiceCode` = 'DV26',1,0)) 'grpempservices', SUM(IF(`ServiceCode` = 'DV10',1,0)) 'cominclusion' from `sta_ps_billing` billing" . ($totaltype == 'agency' ? " LEFT JOIN `sta_ps_orgs_wa` orgnames ON `billing`.`ProviderNumber` = orgnames.id" : "") . " WHERE$monthspan$where";
+  }
 
 
 
@@ -1159,13 +1184,13 @@ elseif ($totaltype == 'agency912' || $totaltype == 'county912' || $totaltype == 
 
 
 
-  $entries2  = "SELECT DISTINCT billing.ClientID,  count(IF(HoursPaid >0,1,0))  allemployed,IF(count(IF(HoursPaid >0,1,0)) > 8, 1,0) numninetwelve,IF(`billing`.ServiceCode = 'DV26', 1, 0) grouptotal, IF(`billing`.ServiceCode = 'DV29', 1, 0) indtotal, billing.ProviderNumber from {ps_billing} billing  WHERE$monthspan$where and (`billing`.`ServiceCode` = 'DV26' OR `billing`.`ServiceCode` = 'DV29') AND `billing`.`HoursPaid` > 0 Group By billing.ClientID";
+  $entries2  = "SELECT DISTINCT billing.ClientID,  count(IF(HoursPaid >0,1,0))  allemployed,IF(count(IF(HoursPaid >0,1,0)) > 8, 1,0) numninetwelve,IF(`billing`.ServiceCode = 'DV26', 1, 0) grouptotal, IF(`billing`.ServiceCode = 'DV29', 1, 0) indtotal, billing.ProviderNumber from `sta_ps_billing` billing  WHERE$monthspan$where and (`billing`.`ServiceCode` = 'DV26' OR `billing`.`ServiceCode` = 'DV29') AND `billing`.`HoursPaid` > 0 Group By billing.ClientID";
 
 
-/* $entries2  = "SELECT DISTINCT billing.ClientID, BillingJoin.monthsemployed allemployed,IF(BillingJoin.monthsemployed > 8, 1,0) numninetwelve,IF(`billing`.ServiceCode = 'DV26', 1, 0) grouptotal, IF(`billing`.ServiceCode = 'DV29', 1, 0) indtotal, billing.ProviderNumber from {ps_billing} billing LEFT JOIN (SELECT DISTINCT ClientID,count(IF(HoursPaid >0,1,0)) monthsemployed, ProviderNumber from {ps_billing} billing WHERE$monthspan$where AND (`billing`.`ServiceCode` = 'DV26' OR `billing`.`ServiceCode` = 'DV29') AND `HoursPaid` > 0 GROUP BY ClientID) BillingJoin on billing.ClientID = BillingJoin.ClientID WHERE$monthspan$where and (`billing`.`ServiceCode` = 'DV26' OR `billing`.`ServiceCode` = 'DV29') AND `billing`.`HoursPaid` > 0 Group By billing.ClientID"; */
+/* $entries2  = "SELECT DISTINCT billing.ClientID, BillingJoin.monthsemployed allemployed,IF(BillingJoin.monthsemployed > 8, 1,0) numninetwelve,IF(`billing`.ServiceCode = 'DV26', 1, 0) grouptotal, IF(`billing`.ServiceCode = 'DV29', 1, 0) indtotal, billing.ProviderNumber from `sta_ps_billing` billing LEFT JOIN (SELECT DISTINCT ClientID,count(IF(HoursPaid >0,1,0)) monthsemployed, ProviderNumber from `sta_ps_billing` billing WHERE$monthspan$where AND (`billing`.`ServiceCode` = 'DV26' OR `billing`.`ServiceCode` = 'DV29') AND `HoursPaid` > 0 GROUP BY ClientID) BillingJoin on billing.ClientID = BillingJoin.ClientID WHERE$monthspan$where and (`billing`.`ServiceCode` = 'DV26' OR `billing`.`ServiceCode` = 'DV29') AND `billing`.`HoursPaid` > 0 Group By billing.ClientID"; */
 
  elseif ($totaltype == 'jobtypes')
- $entries2 = "SELECT `orgnames`.`agency`, count(billing.ClientID) numinocc, codes.Value occname from {ps_billing} billing LEFT JOIN {ps_employment} employment on billing.ClientID = employment.ClientID LEFT JOIN {ps_code_lookup} codes on employment.JobType = codes.Code LEFT JOIN {ps_orgs_wa} orgnames ON `billing`.`ProviderNumber` = orgnames.id WHERE$monthspan$where AND employment.StartDate <= '$endmonth' AND MONTH(employment.EndDate) > MONTH('$endmonth') AND billing.ServiceCode = 'DV29' AND billing.HoursPaid > 0 AND employment.JobType IS NOT NULL AND employment.JobType != '' GROUP BY employment.JobType ORDER BY occname";
+ $entries2 = "SELECT `orgnames`.`agency`, count(billing.ClientID) numinocc, codes.Value occname from `sta_ps_billing` billing LEFT JOIN `sta_ps_employment` employment on billing.ClientID = employment.ClientID LEFT JOIN `sta_ps_code_lookup` codes on employment.JobType = codes.Code LEFT JOIN `sta_ps_orgs_wa` orgnames ON `billing`.`ProviderNumber` = orgnames.id WHERE$monthspan$where AND employment.StartDate <= '$endmonth' AND MONTH(employment.EndDate) > MONTH('$endmonth') AND billing.ServiceCode = 'DV29' AND billing.HoursPaid > 0 AND employment.JobType IS NOT NULL AND employment.JobType != '' GROUP BY employment.JobType ORDER BY occname";
 
 
  $runquery = db_query($entries2);
@@ -1177,7 +1202,9 @@ elseif ($totaltype == 'agency912' || $totaltype == 'county912' || $totaltype == 
 
 
 
+
          if ($totaltype == 'agency' || $totaltype == 'county' ||$totaltype == 'state') { $numclients = array();
+           $runqueryall = db_query($entries3);
           while($result = $runquery->fetch(PDO::FETCH_ASSOC)) {
          $numclients['clientcount'] = $result['clientcount'];
           $numclients['indclientcount'] = $result['indclientcount'];
@@ -1193,6 +1220,12 @@ $numclients['groupavgwage'] = $result['groupclientcount'] != 0 ? ($result['group
             $numclients['groupavghours'] = $result['groupclientcount'] != 0 ? ($result['grouphourspaid']/$result['groupclientcount'])/4 : 0;
 
          }
+        while($result2 = $runqueryall->fetch(PDO::FETCH_ASSOC)) {
+             $numclients['allcount'] = $result2['allcount'] ? $result2['allcount'] : 0;
+             $numclients['indempservices'] = $result2['indempservices'] ? $result2['indempservices'] : 0;
+             $numclients['grpempservices'] = $result2['grpempservices'] ? $result2['grpempservices'] : 0;
+             $numclients['cominclusion'] = $result2['cominclusion'] ? $result2['cominclusion'] : 0;
+           }
        //   echo "<h2>$totaltype</h2><pre>$entries2</pre>";
           }
 

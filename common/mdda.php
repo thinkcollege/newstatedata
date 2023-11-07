@@ -628,7 +628,7 @@ class mdda {
          	$vars = array('HrsIndComp','HrsIndCont', 'HrsGroupInt','HrsFac','HrsSelfEmp','HrsComNonWork');	break;
              case 'numberinactivity':
               case 'percent' :
-             	$vars = array('HrsIndComp','HrsIndCont', 'HrsGroupInt','HrsFac','HrsSelfEmp','HrsComNonWork','YN_vol','fac_non_work_partic');	break;
+             	$vars = array('HrsIndComp','HrsIndCont', 'HrsGroupInt','HrsFac','HrsSelfEmp','com_non_work_partic','YN_vol','fac_non_work_partic');	break;
           case 'meanSelfemp':
           case 'totalSelfemp':
           case 'lowSelfemp':
@@ -915,7 +915,7 @@ if ($type == 'numberinactivity2' || $type == 'numberinactivity') $cols .= ', SUM
 	static function getReportingDates($year) {
 		$yearlen = strlen($year) -4;
       $modyear = substr($year, $yearlen,4);
-      $monthlen = strlen($year - 5);
+      $monthlen = strlen((int) $year - 5);
       $month = substr($year, 0, $monthlen);
 		$db = Database::getDatabase();
 		$rs = $db->query("SELECT CONCAT(`joined`.`start_date`,' to ', `joined`.`end_date`) from `mdda_reporting_period` joined WHERE `joined`.`end_date` LIKE '%$modyear' and (date_format(str_to_date(`start_date`, '%m/%d/%Y'), '%M') LIKE '$month%' OR date_format(str_to_date(`end_date`, '%m/%d/%Y'), '%M') LIKE '$month%')") ;

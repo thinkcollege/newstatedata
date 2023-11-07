@@ -15,7 +15,7 @@ $sRegion	= strpos($f['region'], "x_") === 0 ? substr($f['region'], 2) : $f['regi
 $template->add_region('heading', "<em>Employment Supports Performance Outcome System Provider Report<br>"
 	. dds::getProviderName($f['provider']) . "<br>{$f['year']} for "
 	. (!$sRegion ? 'all regions' : $sRegion) . '</em>');
-$template->add_region('sidebar', '<?php $area = "providerindividual"; $show_flash_link = ' . ($print + 0) . '; ?>');
+$template->add_region('sidebar', '<?php $area = "providerindividual"; $show_flash_link = 0; ?>');
 
 $html		= '';
 $providers	= array($f['provider']);
@@ -38,7 +38,7 @@ foreach ($reports as $report) {
 
 			$csvoutput .= 'Number Participating by Activity' . "\r\n"
 			. '"","Total Served (unduplicated count)",Number entered a new individual job in the previous 12 months,#in Individual Competitive Employment,# in Group Integrated Employment, # in Self Employment,# in Job Search, # in Other Day Support and Wrap Around Activities,% inIndividual Competitive Employment,%$ in Group Integrated Employment,% in Self Employment, % in Job Search, % in Other Day Support and Wrap-around Activities ' . "\r\n\"";
-			
+
 			$html  .= '<td rowspan="2">Total Served<BR>(unduplicated count)</td>'
 					. ($f['year'] != "ALL" && $f['year'] >= 2007
 					? '<td rowspan="2">Number entered<BR>a new individual job<BR>in the previous<BR>12 months</td>' : '')
@@ -46,11 +46,11 @@ foreach ($reports as $report) {
 					. "<td colspan=\"5\" align=\"center\">Percent participating in activity</td>"
 					. '</tr><tr><td align="center">Individual<br>Competitive<br>Employment</td>'
 					. '<td align="center">Group<br>Integrated<br>Employment</td><td align="center">Self employment</td>'
-					. '<td align="center">Job<br>Search' 
+					. '<td align="center">Job<br>Search'
 					. '</td><td align="center"">Other day <br />support wrap-around<br />services</td>'
 					. '<td align="center">Individual<br>Competitive<br>Employment</td>'
 					. '<td align="center">Group<br>Integrated<br>Employment</td><td align="center">Self employment</td>'
-					. '<td align="center">Job<br>Search' 
+					. '<td align="center">Job<br>Search'
 					. '</td><td align="center"">Other day <br />support wrap-around<br />services</td>'
 					. "</tr>";
 				} else {
@@ -82,10 +82,10 @@ foreach ($reports as $report) {
 		$csvoutput .="\r\n\r\nSubtotals for Job Search and Wrap-around Activities" ."\r\n"
 					.'"","Total Served (unduplicated count)",Number Participating in job search activities,Discovery or career planning, Job Development,Day and Wrap-Around (total),Community based day services,Day habilitiation program, Other day support services' . "\r\n\"";
 
-			
+
 		$html  .= '<td rowspan="2">Total Served<BR>(unduplicated count)</td>'
 				.  '<td rowspan="2">Job Search (Total)</td>'
-				. "<td colspan=\"2\" align=\"center\">Number Participating in job search activities</td>"		
+				. "<td colspan=\"2\" align=\"center\">Number Participating in job search activities</td>"
 				. '<td rowspan="2">Day and <br />wrap-around <br />activites (Total)</td>'
 
 				. "<td colspan=\"3\" align=\"center\">Number Participating day and wrap-around activities</td>"
@@ -93,10 +93,10 @@ foreach ($reports as $report) {
 				. "</tr><tr><td align=\"center\">Discovery or <br />career planning</td>"
 				. '<td align="center">Job development<br />activities</td>'
 				. '<td align="center">Community based<br />day services</td>'
-				. '<td align="center">Day habilitation <br />program</td>' 
+				. '<td align="center">Day habilitation <br />program</td>'
 				. '<td align="center"">Other day <br />support services</td>'
 				. "</tr>";
-			
+
 	} elseif ($report == "hours") {
 		$csvoutput .="\r\n\r\nHours of Participation by Activity" ."\r\n"
 					.'"","Total Served (unduplicated count)",Number entered a new individual job in the previous 12 months,Mean hours -- individual competitive employment,Mean hours --group integrated employment, % of hours in activity -- individual competitive employment, % of hours in activity -- group integrated employment' . "\r\n\"";
@@ -181,19 +181,19 @@ foreach ($reports as $report) {
 		//	$html  .= '<td rowspan="2">Region</td>';
 		//}
 
-			
+
 		$html  .= '<td rowspan="2">Total Served<BR>(unduplicated count)</td>'
 				.'<td rowspan="2">Number of individs.<br />in self employment</td>'
-				. "<td colspan=\"5\" align=\"center\">Averages</td>"	
+				. "<td colspan=\"5\" align=\"center\">Averages</td>"
 
-				
+
 				.  '</tr><tr><td align=\"center\">Mean Hours in<br />Self Employment</td>'
 
 				. "<td align=\"center\">Mean self<br />employment earning</td>"
 				. '<td align="center">Mean self<br />employment expenses</td>'
 				. '<td align="center">Mean net self<br />employment earnings</td>'
 				. "</tr>";
-			
+
 	}
 
 	//foreach ($providers as $provider) {
@@ -201,7 +201,7 @@ foreach ($reports as $report) {
 	//}
 	$html .= "</table>\n";
 	$csvoutput .= str_replace(array('</td><td>','</td></tr><td>','</td></tr>','<strong>','</strong>','<td><aa/>','<aa/>','<zz/>','<rr/>'),array("\",\"","\"\r\n\"","\"\r\n",'','','','','',''),dds::getRowData('individual', $report));
-	 
+
 }
 $template->add_region('content', $html);
 include("header.php");

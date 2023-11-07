@@ -1,13 +1,12 @@
-<?php 
+<?php
 ini_set("include_path","../../");
 include("common/classes.php");
 $print = !empty($_REQUEST["print"])  && strlen($_REQUEST["print"]) < 3 ? htmlentities($_REQUEST["print"]) : '';
-
 $template = new template;
 $template->define_file($print ? 'dds_print_template.php' : 'dds_template.php');
 $template->add_region('title', '<?php $mre_base=new mre_base; echo $mre_base->mre_base_sitename;?> - Provider Comparison');
 $template->add_region('heading', 'Provider Comparison');
-$template->add_region('sidebar','<?php $area = "comparison"; $show_flash_link = ' . ($print + 0) . '; ?>');
+$template->add_region('sidebar','<?php $area = "comparison"; $show_flash_link = 0; ?>');
 $var	= isset($_REQUEST["var"]) && strlen($_REQUEST["var"]) < 40 ? htmlentities($_REQUEST['var']) : '';
 $f		= dds::getFilterValues();
 $values	= dds::getProviderComparisonArray($var);
@@ -46,11 +45,11 @@ $html	= $mychart->getEmbeddingHTML()
 foreach ($values as $provider => $val) {
 	$html .= "<tr><td>$provider</td><td>$val</td></tr>";
 }
-$html .= "</tbody></table>";	
+$html .= "</tbody></table>";
 if (!$print) {
 	$html .= "<br><a target='_new' href='region_2.php?print=1&year=$year&variable=$var'>Printer-Friendly Format</a>";
 }
 $template->add_region('content', $html);
 include("header.php");
-$template->make_template(); 
+$template->make_template();
 include("footer.php");

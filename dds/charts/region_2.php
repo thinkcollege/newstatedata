@@ -1,6 +1,9 @@
-<?php 
+<?php
 ini_set("include_path","../../");
 include("common/classes.php");
+error_reporting(E_ALL);
+ini_set('display_errors', TRUE);
+ini_set('display_startup_errors', TRUE);
 $template = new template;
 $template->debug();
 $print = !empty($_REQUEST["print"]);
@@ -52,5 +55,5 @@ if (!$print) {
 }
 $template->add_region('content', $html);
 include("header.php");
-$template->make_template(); 
+$template->make_template();
 include("footer.php");

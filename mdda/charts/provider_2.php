@@ -14,7 +14,7 @@ $colors = array("9900CC", "FF9900", "993333"); //purple, orange, brown
 $rep_period = mdda::getReportingDates($f['year']);
 $template->add_region('heading', "Provider Report: " . ($report == 'number' ?  "Numbers in Activity": ($report == 'hours' ? "Hours in Activity Over Two Weeks" : ($report == 'wage' ? "Wages Over Two Weeks by Activity" : "Paid Time Off") )) . (!$f['year'] ? " - for all years," : " - Reporting Period: " . $f['year']) . (!$f['region'] ? " - for all regions," : " - for {$f['region']} region,") . (!$f['areaOffice'] ? " all counties" : " county of  {$f['areaOffice']}") . (!$f['from'] ? "" : ", consumer ages from  {$f['from']} to {$f['to']}"));
 
-$template->add_region('sidebar', '<?php $area = "provider"; $show_flash_link = ' . ($print + 0) . '; ?>');
+$template->add_region('sidebar', '<?php $area="providerindividual"; $show_flash_link = 0; ?>');
 
 $colspan = !$f['year'] || $f['year'] >= 2007 ? 6 : 5;
 if((!$f['from'] && $f['to']) || ($f['from'] && !$f['to'])) { $html =  "<p style=\"font-size: 125%\"><a href=\"" . $_SERVER['HTTP_REFERER'] . "\">Go back and enter both 'To' and 'From' ages</a>.</p>";
@@ -78,7 +78,7 @@ if ($report == "number") {
 			. "<th align=\"center\">Self<br />employment</th>"
 			. "<th align=\"center\">Group<br />integrated<br />job</th>"
 
-			 . "<th align=\"center\">Facility based job</td>"		 
+			 . "<th align=\"center\">Facility based job</td>"
 			 . "<th align=\"center\">Community based non work</td>";
 
 
